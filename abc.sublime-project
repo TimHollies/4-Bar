@@ -1,0 +1,21 @@
+{
+    "folders": [{
+        "path": "."	   
+    }],
+    "settings": {
+        "tab_size": 8,
+        "xdebug": {
+            "path_mapping": {
+                "." : "."
+            },
+            "url": "http://localhost:8000",
+            "super_globals": true,
+            "close_on_stop": true,
+            "aunch_browser": true
+        }
+    },
+    "build_systems": [{
+        "name": "List",
+        "cmd": ["ls"]
+    }]
+}
