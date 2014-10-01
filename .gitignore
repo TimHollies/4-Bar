@@ -6,6 +6,8 @@ node_modules
 
 #bower
 app/vendor
+app/engine/audio/soundfont
 
 #legacy
 legacy
+oldApp

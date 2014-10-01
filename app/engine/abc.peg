@@ -1,0 +1,58 @@
+abc_tune 
+ = note*
+
+DIGIT
+ = [0-9]
+
+INTEGER
+ = d1:DIGIT+ { return parseInt(d1.join('')); }
+
+text
+ = [^\n]*
+
+linefeed
+ = "\n"
+
+space
+ = " "
+
+spaces
+ = space*
+
+basenote 
+= "C" { return { "octave": 4 }; }
+/ "D" { return { "octave": 4 }; }
+/ "E" { return { "octave": 4 }; }
+/ "F" { return { "octave": 4 }; }
+/ "G" { return { "octave": 4 }; }
+/ "A" { return { "octave": 4 }; }
+/ "B" { return { "octave": 4 }; }
+/ "c" { return { "octave": 5 }; }
+/ "d" { return { "octave": 5 }; }
+/ "e" { return { "octave": 5 }; }
+/ "f" { return { "octave": 5 }; }
+/ "g" { return { "octave": 5 }; }
+/ "a" { return { "octave": 5 }; }
+/ "b" { return { "octave": 5 }; }
+
+note_length 
+= d1:INTEGER ("/" INTEGER)? { return d1; }
+
+accidental 
+= "^" / "^^" / "_" / "__" / "="
+
+note_or_rest =
+ pitch / rest
+
+pitch 
+= a1:accidental? n1:basenote o1:octave? { n1.accidental = a1; n1.octave += o1; return n1; }
+
+octave 
+= o1:("'"+) { return o1.length; }
+/ o1:(","+) { return -o1.length; }
+
+rest 
+= "z"
+
+note 
+= n1:note_or_rest d1:note_length? { n1.duration = d1; return n1; }

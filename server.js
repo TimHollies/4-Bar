@@ -6,11 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
+var databaseSetup = require('./data/database');
 
 var app = express();
 
 // view engine setup
-app.use(express.static(__dirname + '/views'));
+app.use(express.static(__dirname + '/app'));
 
 app.use(favicon());
 app.use(logger('dev'));
@@ -29,6 +30,8 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
+
+databaseSetup();
 
 /// error handlers
 

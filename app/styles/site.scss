@@ -1,0 +1,89 @@
+@import '../vendor/toastr/toastr.scss';
+
+@import 'variables';
+
+@import '../vendor/font-awesome/scss/font-awesome.scss';
+
+@import 'layout';
+
+
+
+body {
+    background-color: #EEEEEE;
+    font-family: sans-serif;
+}
+
+#abc {
+    width: 100%;
+    height: 90%;
+    font-family: 'Inconsolata', sans-serif;
+    font-size: large;
+    margin: 8px;
+    padding: 8px;
+    border: 0;
+    resize: none;
+    background-color: transparent;
+    outline: none;
+    min-height: 320px;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Inconsolata', sans-serif;
+}
+
+.right-divide {
+    //border-right: grey solid 1px;
+    //margin-right:32px;
+}
+
+.grow-on-hover {
+    cursor: pointer;
+    &:hover {
+        box-shadow: rgba(0, 0, 0, 0.42) 6px 6px;
+        transform: scale(1.02);
+    }
+}
+
+.item-list {
+    list-style: none;
+    padding: 0;
+    li {
+        padding: 10px;
+        background-color: #adadad;
+        margin-bottom: 10px;
+        &:last-child {
+            margin-bottom: 0px;
+        }
+        box-shadow: rgba(0, 0, 0, 0.42) 4px 4px;        
+        @extend .grow-on-hover;
+    }
+}
+
+.tile-button {
+    background-color: #060;
+    width: 160px;
+    padding: 10px;
+    color: white;
+    height: 80px;
+    box-shadow: rgba(0, 0, 0, 0.32) 4px 4px;
+    h4 {
+        margin: 0;
+    }
+    @extend .grow-on-hover;
+}
+
+.tile-button-container {
+    padding-top: 56px;
+}
+
+.flat-button {
+    padding: 10px;
+    display: inline-block;
+    cursor: pointer;
+    &:hover {  
+        background-color: rgba(0,0,0,0.1);
+    }
+    p {
+        margin: 0;
+    }
+}
