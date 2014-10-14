@@ -9,6 +9,15 @@ requirejs.config({
     paths: {
         jquery: '/vendor/jquery/dist/jquery',
         ractive: '/vendor/ractive/ractive',
-        rx: '/vendor/rxjs/dist/rx.all'
+        rx: '/vendor/rxjs/dist/rx.all',
+        toastr: 'vendor/toastr/toastr',
+        lodash: 'vendor/lodash/dist/lodash',
+        midijs: 'scripts/midi.js/MIDI',
+        svgjs: 'vendor/svgjs/svg'
+    },
+    shim: {
+        midijs: {
+            deps: ['scripts/midi.js/base64binary']
+        }
     }
 });

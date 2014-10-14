@@ -6,11 +6,16 @@
 
 @import 'layout';
 
+@import 'colors';
 
 
-body {
-    background-color: #EEEEEE;
+body {    
     font-family: sans-serif;
+    margin: 0;
+    color: $color_text;
+    &.image {
+        background-image: url('/styles/images/background.png');
+    }    
 }
 
 #abc {
@@ -25,15 +30,11 @@ body {
     background-color: transparent;
     outline: none;
     min-height: 320px;
+    margin-top: 12px;
 }
 
 h1, h2, h3, h4 {
     font-family: 'Inconsolata', sans-serif;
-}
-
-.right-divide {
-    //border-right: grey solid 1px;
-    //margin-right:32px;
 }
 
 .grow-on-hover {
@@ -49,31 +50,34 @@ h1, h2, h3, h4 {
     padding: 0;
     li {
         padding: 10px;
-        background-color: #adadad;
-        margin-bottom: 10px;
         &:last-child {
-            margin-bottom: 0px;
+            border-bottom: 0;
         }
-        box-shadow: rgba(0, 0, 0, 0.42) 4px 4px;        
-        @extend .grow-on-hover;
+        border-bottom: #CCC solid 1px;
+        cursor: pointer;
+        &:hover {
+            background-color: #CCC;
+        }
+        small {
+            color: $color_text_secondary;
+        }
     }
 }
 
 .tile-button {
-    background-color: #060;
+    border: $color_light solid 1px;
     width: 160px;
     padding: 10px;
-    color: white;
-    height: 80px;
-    box-shadow: rgba(0, 0, 0, 0.32) 4px 4px;
+    height: 180px;
+    cursor: pointer;
+   // box-shadow: rgba(0, 0, 0, 0.32) 4px 4px;
     h4 {
         margin: 0;
     }
-    @extend .grow-on-hover;
 }
 
 .tile-button-container {
-    padding-top: 56px;
+    padding: 20px;
 }
 
 .flat-button {
@@ -86,4 +90,47 @@ h1, h2, h3, h4 {
     p {
         margin: 0;
     }
+}
+
+#search-box {
+    background-color: white;
+    border: gray solid 1px;
+    border-radius: 3px;
+    padding: 8px;
+    input {
+        width: 92%;
+        border: 0;
+        font-size: 16px;
+        outline: none;
+    }
+    i {
+        width: 4%;
+    }
+}
+
+#shading {
+    background-color: $color_light;
+    min-height: 100%;    
+    position: fixed;
+    z-index: -10;
+    width: 25%;
+    box-shadow: rgb(185, 185, 185) 0px 0px 1px 1px;
+}
+
+.google-button {
+    background-color: rgb(201, 0, 0);
+    padding: 8px;
+    border-radius: 4px;
+    border: black solid 1px;
+    color: white;
+    text-decoration: none;
+    &:hover {
+        background-color: rgb(101, 0, 0);
+    }
+}
+
+.user-box {
+    float: right;
+    padding: 10px;
+    padding-right: 50px;
 }

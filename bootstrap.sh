@@ -10,3 +10,7 @@ sudo apt-get update
 # install dependencies
 sudo apt-get install -y npm
 sudo apt-get install -y mongodb-org
+
+#install application
+sudo npm run-script seed
+sudo npm start

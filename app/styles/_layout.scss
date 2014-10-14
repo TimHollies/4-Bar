@@ -8,6 +8,12 @@
     &.two-thirds {
         width: 66.66666667%
     }
+    &.quarter {
+        width: 25%;
+    }
+    &.three-quarters{
+        width: 75%;
+    }
  }
 
 .container {
@@ -23,12 +29,14 @@
 }
 
 .header.row {
-    padding-left: 35px;
+    padding: 20px 0px 20px 35px;
+    h1 {
+        display:inline;
+    }
+    z-index: -100;
 }
-
+ 
 .canvas {
-    background-color: white;
     min-height: 320px;
     padding: 20px;
-    border: gray solid 1px;
 }

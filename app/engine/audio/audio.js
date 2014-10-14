@@ -1,26 +1,20 @@
 define([
-    'engine/jsmidi',
-    'engine/dsp'
+    'midijs'
 ], function() {
     'use strict';
-    
-    var audio = new Audio();
-    var wave = new RIFFWAVE();
-    wave.header.sampleRate = 44100;
-    var data = [];
-    
-    var osc = new Oscillator(DSP.SQUARE, 440, 127, wave.header.sampleRate * 0.5, 22050);
-    osc.generate();
-    data = data.concat(Array.prototype.slice.call(osc.signal).map(function(a) { return a + 128; }));
-    
-    var osc = new Oscillator(DSP.SQUARE, 220, 127, wave.header.sampleRate  * 0.25, 22050);
-    osc.generate();
-    data = data.concat(Array.prototype.slice.call(osc.signal).map(function(a) { return a + 128; }));
-    
-    console.log(data);
-    wave.Make(data);
-    audio.src = wave.dataURI;
-    audio.play();
-    
+
+	MIDI.loadPlugin({
+		soundfontUrl: "./soundfonts/",
+		instrument: "acoustic_grand_piano",
+		callback: function() {
+			var delay = 0; // play one note every quarter second
+			var note =90; // the MIDI note
+			var velocity = 50; // how hard the note hits
+			// play the note
+			MIDI.setVolume(0, 127);
+			MIDI.noteOn(0, note, velocity, delay);
+			MIDI.noteOff(0, note, delay + 0.75);
+		}
+	});
     
 });

@@ -6,12 +6,12 @@
 <div class="container editor" intro='fade'>
     <div class="column third">
         <div class="text-area-padding">
-            <textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" placeholder="Start typing a tune.." />
+            <textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" on-paste="editor_paste" placeholder="Start typing a tune.." />
         </div>
     </div>
     <div class="column two-thirds">
-        <div class="canvas">
-            <p>{{outputValue}}</p>
+        <div id="canvas">
+            
         </div>
         
     </div>

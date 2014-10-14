@@ -4,25 +4,86 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var passport = require('passport');
+var GoogleStrategy = require('passport-google').Strategy;
+
 
 var routes = require('./routes/index');
 var databaseSetup = require('./data/database');
 
 var app = express();
 
-// view engine setup
-app.use(express.static(__dirname + '/app'));
-
 app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({secret:'something'}));
 
-app.use(express.static(path.join(__dirname, 'app')));
 
-app.use('/', routes);
+passport.serializeUser(function(user, done) {
+  done(null, user.identifier);
+});
+
+passport.deserializeUser(function(obj, done) {
+  databaseSetup.getUser(obj)
+  .then(function(user) {
+    done(null, user);
+  });
+  
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new GoogleStrategy({
+    returnURL: 'http://localhost:3000/auth/google/return',
+    realm: 'http://localhost:3000/'
+  },
+  function(identifier, profile, done) {
+     //process.nextTick(function () {
+      
+      // To keep the example simple, the user's Google profile is returned to
+      // represent the logged-in user.  In a typical application, you would want
+      // to associate the Google account with a user record in your database,
+      // and return that user instead.
+      profile.identifier = identifier;
+      console.log(profile);
+
+      databaseSetup.getUser(identifier)
+      .then(function(user){
+        console.log("USER", user);
+        if(!user) databaseSetup.addUser(profile);
+        return done(null, profile);        
+      });
+  }
+));
+
+
+app.use('/', express.static(path.join(__dirname, 'app')));
+
+app.use('/api', routes);
+
+app.get('/auth/google',
+  passport.authenticate('google'),
+  function(req, res){
+    res.redirect('/');
+    // The request will be redirected to Google for authentication, so
+    // this function will not be called.
+  });
+
+app.get('/auth/google/return', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+ });
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
+});
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -30,8 +91,6 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
-
-databaseSetup();
 
 /// error handlers
 
@@ -56,6 +115,5 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
 
 module.exports = app;

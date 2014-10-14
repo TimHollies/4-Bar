@@ -1,18 +1,33 @@
 <div class="header row" intro='fade'>
-    <h1>Welcome to WebABC</h1><small>Version 0.0.1</small>
-</div>
+            <h1>Welcome to WebABC</h1><small>Version 0.0.1</small>
+            <div class="user-box">
+                {{#if loggedIn === false }}
+                    <a href="/auth/google" class="google-button"><span class="fa fa-google-plus"></span> Google</a>
+                {{else}}
+                    <span>Hi {{user.name.givenName}}</span>
+                    <a href="/logout">Log out</a>
+                {{/if}}
+            </div>
+        </div>
+<div id="shading"></div>
 <div class="container editor">
-    <div class="column third right-divide" intro='fade:{ delay: 100 }'>
+    
+    <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>
+        
         <div class="text-area-padding">
             <h3>Recent Tunes</h3>
+            <div id="search-box">
+                <i class="fa fa-search"></i>
+                <input on-change="updated_search" type="text" value="{{search_filter}}" />                
+            </div>
             <ul class="item-list">
-                <li>Catharsis</li>
-                <li>Fair Jennys</li>
-                <li>Stomach Stienway Man</li>
+                {{#each filterTuneNames(tuneNames, search_filter)}}
+                    <li on-click="new_tune">{{name}}<br><small>12/09/2014 - Reel - Gm</small></li>
+                {{/each}}
             </ul>
         </div>
     </div>
-    <div class="column two-thirds" intro='fade:{ delay: 200 }'>
+    <div class="column three-quarters" intro='fade:{ delay: 200 }'>
         <div class="tile-button-container">
             <div class="tile-button" on-click="new_tune">
                 <h4>+ New Tune</h4>
