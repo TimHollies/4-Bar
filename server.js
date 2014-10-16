@@ -62,6 +62,7 @@ passport.use(new GoogleStrategy({
 
 
 app.use('/', express.static(path.join(__dirname, 'app')));
+//app.use('/', express.static(path.join(__dirname, 'build')));
 
 app.use('/api', routes);
 

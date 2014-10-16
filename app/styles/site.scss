@@ -18,31 +18,24 @@ body {
     }    
 }
 
+#abc-container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
 #abc {
-    width: 100%;
-    height: 90%;
     font-family: 'Inconsolata', sans-serif;
     font-size: large;
-    margin: 8px;
-    padding: 8px;
     border: 0;
     resize: none;
     background-color: transparent;
     outline: none;
-    min-height: 320px;
-    margin-top: 12px;
+    flex: 1;
 }
 
 h1, h2, h3, h4 {
     font-family: 'Inconsolata', sans-serif;
-}
-
-.grow-on-hover {
-    cursor: pointer;
-    &:hover {
-        box-shadow: rgba(0, 0, 0, 0.42) 6px 6px;
-        transform: scale(1.02);
-    }
 }
 
 .item-list {
@@ -108,29 +101,35 @@ h1, h2, h3, h4 {
     }
 }
 
-#shading {
-    background-color: $color_light;
-    min-height: 100%;    
-    position: fixed;
-    z-index: -10;
-    width: 25%;
-    box-shadow: rgb(185, 185, 185) 0px 0px 1px 1px;
-}
-
 .google-button {
-    background-color: rgb(201, 0, 0);
-    padding: 8px;
+    background-color: #dd4b39;
     border-radius: 4px;
-    border: black solid 1px;
+    border: rgb(155, 105, 105) solid 1px;
     color: white;
     text-decoration: none;
+    width: 164px;
+    font-size: 12px;
     &:hover {
         background-color: rgb(101, 0, 0);
     }
+    .left {
+        display: inline;
+        i {
+            padding: 8px;
+            font-size: large;
+        }
+    }    
+    .right {
+        display: inline;
+    } 
 }
 
 .user-box {
     float: right;
     padding: 10px;
     padding-right: 50px;
+}
+
+.tune-title {
+    font-style: italic;
 }

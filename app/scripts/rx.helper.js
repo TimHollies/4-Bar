@@ -18,7 +18,6 @@ define([
         return Rx.Observable.create(function(observer) {
             lexer.lex(inputValue, function(a) { observer.onNext(a); });
         });       
-    }
-    
+    }    
     return Rx;
 });

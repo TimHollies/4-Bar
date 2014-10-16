@@ -4,38 +4,27 @@ define([
 ], function(lexer, _) {
     'use strict';        
     
-    var buffer = "";
-    var objectStore = [];
-    var map = [];
-    
     window.lex = function(input) {
         lexer.lex(input, function(a) { console.log(a); });
     }
     
-    return function(inputValue) {
-        var 
-            toParse,
-            out,
-            objectStoreOffset = 0;
-        
-        if(objectStore.length > 0) {
-            objectStoreOffset = -1;
-            while(inputValue.start + objectStoreOffset > 0) {
-                if(objectStore[inputValue.start + objectStoreOffset])break;
-                objectStoreOffset--;
-            }
-        }
-        
-        toParse = objectStore[inputValue.start + objectStoreOffset] ? objectStore[inputValue.start + objectStoreOffset].text + inputValue.text : inputValue.text;
-        var out = lexer.collect(toParse);
-        if(out.length === 0)return null;
-        
-        for(var i=0; i<out.length; i++) {
-            var startId = out[i].id + inputValue.start + objectStoreOffset;
-            objectStore[startId] = out[i];
-            for(var j=0; j<out[i].text.length; j++)map[startId + j] = startId;
-        }       
+    return function(line) {
 
-        return objectStore;       
+        if(line.type_class != "delete") {
+            line.parsed = lexer.collect(line.raw);
+                
+            if(line.parsed.length === 1 && line.parsed[0].type_class === "data") {
+                line.type_class = "data";
+            } else {
+                line.type_class = "drawable";
+            }
+            
+            if(_.last(line.parsed) instanceof Error) {
+                line.error = true;
+                line.parsed = _.without(line.parsed, _.last(line.parsed));
+            }
+        }        
+        
+        return line;       
     }    
 });

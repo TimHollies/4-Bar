@@ -3,7 +3,8 @@ var gulp = require('gulp'),
     mocha = require('gulp-mocha'),
     jslint = require('gulp-jslint'),
     livereload = require('gulp-livereload'),
-    sass = require('gulp-sass');
+    sass = require('gulp-sass'),
+    ractive = require('./modified_node_modules/gulp-hogan-compile/index.js');
 
 gulp.task('default', ['watch']);
 
@@ -21,7 +22,13 @@ gulp.task('test', function() {
         .pipe(mocha({reporter: 'spec'}));
 });
 
+gulp.task('templates', function() {
+    gulp.src('app/**/*.htm')
+        .pipe(ractive('templates.js'))
+        .pipe(gulp.dest('./app/scripts'));
+});
+
 gulp.task('watch', function() {
-    gulp.watch('./app/engine/abc.peg', [ 'peg' ]);
     gulp.watch('./app/styles/*.scss', [ 'sass' ]);
+    gulp.watch('app/**/*.htm', [ 'templates' ]);
 });

@@ -2,15 +2,15 @@ define(["home/home", "editor/editor"],
     function(home, editor) {
         return {
             "": {
-                template: "/home/home.htm",
+                template: "home",
                 model: home
             },
             editor: {
-                template: "/editor/editor.htm",
+                template: "editor",
                 model: editor
             },
             dog: {
-                template: "/home/home.htm",
+                template: "home",
                 model: {
                     title: "Test Title 2",
                     body: "WOOOOOOOOOOOOOOOOOOOOOOOooooooooooooooooooooooooooooWWWWWWWWWWWWWWWWoooooooooooooooo"

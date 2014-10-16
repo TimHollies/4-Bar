@@ -2,8 +2,9 @@ define([
     'scripts/rx.helper',
     'scripts/adaptors/ractive-adaptors-rxjs',
     'scripts/transitions/ractive.transitions.fade',
+    'scripts/transitions/ractive.transitions.fly',
     'toastr'], 
-       function(Rx, adapter, fade, toastr) {
+       function(Rx, adapter, fade, fly, toastr) {
     
     'use strict';
 
