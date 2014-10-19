@@ -13,7 +13,8 @@ requirejs.config({
         toastr: 'vendor/toastr/toastr',
         lodash: 'vendor/lodash/dist/lodash',
         midijs: 'scripts/midi.js/MIDI',
-        svgjs: 'vendor/svgjs/svg'
+        svgjs: 'vendor/svgjs/svg',
+        jsDiff: 'vendor/jsdiff/diff'
     },
     shim: {
         midijs: {

@@ -25,6 +25,7 @@
     "rxjs": "~2.2.26",
     "toastr": "~2.0.3",
     "lodash": "~2.4.1",
-    "ractive": "edge"
+    "ractive": "edge",
+    "jsdiff": "~1.0.8"
   }
 }

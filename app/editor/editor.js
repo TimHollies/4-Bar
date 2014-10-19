@@ -4,9 +4,10 @@ define([
     'scripts/adaptors/ractive-adaptors-rxjs',
     'engine/parser',
     'engine/render',
+    'jsDiff',
     'scripts/transitions/ractive.transitions.fade',
-    'scripts/transitions/ractive.transitions.fly'
-], function(_, Rx, adapter, parser, renderer) {
+    'scripts/transitions/ractive.transitions.fly',
+], function(_, Rx, adapter, parser, renderer, diff) {
     
     'use strict';
     
@@ -27,47 +28,79 @@ define([
                 i: index
             };
         }
-    
+        
         //select many:
         function linesInChange(change) {
-            var currentLines = change.newValue.split("\n"),
-                lineDiff = currentLines.length - lines.length,
-                mappedCurrentLines = currentLines.map(addIndexToObject);
             
-            if(lineDiff < 0) {
-                lines = _.first(lines, lines.length + lineDiff);
-                mappedCurrentLines.push({
-                    type_class: "delete",
-                    count: lineDiff
-                });
-            }
-            
-            return Rx.Observable.fromArray(mappedCurrentLines);
+            return Rx.Observable.create(function(observer) {
+                function get_diff(matrix, a1, a2, x, y) {
+                if (x > 0 && y > 0 && a1[y-1] === a2[x-1]) {
+                  get_diff(matrix, a1, a2, x-1, y-1);
+                  //make_row(x, y, ' ', a1[y-1]);
+                   if(x !== y)
+                        observer.onNext({ action: "move", i: x-1, j: y-1 });
+                }
+                else {
+                  if (x > 0 && (y === 0 || matrix[y][x-1] >= matrix[y-1][x])) {
+                    get_diff(matrix, a1, a2, x-1, y);
+                    //make_row(x, '', '+', a2[x-1]);
+                      observer.onNext({ raw: a2[x-1], i: x-1, action: "add" });
+                  }
+                  else if (y > 0 && (x === 0 || matrix[y][x-1] < matrix[y-1][x])) {
+                    get_diff(matrix, a1, a2, x, y-1);
+                    //make_row('', y, '-', a1[y-1]);
+                      observer.onNext({ raw: a1[y-1], i: y-1, action: "del" });
+                  }
+                  else {
+                    return;
+                  }
+                }
+              }
+
+              function diff(a1, a2) {
+                var matrix = new Array(a1.length + 1);
+                var x, y;
+
+                for (y = 0; y < matrix.length; y++) {
+                  matrix[y] = new Array(a2.length + 1);
+
+                  for (x = 0; x < matrix[y].length; x++) {
+                    matrix[y][x] = 0;
+                  }
+                }
+
+                for (y = 1; y < matrix.length; y++) {
+                  for (x = 1; x < matrix[y].length; x++) {
+                    if (a1[y-1] === a2[x-1]) {
+                      matrix[y][x] = 1 + matrix[y-1][x-1];
+                    }
+                    else {
+                      matrix[y][x] = Math.max(matrix[y-1][x], matrix[y][x-1]);
+                    }
+                  }
+                }
+
+                get_diff(matrix, a1, a2, x-1, y-1);
+              }
+                
+                diff((change.oldValue || "").split('\n'), (change.newValue || "").split('\n'));
+            }); 
         }
-        
-        //filter:
-        function unchangedLines(line) {
-            if(line.type_class === "delete")return true;
-            if(lines[line.i] === line.raw) return false;
-            if(line.type_class != "delete") lines[line.i] = line.raw;
-            return true;
-        }        
         
         //composition root
         Rx.Observable.fromRactive(ractive, 'inputValue')
         .selectMany(linesInChange)
-        .filter(unchangedLines)
         .map(parser)
         .map(renderer.onNext)
         .subscribe(function(a) { 
-            console.log(a); 
+            //console.log(a); 
             if(a.type_class === "data" && a.parsed[0].type === "title") {
-                if(a.parsed[0].title.length > 0) {
+                if(!a.del && a.parsed[0].title.length > 0) {
                     ractive.set("title", a.parsed[0].title);
                 } else {
                     ractive.set("title", emptyTuneName);
                 }                
-            }            
+            }      
         }, function(a) { 
             console.log(a); 
         });
