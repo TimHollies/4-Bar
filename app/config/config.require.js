@@ -13,7 +13,7 @@ requirejs.config({
         toastr: 'vendor/toastr/toastr',
         lodash: 'vendor/lodash/dist/lodash',
         midijs: 'scripts/midi.js/MIDI',
-        svgjs: 'vendor/svgjs/svg',
+        svgjs: 'scripts/svgjs/svg',
         jsDiff: 'vendor/jsdiff/diff'
     },
     urlArgs: 'now=' + Date.now(),
