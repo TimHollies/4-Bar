@@ -1845,7 +1845,7 @@ body {
   padding: 20px; }
 
 #abc {
-  font-family: 'Inconsolata', sans-serif;
+  font-family: Courier New;
   font-size: large;
   border: 0;
   resize: none;

@@ -4,11 +4,8 @@ define([
 ], function(lexer, _) {
     'use strict';        
     
-    window.lex = function(input) {
-        lexer.lex(input, function(a) { console.log(a); });
-    }
-    
     var cache = {};
+    var drawableIndex = 0;
     
     function lex(string) {
         if(cache[string] !== undefined)return cache[string];
@@ -27,6 +24,7 @@ define([
                 line.type_class = "data";
             } else {
                 line.type_class = "drawable";
+                line.drawIndex = drawableIndex++;
             }
             
             if(_.last(line.parsed) instanceof Error) {

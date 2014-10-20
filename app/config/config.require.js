@@ -1,6 +1,6 @@
 requirejs.config({
     //By default load any module IDs from js/lib
-    baseUrl: './',
+    baseUrl: '/',
     //except, if the module ID starts with "app",
     //load it from the js/app directory. paths
     //config is relative to the baseUrl, and
@@ -16,6 +16,7 @@ requirejs.config({
         svgjs: 'vendor/svgjs/svg',
         jsDiff: 'vendor/jsdiff/diff'
     },
+    urlArgs: 'now=' + Date.now(),
     shim: {
         midijs: {
             deps: ['scripts/midi.js/base64binary']

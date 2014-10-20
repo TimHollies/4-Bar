@@ -33,23 +33,29 @@ define([
         function linesInChange(change) {
             
             return Rx.Observable.create(function(observer) {
+                
+                var 
+                    newSplit = (change.newValue || "").split('\n'),
+                    oldSplit = (change.oldValue || "").split('\n'),
+                    newLength = Math.max(newSplit.length, oldSplit.length);
+                
                 function get_diff(matrix, a1, a2, x, y) {
                 if (x > 0 && y > 0 && a1[y-1] === a2[x-1]) {
                   get_diff(matrix, a1, a2, x-1, y-1);
                   //make_row(x, y, ' ', a1[y-1]);
                    if(x !== y)
-                        observer.onNext({ action: "move", i: x-1, j: y-1 });
+                        observer.onNext({ action: "move", i: x-1, j: y-1, newLength: newLength });
                 }
                 else {
                   if (x > 0 && (y === 0 || matrix[y][x-1] >= matrix[y-1][x])) {
                     get_diff(matrix, a1, a2, x-1, y);
                     //make_row(x, '', '+', a2[x-1]);
-                      observer.onNext({ raw: a2[x-1], i: x-1, action: "add" });
+                      observer.onNext({ raw: a2[x-1], i: x-1, action: "add", newLength: newLength });
                   }
                   else if (y > 0 && (x === 0 || matrix[y][x-1] < matrix[y-1][x])) {
                     get_diff(matrix, a1, a2, x, y-1);
                     //make_row('', y, '-', a1[y-1]);
-                      observer.onNext({ raw: a1[y-1], i: y-1, action: "del" });
+                      observer.onNext({ raw: a1[y-1], i: y-1, action: "del", newLength: newLength });
                   }
                   else {
                     return;
@@ -82,8 +88,9 @@ define([
 
                 get_diff(matrix, a1, a2, x-1, y-1);
               }
-                
-                diff((change.oldValue || "").split('\n'), (change.newValue || "").split('\n'));
+        
+                diff(oldSplit, newSplit);
+                //observer.onNext({ action: "endofinput" });
             }); 
         }
         
@@ -95,7 +102,7 @@ define([
         .subscribe(function(a) { 
             //console.log(a); 
             if(a.type_class === "data" && a.parsed[0].type === "title") {
-                if(!a.del && a.parsed[0].title.length > 0) {
+                if(!(a.action === "del") && a.parsed[0].title.length > 0) {
                     ractive.set("title", a.parsed[0].title);
                 } else {
                     ractive.set("title", emptyTuneName);

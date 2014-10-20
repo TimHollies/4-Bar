@@ -8,8 +8,11 @@ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | 
 sudo apt-get update
 
 # install dependencies
-sudo apt-get install -y npm
-sudo apt-get install -y mongodb-org
+sudo apt-get install -y npm --force-yes
+sudo apt-get install -y mongodb-org --force-yes
+
+sudo npm install
+sudo bower install
 
 #install application
 sudo npm run-script seed
