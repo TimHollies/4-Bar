@@ -26,6 +26,7 @@
     "toastr": "~2.0.3",
     "lodash": "~2.4.1",
     "ractive": "edge",
-    "jsdiff": "~1.0.8"
+    "jsdiff": "~1.0.8",
+    "font-awesome": "~4.2.0"
   }
 }

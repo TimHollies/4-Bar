@@ -12,7 +12,9 @@ sudo apt-get install -y npm --force-yes
 sudo apt-get install -y mongodb-org --force-yes
 
 sudo npm install
-sudo bower install
+sudo npm install bower -g
+
+bower install --allow-root 
 
 #install application
 sudo npm run-script seed
