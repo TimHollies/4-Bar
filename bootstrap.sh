@@ -13,6 +13,11 @@ sudo apt-get install -y mongodb-org --force-yes
 
 sudo npm install
 sudo npm install bower -g
+sudo npm install forever -g
+
+cd modified_node_modules/gulp-hogan-compile
+sudo npm install
+cd ../..
 
 bower install --allow-root 
 

@@ -1,6 +1,5 @@
 var gulp = require('gulp'),
     path = require('path'),
-    mocha = require('gulp-mocha'),
     jslint = require('gulp-jslint'),
     livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
