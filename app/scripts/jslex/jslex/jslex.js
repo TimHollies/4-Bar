@@ -113,8 +113,8 @@ define(["lodash"], function(_) {
                 nlre = /\n/g,
             
                 // initial state
-                state = states[0];
-            
+                state = states[0];            
+    
             /**
              * The api bject will be set to "this" when executing spec callbacks.
              */ 

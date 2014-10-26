@@ -9,17 +9,13 @@ define([
     var 
         draw,  
         scoreLines,
-        title,
+        data = {},
         lineHeight = 25; 
-    
-    var trimUndefined = function() {
-        
-    }
     
     var arrangeGroups = function() {
         var offset = 0;
         
-        if(title != null)offset = 4;
+        if(data.title != null)offset = 4;
         
         for(var i=0; i<scoreLines.length; i++) {
             if(scoreLines[i] === undefined)continue;
@@ -44,17 +40,16 @@ define([
                 totalOffset += drawingFunctions[a.parsed[j].type](scoreLines[a.i], a, j, totalOffset);
                 
         },
-        "data": function(a) {
-            if(a.parsed[0].type === "title") {
-                scoreLines[a.i] = 0;
-                if(title) title.remove();
-                title = draw.text(a.parsed[0].title).font({
-                          family:   'Georgia'
-                        , size:     32
-                        , anchor:   'middle'
-                        , leading:  '1.5em'
-                        }).move(400, 0);
+        "data": function(a)  {
+            
+            scoreLines[a.i] = 0;
+            
+            if(informationFieldFunctions[a.parsed[0].type] === undefined) {
+                console.log("NOT YET IMPLEMENTED");
+                return;
             }
+            
+            informationFieldFunctions[a.parsed[0].type](a);
         }
     };
     
@@ -64,11 +59,15 @@ define([
             scoreLines[a.i] = undefined;             
         },
         "data": function(a) {
-            if(a.parsed[0].type === "title") {
-                title.remove();
-                title = null;
-                scoreLines[a.i] = undefined;    
+            
+            scoreLines[a.i] = undefined; 
+            
+            if(informationFieldFunctions[a.parsed[0].type] === undefined) {
+                console.log("NOT YET IMPLEMENTED");
+                return;
             }
+            
+            delInformationFieldFunctions[a.parsed[0].type](a);
         }
     };
     
@@ -85,7 +84,6 @@ define([
             if(a.i<a.j) {        
                 scoreLines[a.i] = scoreLines[a.j];
                 scoreLines[a.j] = undefined;
-                //scoreLines.splice(a.j, 0);
             }
             console.log("MOV", scoreLines);
         },
@@ -94,15 +92,49 @@ define([
     
     var drawingFunctions = {
         "note": function(line, a, j, totalOffset) {
-            line.rect(a.parsed[j].notelength*20,20).attr({ fill: a.error ? '#000' : randomColor({luminosity: 'dark'}) }).move(totalOffset,0);
+            line.rect(a.parsed[j].notelength*20,20).attr({ fill: a.error ? '#F00' : randomColor({luminosity: 'dark'}) }).move(totalOffset,0);
             return a.parsed[j].notelength*20 + 5;            
         },
         "barline": function(line, a, j, totalOffset) {
-            line.circle(20).attr({ fill: "#CCC" }).move(totalOffset,0 + (a.i*25));
+            line.circle(20).attr({ fill: "#CCC" }).move(totalOffset,0);
+            return 25;
+        },
+        "space": function() {
             return 25;
         }
     };
     
+    var informationFieldFunctions = {
+        "title" : function(a) {            
+            if(data.title) data.title.remove();
+            data.title = draw.text(a.parsed[0].data).font({
+                        family:   'Georgia'
+                        , size:     32
+                        , anchor:   'middle'
+                        , leading:  '1.5em'
+                        }).move(400, 0);
+        },
+        "rhythm": function(a) {
+            if(data.rhythm) data.rhythm.remove();
+            data.rhythm = draw.text(a.parsed[0].data).font({
+                        family:   'Georgia'
+                        , size:     16
+                        , anchor:   'middle'
+                        , leading:  '1.5em'
+                        }).move(20, 60);
+        }
+    }
+    
+     var delInformationFieldFunctions = {
+        "title" : function(a) {            
+            data.title.remove();
+            data.title = null; 
+        },
+        "rhythm": function(a) {
+            data.rhythm.remove();
+            data.rhythm = null;
+        }
+    }
     
     //exported functions
     var exportFunctions = {};
@@ -113,11 +145,9 @@ define([
     };   
     
     exportFunctions.onNext = function(a) {
-        if(!a.error) {
-            actionHandler[a.action](a);
-            arrangeGroups();
-            scoreLines = scoreLines.slice(0, a.newLength);
-        }
+        actionHandler[a.action](a);
+        arrangeGroups();
+        scoreLines = scoreLines.slice(0, a.newLength);
         return a;
     };    
     

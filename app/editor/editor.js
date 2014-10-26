@@ -98,16 +98,16 @@ define([
         Rx.Observable.fromRactive(ractive, 'inputValue')
         .selectMany(linesInChange)
         .map(parser)
-        .map(renderer.onNext)
+        //.map(renderer.onNext)
         .subscribe(function(a) { 
-            //console.log(a); 
-            if(a.type_class === "data" && a.parsed[0].type === "title") {
-                if(!(a.action === "del") && a.parsed[0].title.length > 0) {
-                    ractive.set("title", a.parsed[0].title);
+            //if(a.action != "del")console.log(a.parsed); 
+            /*if(a.type_class === "data" && a.parsed[0].type === "title") {
+                if(!(a.action === "del") && a.parsed[0].data.length > 0) {
+                    ractive.set("title", a.parsed[0].data);
                 } else {
                     ractive.set("title", emptyTuneName);
                 }                
-            }      
+            }      */
         }, function(a) { 
             console.log(a); 
         });
@@ -118,12 +118,18 @@ define([
         "navigate_back": function(event) {
             window.location.hash = "";
         },
+        "editor_mouseup": function() {
+            var field = document.getElementById("abc");
+            //console.log("SELECTED", field.value.substr(0, field.selectionStart).split("\n").length);
+        },
         "editor_keyup": function() {
             var field = document.getElementById("abc");
             if(field.scrollHeight > field.clientHeight) {
                 console.log("grow");
                 field.style.height = field.scrollHeight + "px";
             }
+            
+           // console.log("SELECTED", field.value.substr(0, field.selectionStart).split("\n").length);
         }});
 
     }

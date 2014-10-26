@@ -3,7 +3,7 @@ var gulp = require('gulp'),
     jslint = require('gulp-jslint'),
     livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
-    ractive = require('./modified_node_modules/gulp-hogan-compile/index.js');
+    ractive = require('./preprocess/precompile_templates');
 
 gulp.task('default', ['watch']);
 

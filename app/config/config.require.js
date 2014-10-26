@@ -16,7 +16,7 @@ requirejs.config({
         svgjs: 'scripts/svgjs/svg',
         jsDiff: 'vendor/jsdiff/diff'
     },
-    urlArgs: 'now=' + Date.now(),
+    //urlArgs: 'now=' + Date.now(),
     shim: {
         midijs: {
             deps: ['scripts/midi.js/base64binary']

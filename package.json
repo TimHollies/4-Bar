@@ -33,6 +33,11 @@
     "gulp-sass": "~1.0.0",
     "q": "~1.0.1",
     "amdrequire": "0.0.3",
-    "node-amd-require": "~0.2.2"
+    "node-amd-require": "~0.2.2",
+    "through": "~2.3.6",
+    "gulp-util": "~3.0.1",
+    "ractive": "~0.6.1",
+    "buffer": "~2.7.0",
+    "lodash": "~2.4.1"
   }
 }
