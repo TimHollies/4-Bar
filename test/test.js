@@ -1,6 +1,6 @@
 var should = require('chai').should() ;
 
-var dataTables = require("../app/engine/data_tables");
+var dataTables = require("../engine/data_tables");
 
 var assert = require("assert")
 describe('Array', function(){

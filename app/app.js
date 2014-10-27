@@ -5,7 +5,7 @@
     var
         Ractive = require('ractive'),
         toastr = require('toastr'),
-        routingConfig = require("./config/config.route");
+        routingConfig = require("../routes/config.route");
         //audio = require("./engine/audio/audio");
 
     function route() {

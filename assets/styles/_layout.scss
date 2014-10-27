@@ -1,0 +1,83 @@
+html, body, .container, #stage { 
+    height:100vh;
+}
+
+#stage {
+    display:flex;
+    flex-direction: column;
+}
+
+.text-area-padding {
+    padding: 0px 50px 0px 30px;
+}
+
+.row {
+    &.header {        
+        h1, h3 {
+            display:inline;
+        }
+        flex: 0 0 64px;
+        display: flex;
+        flex-direction: row;
+        
+        &.coloured {
+            background-color: $color_primary;
+            color: white;
+        }
+        
+        .back-button {
+            flex: 0 0 40px;
+            color: white;
+            background-color: $color_primary;
+            cursor: pointer;
+        }
+        .user-box {
+            flex: 0 0 128px;
+        }
+        .central-menu {
+            flex: 1;
+            padding: 10px;
+        }
+    }
+
+    &.toolbar {
+        background-color: $color_light;
+        height: 32px;
+        flex: 1;
+        flex: 0 0 32px;
+    }
+    
+    &.editor {
+        display: flex;
+        flex-direction: row; 
+        background-color: $color_light;
+        flex: 1;
+        .column {
+            &.third {
+                flex: 1;
+            }
+            &.two-thirds {
+                flex: 2;
+            }
+            &.quarter {
+                flex: 1;
+            }
+            &.three-quarters {
+                flex: 3;
+            }
+        }
+    }
+}
+
+#canvas {
+    padding: 20px;
+    flex-direction: column;
+    display:flex;
+    svg {
+        flex: 1;
+    }
+}
+
+#task-pane {
+    background-color: white;
+}

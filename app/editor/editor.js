@@ -2,14 +2,14 @@
 
 var
     _ = require('lodash'),
-    Rx = require('../scripts/rx.helper'),
-    adapter = require('../scripts/adaptors/ractive-adaptors-rxjs'),
-    parser = require('../engine/parser'),
-    renderer = require('../engine/render'),
+    Rx = require('scripts/rx.helper'),
+    adapter = require('scripts/adaptors/ractive-adaptors-rxjs'),
+    parser = require('engine/parser'),
+    renderer = require('engine/render'),
     diff = require('diff');
 
-require('../scripts/transitions/ractive.transitions.fade');
-require('../scripts/transitions/ractive.transitions.fly');
+require('scripts/transitions/ractive.transitions.fade');
+require('scripts/transitions/ractive.transitions.fly');
 
 var emptyTuneName = "Untitled Tune";
 

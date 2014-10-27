@@ -9,7 +9,7 @@ var passport = require('passport');
 var GoogleStrategy = require('passport-google').Strategy;
 
 
-var routes = require('./routes/index');
+var routes = require('./routes/api');
 var databaseSetup = require('./data/database');
 
 var app = express();
@@ -61,8 +61,7 @@ passport.use(new GoogleStrategy({
 ));
 
 
-app.use('/', express.static(path.join(__dirname, 'app')));
-//app.use('/', express.static(path.join(__dirname, 'build')));
+app.use('/', express.static(path.join(__dirname, 'public')));
 
 app.use('/api', routes);
 

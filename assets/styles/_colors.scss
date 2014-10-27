@@ -1,0 +1,17 @@
+@import 'variables';
+
+.header.row {
+    //background-color: $color_primary;
+    color: $color_text;
+    border-bottom: rgb(190, 190, 190) solid 1px;
+} 
+
+.row.toolbar {
+      border-bottom: rgb(190, 190, 190) solid 1px;
+}
+
+.column.third {
+    background-color: white;
+    border-right: rgb(190, 190, 190) solid 1px;
+    color: $color_text;
+}

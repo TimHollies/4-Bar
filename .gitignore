@@ -5,7 +5,6 @@ node_modules
 .vagrant
 
 #bower
-app/vendor
 app/engine/audio/soundfont
 
 #legacy

@@ -1,11 +1,13 @@
 'use strict';
 
+    var $ = require("jquery");
+
 var
-    Rx = 'scripts/rx.helper',
-    adapter = 'scripts/adaptors/ractive-adaptors-rxjs',
-    fade = 'scripts/transitions/ractive.transitions.fade',
-    fly = 'scripts/transitions/ractive.transitions.fly',
-    toastr = 'toastr';
+    Rx = require('scripts/rx.helper'),
+    adapter = require('scripts/adaptors/ractive-adaptors-rxjs'),
+    fade = require('scripts/transitions/ractive.transitions.fade'),
+    fly = require('scripts/transitions/ractive.transitions.fly'),
+    toastr = require('toastr');
 
 
 module.exports = function(ractive, context) {

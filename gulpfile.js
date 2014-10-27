@@ -3,39 +3,31 @@ var gulp = require('gulp'),
     jslint = require('gulp-jslint'),
     livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
-    ractive = require('./preprocess/precompile_templates'),
-    browserify = require('gulp-browserify'),
-    karma = require('karma').server;
+    webpack = require('gulp-webpack'),
+    WebpackDevServer = require("webpack-dev-server");
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['copyfonts', 'scripts', 'sass']);
 
 gulp.task('sass', function () {
-    gulp.src('./app/styles/*.scss')
+    gulp.src('./assets/styles/*.scss')
         .pipe(sass())
-        .pipe(gulp.dest('./app/styles'))
-        .pipe(livereload());
+        .pipe(gulp.dest('./public'));
 });
 
-gulp.task('test', function (done) {
-  karma.start({
-    configFile: __dirname + '/config/karma.conf.js',
-    singleRun: true
-  }, done);
-});
-
-// Basic usage
 gulp.task('scripts', function() {
-    // Single entry point to browserify
     gulp.src('./app/app.js')
-        .pipe(browserify({
-            transform: ['ractivate', 'aliasify'],
-          insertGlobals : true,
-          debug : !gulp.env.production
-        }))
-        .pipe(gulp.dest('./app/build'))
+        .pipe(webpack(require('./config/webpack.config.js')(__dirname)))
+        .pipe(gulp.dest('./public'));
+});
+
+gulp.task('copyfonts', function() {
+    gulp.src('./node_modules/font-awesome/fonts/**/*.{ttf,woff,eof,svg}')
+    .pipe(gulp.dest('./public/fonts'));
 });
 
 gulp.task('watch', function() {
-    gulp.watch('./app/styles/*.scss', [ 'sass' ]);
-    gulp.watch('app/**/*.htm', [ 'templates' ]);
+    gulp.watch('./assets/styles/*.scss', [ 'sass' ]);
+    gulp.watch('./app/**/*.js', [ 'scripts' ]);
+    gulp.watch('./app/**/*.html', [ 'scripts' ]);
+    gulp.watch('./engine/**/*.js', [ 'scripts' ]);
 });
