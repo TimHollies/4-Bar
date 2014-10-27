@@ -1,9 +1,10 @@
-define([
- 'engine/lexer',
- 'engine/data_tables',
- 'lodash'
-], function(lexer, data_tables, _) {
-    'use strict';        
+'use strict';  
+
+var
+ lexer = require('./lexer.js'),
+ data_tables = require('./data_tables.js'),
+ _ = require('lodash');
+          
     
     var cache = {};
     var drawableIndex = 0;
@@ -174,7 +175,7 @@ define([
         return parsed;
     }
     
-    return function(line) {        
+    module.exports = function(line) {        
         
         if(line.action !== "move") {           
                 
@@ -189,5 +190,4 @@ define([
            
         console.log("DEBUG-PARSED:", line.parsed);
         return line;       
-    }    
-});
+    } 

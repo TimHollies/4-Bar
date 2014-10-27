@@ -1,38 +1,35 @@
-+(function ($, undefined) {
++(function($, undefined) {
 
     'use strict';
-    
-    requirejs(["ractive", 
-               "toastr",                
-               "config/config.route",
-               "scripts/templates",
-               "engine/audio/audio"], function(Hogan, toastr, routingConfig, templates) {
 
-         function route() {
-             var currentRoute = location.hash.substring(1);
-             
-             if(routingConfig[currentRoute] !== undefined) {                 
-                var currentRouteConfig = routingConfig[currentRoute];
-                var template = templates[currentRouteConfig.template];
-                var dummyData = {};
-                var ractive = new Ractive({
-                    el: "#stage",
-                    template: template,
-                    data: dummyData,
-                    lazy: false
-                 });
-                    
-                currentRouteConfig.model(ractive, dummyData);   
+    var
+        Ractive = require('ractive'),
+        toastr = require('toastr'),
+        routingConfig = require("./config/config.route");
+        //audio = require("./engine/audio/audio");
 
-             } else {
-                toastr.error("No route found");
-             }
-         }
+    function route() {
+        var currentRoute = location.hash.substring(1);
 
-         route();
+        if (routingConfig[currentRoute] !== undefined) {
+            var currentRouteConfig = routingConfig[currentRoute];
+            var dummyData = {};
+            var ractive = new Ractive({
+                el: "#stage",
+                template: currentRouteConfig.template,
+                data: dummyData,
+                lazy: false
+            });
 
-         window.onhashchange = route;       
-        
-     });
-    
- })(jQuery, undefined);
+            currentRouteConfig.model(ractive, dummyData);
+
+        } else {
+            toastr.error("No route found");
+        }
+    }
+
+    route();
+
+    window.onhashchange = route;
+
+})(require('jquery'), undefined);

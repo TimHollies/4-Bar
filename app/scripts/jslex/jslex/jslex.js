@@ -3,7 +3,7 @@
  * @author Jim R. Wilson (jimbojw)
  */
 
-define(["lodash"], function(_) {
+var _ = require('lodash');
     
      /**
      * jslex constructor.
@@ -331,5 +331,4 @@ define(["lodash"], function(_) {
         
     };
         
-    return jslex;
-});
+    module.exports = jslex;

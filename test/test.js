@@ -1,13 +1,12 @@
-var require = require("requirejs");
-var testrunner = require("qunit");
+var should = require('chai').should() ;
 
-testrunner.config.autostart = false;
+var dataTables = require("../app/engine/data_tables");
 
-require(["engine/parser"], function(parserFactory) {
-    
-    testrunner.init();
-    
-    testrunner.test( "hello test", function( assert ) {
-      assert.ok( 1 == "1", "Passed!" );
-    });
-});
+var assert = require("assert")
+describe('Array', function(){
+  describe('#indexOf()', function(){
+    it('should return -1 when the value is not present', function(){
+      (dataTables.notes.C.pitch).should.equal(60);
+    })
+  })
+})

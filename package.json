@@ -5,7 +5,8 @@
   "scripts": {
     "start": "forever start bin/www.js",
     "stop": "forever stop bin/www.js",
-    "seed": "node ./bin/seed"
+    "seed": "node ./bin/seed",
+    "test": "node ./node_modules/mocha/bin/mocha"
   },
   "dependencies": {
     "express": "~4.2.0",
@@ -19,7 +20,15 @@
     "monk": "*",
     "passport": "~0.2.1",
     "passport-local": "~1.0.0",
-    "passport-google": "~0.3.0"
+    "passport-google": "~0.3.0",
+    "diff": "~1.0.8",
+    "rx": "~2.3.14",
+    "font-awesome": "~4.2.0",
+    "jquery": "~2.1.1",
+    "toastr": "~2.0.4",
+    "lex": "~1.7.7",
+    "randomcolor": "~0.1.1",
+    "config": "~1.6.0"
   },
   "devDependencies": {
     "gulp": "~3.8.6",
@@ -37,7 +46,18 @@
     "through": "~2.3.6",
     "gulp-util": "~3.0.1",
     "ractive": "~0.6.1",
-    "buffer": "~2.7.0",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "gulp-browserify": "~0.5.0",
+    "aliasify": "~1.4.0",
+    "minifyify": "~4.4.0",
+    "browserify": "~6.2.0",
+    "assert": "~1.1.2",
+    "chai": "~1.9.2",
+    "mocha": "~2.0.1"
+  },
+  "aliasify": {
+    "aliases": {
+      "snapsvg": "./node_modules/snapsvg/dist/snap.svg.js"
+    }
   }
 }

@@ -3,7 +3,9 @@ var gulp = require('gulp'),
     jslint = require('gulp-jslint'),
     livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
-    ractive = require('./preprocess/precompile_templates');
+    ractive = require('./preprocess/precompile_templates'),
+    browserify = require('gulp-browserify'),
+    karma = require('karma').server;
 
 gulp.task('default', ['watch']);
 
@@ -14,17 +16,23 @@ gulp.task('sass', function () {
         .pipe(livereload());
 });
 
-gulp.task('test', function() {
-    return gulp.src('./test/*.js', {
-            read: false
-        })
-        .pipe(mocha({reporter: 'spec'}));
+gulp.task('test', function (done) {
+  karma.start({
+    configFile: __dirname + '/config/karma.conf.js',
+    singleRun: true
+  }, done);
 });
 
-gulp.task('templates', function() {
-    gulp.src('app/**/*.htm')
-        .pipe(ractive('templates.js'))
-        .pipe(gulp.dest('./app/scripts'));
+// Basic usage
+gulp.task('scripts', function() {
+    // Single entry point to browserify
+    gulp.src('./app/app.js')
+        .pipe(browserify({
+            transform: ['ractivate', 'aliasify'],
+          insertGlobals : true,
+          debug : !gulp.env.production
+        }))
+        .pipe(gulp.dest('./app/build'))
 });
 
 gulp.task('watch', function() {

@@ -1,7 +1,6 @@
-define([
-    'rx'
-], function(Rx) {
-    
+
+    Rx = require('rx');
+
     'use strict';
     
     //create RxObserveables from ractive observe
@@ -19,5 +18,4 @@ define([
             lexer.lex(inputValue, function(a) { observer.onNext(a); });
         });       
     }    
-    return Rx;
-});
+    module.exports = Rx;
