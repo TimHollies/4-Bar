@@ -35,6 +35,11 @@ var symbolHandler = {
             scoreLines.splice(a.i, 0, draw.group());
         }
 
+        if (drawingFunctions[a.parsed[0].type] === undefined) {
+            console.log("NOT YET IMPLEMENTED");
+            return;
+        }
+
         for (var j = 0, totalOffset = 0; j < a.parsed.length; j++)
             totalOffset += drawingFunctions[a.parsed[j].type](scoreLines[a.i], a, j, totalOffset);
 
@@ -49,6 +54,9 @@ var symbolHandler = {
         }
 
         informationFieldFunctions[a.parsed[0].type](a);
+    },
+    "hidden": function(a) {
+        scoreLines[a.i] = 0;
     }
 };
 
@@ -67,6 +75,9 @@ var deleteSymbolHandler = {
         }
 
         delInformationFieldFunctions[a.parsed[0].type](a);
+    },
+    "hidden": function(a) {
+        scoreLines[a.i] = undefined;
     }
 };
 
@@ -149,9 +160,9 @@ module.exports = {
     },
 
     onNext: function(a) {
-        //actionHandler[a.action](a);
-        //arrangeGroups();
-        //scoreLines = scoreLines.slice(0, a.newLength);
+        actionHandler[a.action](a);
+        arrangeGroups();
+        scoreLines = scoreLines.slice(0, a.newLength);
         return a;
     }
 

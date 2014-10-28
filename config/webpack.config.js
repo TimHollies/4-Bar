@@ -1,5 +1,4 @@
-var webpack = require('webpack'),
-path = require('path');
+var webpack = require('webpack');
 
 module.exports = function(root) {
     return {

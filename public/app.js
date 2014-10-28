@@ -49,8 +49,8 @@
 	    'use strict';
 
 	    var
-	        Ractive = __webpack_require__(13),
-	        toastr = __webpack_require__(17),
+	        Ractive = __webpack_require__(8),
+	        toastr = __webpack_require__(7),
 	        routingConfig = __webpack_require__(1);
 	        //audio = require("./engine/audio/audio");
 
@@ -115,11 +115,11 @@
 	    var $ = __webpack_require__(4);
 
 	var
-	    Rx = __webpack_require__(9),
-	    adapter = __webpack_require__(10),
-	    fade = __webpack_require__(11),
-	    fly = __webpack_require__(12),
-	    toastr = __webpack_require__(17);
+	    Rx = __webpack_require__(11),
+	    adapter = __webpack_require__(12),
+	    fade = __webpack_require__(13),
+	    fly = __webpack_require__(14),
+	    toastr = __webpack_require__(7);
 
 
 	module.exports = function(ractive, context) {
@@ -159,15 +159,15 @@
 	'use strict';
 
 	var
-	    _ = __webpack_require__(14),
-	    Rx = __webpack_require__(9),
-	    adapter = __webpack_require__(10),
-	    parser = __webpack_require__(7),
-	    renderer = __webpack_require__(8),
-	    diff = __webpack_require__(18);
+	    _ = __webpack_require__(16),
+	    Rx = __webpack_require__(11),
+	    adapter = __webpack_require__(12),
+	    parser = __webpack_require__(9),
+	    renderer = __webpack_require__(10),
+	    diff = __webpack_require__(15);
 
-	__webpack_require__(11);
-	__webpack_require__(12);
+	__webpack_require__(13);
+	__webpack_require__(14);
 
 	var emptyTuneName = "Untitled Tune";
 
@@ -9514,722 +9514,341 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';  
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+	 * Toastr
+	 * Copyright 2012-2014 John Papa and Hans Fjällemark.
+	 * All Rights Reserved.
+	 * Use, reproduction, distribution, and modification of this code is subject to the terms and
+	 * conditions of the MIT license, available at http://www.opensource.org/licenses/mit-license.php
+	 *
+	 * Author: John Papa and Hans Fjällemark
+	 * ARIA Support: Greta Krafsig
+	 * Project: https://github.com/CodeSeven/toastr
+	 */
+	; (function (define) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function ($) {
+	        return (function () {
+	            var $container;
+	            var listener;
+	            var toastId = 0;
+	            var toastType = {
+	                error: 'error',
+	                info: 'info',
+	                success: 'success',
+	                warning: 'warning'
+	            };
 
-	var
-	 lexer = __webpack_require__(15),
-	 data_tables = __webpack_require__(16),
-	 _ = __webpack_require__(14);
-	          
-	    
-	    var cache = {};
-	    var drawableIndex = 0;
-	    
-	    function ParserException(message) {
-	        this.message = message;
-	        this.name = "ParserException";
-	    }
-	    
-	    function lex(string) {
-	        if(cache[string] !== undefined)return cache[string];
-	        var lexed = lexer.collect(string);
-	        cache[string] = lexed;
-	        return lexed;
-	    }
-	    
-	    var decorationstack = [];
-	    
-	    function parseNote(lexer) {
-	        var newNote = {
-	            type: "note",
-	            type_class: "drawable"
-	        };
-	        
-	        while(lexer[0] && lexer[0].subType === "decoration") {
-	            lexer.shift();
-	        }
-	        
-	        if(lexer[0].subType == "accidental") {
-	            newNote.accidental = lexer.shift().data;
-	        }
-	        
-	        if(!lexer[0] || lexer[0].subType !== "letter"){
-	            lexer.shift();
-	            return new ParserException("Missing note name");
-	        }
-	        
-	        if(lexer[0] && lexer[0].subType == "letter") {
-	            newNote.note = lexer.shift().data;
-	        }
-	        
-	        if(lexer[0] && lexer[0].subType == "pitch") {
-	            newNote.octave = lexer.shift().data;
-	        }
-	        
-	        if(lexer[0] && lexer[0].subType == "length") {
-	            newNote.notelength = lexer.shift().data;
-	        }
-	        
-	        return newNote;
-	    }
-	    
-	    function parseRest(lexer) {
-	        var newRest = {};
-	        
-	        newRest.type_class = lexer[0].subType === "visible" ? "drawable" : "hidden";
-	        newRest.type = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
-	        
-	        lexer.shift();
-	        
-	        if(lexer[0] && lexer[0].subType == "length") {
-	            newRest.notelength = lexer.shift().data;
-	        }
-	        
-	        return newRest;
-	    }
-	    
-	    function noteGroup(parsed, lexed, name, start, stop) {
-	        if(lexed[0].type === start) {
-	            lexed.shift();
-	                        
-	            var groupNotes = [];
-	                        
-	            while(lexed.length > 0 && lexed[0].type != stop) {
-	                if(lexed[0].type === "note") {
-	                    groupNotes.push(parseNote(lexed));
-	                    continue;
-	                } else {
-	                    /*throw new*/ groupNotes.push(new ParserException("Only notes are allowed in " + name + "s"));
-	                    lexed.shift();
-	                    continue;
+	            var toastr = {
+	                clear: clear,
+	                remove: remove,
+	                error: error,
+	                getContainer: getContainer,
+	                info: info,
+	                options: {},
+	                subscribe: subscribe,
+	                success: success,
+	                version: '2.0.3',
+	                warning: warning
+	            };
+
+	            return toastr;
+
+	            //#region Accessible Methods
+	            function error(message, title, optionsOverride) {
+	                return notify({
+	                    type: toastType.error,
+	                    iconClass: getOptions().iconClasses.error,
+	                    message: message,
+	                    optionsOverride: optionsOverride,
+	                    title: title
+	                });
+	            }
+
+	            function getContainer(options, create) {
+	                if (!options) { options = getOptions(); }
+	                $container = $('#' + options.containerId);
+	                if ($container.length) {
+	                    return $container;
+	                }
+	                if(create) {
+	                    $container = createContainer(options);
+	                }
+	                return $container;
+	            }
+
+	            function info(message, title, optionsOverride) {
+	                return notify({
+	                    type: toastType.info,
+	                    iconClass: getOptions().iconClasses.info,
+	                    message: message,
+	                    optionsOverride: optionsOverride,
+	                    title: title
+	                });
+	            }
+
+	            function subscribe(callback) {
+	                listener = callback;
+	            }
+
+	            function success(message, title, optionsOverride) {
+	                return notify({
+	                    type: toastType.success,
+	                    iconClass: getOptions().iconClasses.success,
+	                    message: message,
+	                    optionsOverride: optionsOverride,
+	                    title: title
+	                });
+	            }
+
+	            function warning(message, title, optionsOverride) {
+	                return notify({
+	                    type: toastType.warning,
+	                    iconClass: getOptions().iconClasses.warning,
+	                    message: message,
+	                    optionsOverride: optionsOverride,
+	                    title: title
+	                });
+	            }
+
+	            function clear($toastElement) {
+	                var options = getOptions();
+	                if (!$container) { getContainer(options); }
+	                if (!clearToast($toastElement, options)) {
+	                    clearContainer(options);
 	                }
 	            }
-	                        
-	            parsed.push({
-	                type: name,
-	                type_class: "drawable",
-	                notes: groupNotes
-	            });
-	                        
-	            lexed.shift();
-	            return true;
-	        }
-	        
-	        if(lexed[0].type === stop) {
-	            parsed.push(new ParserException("Closing " + name + " found before starting it"));
-	            lexed.shift();
-	            return true;
-	        }
-	        
-	        return false;
-	    }
-	    
-	    function parse(lexed) {
-	        
-	        var parsed = [];
-	        
-	        while(lexed.length > 0) {
-	            if(lexed[0].type === "err") {
-	                /*throw new*/parsed.push(new ParserException("Unrecognised sequence: " + lexed[0].data));
-	                lexed.shift();
-	                continue;
+
+	            function remove($toastElement) {
+	                var options = getOptions();
+	                if (!$container) { getContainer(options); }
+	                if ($toastElement && $(':focus', $toastElement).length === 0) {
+	                    removeToast($toastElement);
+	                    return;
+	                }
+	                if ($container.children().length) {
+	                    $container.remove();
+	                }
 	            }
-	                    
-	            if(lexed[0].type_class === "data") {
-	                lexed.shift();
-	                continue;
+	            //#endregion
+
+	            //#region Internal Methods
+
+	            function clearContainer(options){
+	                var toastsToClear = $container.children();
+	                for (var i = toastsToClear.length - 1; i >= 0; i--) {
+	                    clearToast($(toastsToClear[i]), options);
+	                };
 	            }
-	            
-	            if(lexed[0].type === "beam") {
-	                lexed.shift();
-	                continue;
+
+	            function clearToast($toastElement, options){
+	                if ($toastElement && $(':focus', $toastElement).length === 0) {
+	                    $toastElement[options.hideMethod]({
+	                        duration: options.hideDuration,
+	                        easing: options.hideEasing,
+	                        complete: function () { removeToast($toastElement); }
+	                    });
+	                    return true;
+	                }
+	                return false;
 	            }
-	            
-	            if(lexed[0].type === "chord_annotation") {
-	                parsed.push({
-	                    type_class: "drawable",
-	                    type: "chord_annotation",
-	                    text: lexed[0].data
-	                });
-	                lexed.shift();
-	                continue;
-	            }            
-	            
-	            if(lexed[0].type === "note") {
-	                parsed.push(parseNote(lexed));
-	                continue;
+
+	            function createContainer(options) {
+	                $container = $('<div/>')
+	                    .attr('id', options.containerId)
+	                    .addClass(options.positionClass)
+	                    .attr('aria-live', 'polite')
+	                    .attr('role', 'alert');
+
+	                $container.appendTo($(options.target));
+	                return $container;
 	            }
-	            
-	            if(lexed[0].type === "rest") {
-	                parsed.push(parseRest(lexed));
-	                continue;
+
+	            function getDefaults() {
+	                return {
+	                    tapToDismiss: true,
+	                    toastClass: 'toast',
+	                    containerId: 'toast-container',
+	                    debug: false,
+
+	                    showMethod: 'fadeIn', //fadeIn, slideDown, and show are built into jQuery
+	                    showDuration: 300,
+	                    showEasing: 'swing', //swing and linear are built into jQuery
+	                    onShown: undefined,
+	                    hideMethod: 'fadeOut',
+	                    hideDuration: 1000,
+	                    hideEasing: 'swing',
+	                    onHidden: undefined,
+
+	                    extendedTimeOut: 1000,
+	                    iconClasses: {
+	                        error: 'toast-error',
+	                        info: 'toast-info',
+	                        success: 'toast-success',
+	                        warning: 'toast-warning'
+	                    },
+	                    iconClass: 'toast-info',
+	                    positionClass: 'toast-top-right',
+	                    timeOut: 5000, // Set timeOut and extendedTimeout to 0 to make it sticky
+	                    titleClass: 'toast-title',
+	                    messageClass: 'toast-message',
+	                    target: 'body',
+	                    closeHtml: '<button>&times;</button>',
+	                    newestOnTop: true
+	                };
 	            }
-	            
-	            if(lexed[0].type === "space") {
-	                parsed.push({
-	                    type: "space",
-	                    type_class: "hidden"
-	                });
-	                lexed.shift();
-	                continue;
+
+	            function publish(args) {
+	                if (!listener) { return; }
+	                listener(args);
 	            }
-	                    
-	            if(noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop"))continue;
-	            if(noteGroup(parsed, lexed, "slur", "slur_start", "slur_stop"))continue;
-	            if(noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop"))continue;                    
-	               
-	            if(lexed[0].type === "barline") {
-	                lexed.shift();
-	                parsed.push({
-	                    type: "barline",
-	                    type_class: "drawable"                                    
-	                });
-	                continue;
+
+	            function notify(map) {
+	                var options = getOptions(),
+	                    iconClass = map.iconClass || options.iconClass;
+
+	                if (typeof (map.optionsOverride) !== 'undefined') {
+	                    options = $.extend(options, map.optionsOverride);
+	                    iconClass = map.optionsOverride.iconClass || iconClass;
+	                }
+
+	                toastId++;
+
+	                $container = getContainer(options, true);
+	                var intervalId = null,
+	                    $toastElement = $('<div/>'),
+	                    $titleElement = $('<div/>'),
+	                    $messageElement = $('<div/>'),
+	                    $closeElement = $(options.closeHtml),
+	                    response = {
+	                        toastId: toastId,
+	                        state: 'visible',
+	                        startTime: new Date(),
+	                        options: options,
+	                        map: map
+	                    };
+
+	                if (map.iconClass) {
+	                    $toastElement.addClass(options.toastClass).addClass(iconClass);
+	                }
+
+	                if (map.title) {
+	                    $titleElement.append(map.title).addClass(options.titleClass);
+	                    $toastElement.append($titleElement);
+	                }
+
+	                if (map.message) {
+	                    $messageElement.append(map.message).addClass(options.messageClass);
+	                    $toastElement.append($messageElement);
+	                }
+
+	                if (options.closeButton) {
+	                    $closeElement.addClass('toast-close-button').attr("role", "button");
+	                    $toastElement.prepend($closeElement);
+	                }
+
+	                $toastElement.hide();
+	                if (options.newestOnTop) {
+	                    $container.prepend($toastElement);
+	                } else {
+	                    $container.append($toastElement);
+	                }
+
+
+	                $toastElement[options.showMethod](
+	                    { duration: options.showDuration, easing: options.showEasing, complete: options.onShown }
+	                );
+
+	                if (options.timeOut > 0) {
+	                    intervalId = setTimeout(hideToast, options.timeOut);
+	                }
+
+	                $toastElement.hover(stickAround, delayedHideToast);
+	                if (!options.onclick && options.tapToDismiss) {
+	                    $toastElement.click(hideToast);
+	                }
+
+	                if (options.closeButton && $closeElement) {
+	                    $closeElement.click(function (event) {
+	                        if( event.stopPropagation ) {
+	                            event.stopPropagation();
+	                        } else if( event.cancelBubble !== undefined && event.cancelBubble !== true ) {
+	                            event.cancelBubble = true;
+	                        }
+	                        hideToast(true);
+	                    });
+	                }
+
+	                if (options.onclick) {
+	                    $toastElement.click(function () {
+	                        options.onclick();
+	                        hideToast();
+	                    });
+	                }
+
+	                publish(response);
+
+	                if (options.debug && console) {
+	                    console.log(response);
+	                }
+
+	                return $toastElement;
+
+	                function hideToast(override) {
+	                    if ($(':focus', $toastElement).length && !override) {
+	                        return;
+	                    }
+	                    return $toastElement[options.hideMethod]({
+	                        duration: options.hideDuration,
+	                        easing: options.hideEasing,
+	                        complete: function () {
+	                            removeToast($toastElement);
+	                            if (options.onHidden && response.state !== 'hidden') {
+	                                options.onHidden();
+	                            }
+	                            response.state = 'hidden';
+	                            response.endTime = new Date();
+	                            publish(response);
+	                        }
+	                    });
+	                }
+
+	                function delayedHideToast() {
+	                    if (options.timeOut > 0 || options.extendedTimeOut > 0) {
+	                        intervalId = setTimeout(hideToast, options.extendedTimeOut);
+	                    }
+	                }
+
+	                function stickAround() {
+	                    clearTimeout(intervalId);
+	                    $toastElement.stop(true, true)[options.showMethod](
+	                        { duration: options.showDuration, easing: options.showEasing }
+	                    );
+	                }
 	            }
-	        }
-	        
-	        return parsed;
-	    }
-	    
-	    module.exports = function(line) {        
-	        
-	        if(line.action !== "move") {           
-	                
-	            var lexed = lex(line.raw);
-	            
-	            console.log("DEBUG-LEXED:", lexed);
-	            
-	            if(lexed.length > 0) {    
-	                line.parsed = parse(lexed); 
+
+	            function getOptions() {
+	                return $.extend({}, getDefaults(), toastr.options);
 	            }
-	        }
-	           
-	        console.log("DEBUG-PARSED:", line.parsed);
-	        return line;       
-	    } 
+
+	            function removeToast($toastElement) {
+	                if (!$container) { $container = getContainer(); }
+	                if ($toastElement.is(':visible')) {
+	                    return;
+	                }
+	                $toastElement.remove();
+	                $toastElement = null;
+	                if ($container.children().length === 0) {
+	                    $container.remove();
+	                }
+	            }
+	            //#endregion
+
+	        })();
+	    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}(__webpack_require__(17)));
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var
-	    _ = __webpack_require__(14),
-	    svg = __webpack_require__(24),
-	    randomColor = __webpack_require__(21);
-
-	var
-	    draw,
-	    scoreLines,
-	    data = {},
-	    lineHeight = 25;
-
-	var arrangeGroups = function() {
-	    var offset = 0;
-
-	    if (data.title != null) offset = 4;
-
-	    for (var i = 0; i < scoreLines.length; i++) {
-	        if (scoreLines[i] === undefined) continue;
-
-	        if (scoreLines[i] != 0) {
-	            scoreLines[i].move(0, lineHeight * offset);
-	            offset += 1;
-	        }
-	    }
-	}
-
-	var symbolHandler = {
-	    "drawable": function(a) {
-
-	        if (scoreLines[a.i] === undefined) {
-	            scoreLines[a.i] = draw.group();
-	        } else {
-	            scoreLines.splice(a.i, 0, draw.group());
-	        }
-
-	        for (var j = 0, totalOffset = 0; j < a.parsed.length; j++)
-	            totalOffset += drawingFunctions[a.parsed[j].type](scoreLines[a.i], a, j, totalOffset);
-
-	    },
-	    "data": function(a) {
-
-	        scoreLines[a.i] = 0;
-
-	        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
-	            console.log("NOT YET IMPLEMENTED");
-	            return;
-	        }
-
-	        informationFieldFunctions[a.parsed[0].type](a);
-	    }
-	};
-
-	var deleteSymbolHandler = {
-	    "drawable": function(a) {
-	        if (scoreLines[a.i]) scoreLines[a.i].remove();
-	        scoreLines[a.i] = undefined;
-	    },
-	    "data": function(a) {
-
-	        scoreLines[a.i] = undefined;
-
-	        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
-	            console.log("NOT YET IMPLEMENTED");
-	            return;
-	        }
-
-	        delInformationFieldFunctions[a.parsed[0].type](a);
-	    }
-	};
-
-	var actionHandler = {
-	    "add": function(a) {
-	        symbolHandler[a.type_class](a);
-	        console.log("ADD", scoreLines);
-	    },
-	    "del": function(a) {
-	        deleteSymbolHandler[a.type_class](a);
-	        console.log("DEL", scoreLines);
-	    },
-	    "move": function(a) {
-	        if (a.i < a.j) {
-	            scoreLines[a.i] = scoreLines[a.j];
-	            scoreLines[a.j] = undefined;
-	        }
-	        console.log("MOV", scoreLines);
-	    },
-	    "endofinput": _.noop
-	}
-
-	var drawingFunctions = {
-	    "note": function(line, a, j, totalOffset) {
-	        line.rect(a.parsed[j].notelength * 20, 20).attr({
-	            fill: a.error ? '#F00' : randomColor({
-	                luminosity: 'dark'
-	            })
-	        }).move(totalOffset, 0);
-	        return a.parsed[j].notelength * 20 + 5;
-	    },
-	    "barline": function(line, a, j, totalOffset) {
-	        line.circle(20).attr({
-	            fill: "#CCC"
-	        }).move(totalOffset, 0);
-	        return 25;
-	    },
-	    "space": function() {
-	        return 25;
-	    }
-	};
-
-	var informationFieldFunctions = {
-	    "title": function(a) {
-	        if (data.title) data.title.remove();
-	        data.title = draw.text(a.parsed[0].data).font({
-	            family: 'Georgia',
-	            size: 32,
-	            anchor: 'middle',
-	            leading: '1.5em'
-	        }).move(400, 0);
-	    },
-	    "rhythm": function(a) {
-	        if (data.rhythm) data.rhythm.remove();
-	        data.rhythm = draw.text(a.parsed[0].data).font({
-	            family: 'Georgia',
-	            size: 16,
-	            anchor: 'middle',
-	            leading: '1.5em'
-	        }).move(20, 60);
-	    }
-	}
-
-	var delInformationFieldFunctions = {
-	    "title": function(a) {
-	        data.title.remove();
-	        data.title = null;
-	    },
-	    "rhythm": function(a) {
-	        data.rhythm.remove();
-	        data.rhythm = null;
-	    }
-	}
-
-	//exported functions
-	module.exports = {
-	    initialize: function(canvasSelector) {
-	        draw = svg('canvas');
-	        scoreLines = [];
-	    },
-
-	    onNext: function(a) {
-	        //actionHandler[a.action](a);
-	        //arrangeGroups();
-	        //scoreLines = scoreLines.slice(0, a.newLength);
-	        return a;
-	    }
-
-	};
-
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	    Rx = __webpack_require__(19);
-
-	    'use strict';
-	    
-	    //create RxObserveables from ractive observe
-	    Rx.Observable.fromRactive = function(ractive, name) {
-	        return Rx.Observable.create(function(observer) {
-	            ractive.observe(name, function(newValue, oldValue) {
-	                observer.onNext({ newValue: newValue, oldValue: oldValue});
-	            });
-	        });       
-	    }
-	    
-	    //create RxObserveables from lexer
-	    Rx.Observable.fromJsLex = function(lexer, inputValue) {
-	        return Rx.Observable.create(function(observer) {
-	            lexer.lex(inputValue, function(a) { observer.onNext(a); });
-	        });       
-	    }    
-	    module.exports = Rx;
-
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-
-		ractive-adaptors-rxjs
-		======================
-
-		Version 0.1.0.
-
-		RxJS adaptor for Ractive
-
-		==========================
-
-		Troubleshooting: If you're using a module system in your app (AMD or
-		something more nodey) then you may need to change the paths below,
-		where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
-
-		==========================
-
-		Usage: Include this file on your page below Ractive, e.g:
-
-		    <script src='lib/ractive.js'></script>
-		    <script src='lib/rxjs.js'></script>
-		    <script src='lib/ractive-adaptors-rxjs.js'></script>
-
-		Or, if you're using a module loader, require this module:
-
-		    // requiring the plugin will 'activate' it - no need to use
-		    // the return value
-		    require( 'ractive-adaptors-rxjs' );
-
-		Then, tell Ractive to use the `RxJS` adaptor:
-
-			ractive = new Ractive({
-				el: 'body',
-				template: myTemplate,
-				adapt: 'RxJS',
-				data: {
-					foo: someReactiveProperty
-				}
-			});
-
-	*/
-
-	(function ( global, factory ) {
-
-		factory( __webpack_require__( 13), __webpack_require__(19) );
-		
-
-	}( typeof window !== 'undefined' ? window : this, function ( Ractive, Rx ) {
-
-		'use strict';
-
-		var RxWrapper = function ( ractive, observable, keypath ) {
-			var self = this;
-
-			this.ractive = ractive;
-			this.value = observable;
-			this.keypath = keypath;
-
-			this.dispose = observable.subscribe( function ( value ) {
-				if ( self.updating ) {
-					return;
-				}
-
-				self._value = value;
-
-				self.updating = true;
-				ractive.set( keypath, value );
-				self.updating = false;
-			});
-		};
-
-		RxWrapper.prototype = {
-			get: function () {
-				return this._value;
-			},
-			teardown: function () {
-				this.dispose();
-			},
-			reset: function ( value ) {
-				if ( this.updating ) {
-					return;
-				}
-
-				if ( value instanceof Rx.Observable ) {
-					return false;
-				}
-
-				this.updating = true;
-				// TODO how do you set the value of a Rx.Observable?!
-				this.updating = false;
-			}
-		};
-
-		Ractive.adaptors.RxJS = {
-			filter: function ( object ) {
-				return object instanceof Rx.Observable;
-			},
-			wrap: function ( ractive, observable, keypath ) {
-				return new RxWrapper( ractive, observable, keypath );
-			}
-		};
-
-	}));
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
-
-		ractive-transitions-fade
-		========================
-
-		Version 0.1.2.
-
-		This plugin does exactly what it says on the tin - it fades elements
-		in and out, using CSS transitions. You can control the following
-		properties: `duration`, `delay` and `easing` (which must be a valid
-		CSS transition timing function, and defaults to `linear`).
-
-		The `duration` property is in milliseconds, and defaults to 300 (you
-		can also use `fast` or `slow` instead of a millisecond value, which
-		equate to 200 and 600 respectively). As a shorthand, you can use
-		`intro='fade:500'` instead of `intro='fade:{"duration":500}'` - this
-		applies to many other transition plugins as well.
-
-		If an element has an opacity other than 1 (whether directly, because
-		of an inline style, or indirectly because of a CSS rule), it will be
-		respected. You can override the target opacity of an intro fade by
-		specifying a `to` property between 0 and 1.
-
-		==========================
-
-		Troubleshooting: If you're using a module system in your app (AMD or
-		something more nodey) then you may need to change the paths below,
-		where it says `require( 'Ractive' )` or `define([ 'Ractive' ]...)`.
-
-		==========================
-
-		Usage: Include this file on your page below Ractive, e.g:
-
-		    <script src='lib/ractive.js'></script>
-		    <script src='lib/ractive-transitions-fade.js'></script>
-
-		Or, if you're using a module loader, require this module:
-
-		    // requiring the plugin will 'activate' it - no need to use
-		    // the return value
-		    require( 'ractive-transitions-fade' );
-
-		Add a fade transition like so:
-
-		    <div intro='fade'>this will fade in</div>
-
-	*/
-
-	(function ( global, factory ) {
-
-		'use strict';
-
-		// Common JS (i.e. browserify) environment
-		if ( typeof module !== 'undefined' && module.exports && "function" === 'function' ) {
-			factory( __webpack_require__( 13 ) );
-		}
-
-		// AMD?
-		else if ( true ) {
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(13) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		}
-
-		// browser global
-		else if ( global.Ractive ) {
-			factory( global.Ractive );
-		}
-
-		else {
-			throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fade plugin' );
-		}
-
-	}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
-
-		'use strict';
-
-		var fade, defaults;
-
-		defaults = {
-			delay: 0,
-			duration: 300,
-			easing: 'linear'
-		};
-
-		fade = function ( t, params ) {
-			var targetOpacity;
-
-			params = t.processParams( params, defaults );
-
-			if ( t.isIntro ) {
-				targetOpacity = t.getStyle( 'opacity' );
-				t.setStyle( 'opacity', 0 );
-			} else {
-				targetOpacity = 0;
-			}
-
-			t.animateStyle( 'opacity', targetOpacity, params ).then( t.complete );
-		};
-
-		Ractive.transitions.fade = fade;
-
-	}));
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
-
-		ractive-transitions-fly
-		=======================
-
-		Version 0.1.3.
-
-		This transition uses CSS transforms to 'fly' elements to their
-		natural location on the page, fading in from transparent as they go.
-		By default, they will fly in from left.
-
-		==========================
-
-		Troubleshooting: If you're using a module system in your app (AMD or
-		something more nodey) then you may need to change the paths below,
-		where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
-
-		==========================
-
-		Usage: Include this file on your page below Ractive, e.g:
-
-		    <script src='lib/ractive.js'></script>
-		    <script src='lib/ractive-transitions-fly.js'></script>
-
-		Or, if you're using a module loader, require this module:
-
-		    // requiring the plugin will 'activate' it - no need to use
-		    // the return value
-		    require( 'ractive-transitions-fly' );
-
-		You can adjust the following parameters: `x`, `y`, `duration`,
-		`delay` and `easing`.
-
-	*/
-
-	(function ( global, factory ) {
-
-		'use strict';
-
-		// Common JS (i.e. browserify) environment
-		if ( typeof module !== 'undefined' && module.exports && "function" === 'function' ) {
-			factory( __webpack_require__( 13 ) );
-		}
-
-		// AMD?
-		else if ( true ) {
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(13) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		}
-
-		// browser global
-		else if ( global.Ractive ) {
-			factory( global.Ractive );
-		}
-
-		else {
-			throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fly plugin' );
-		}
-
-	}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
-
-		'use strict';
-
-		var fly, addPx, defaults;
-
-		defaults = {
-			duration: 400,
-			easing: 'easeOut',
-			opacity: 0,
-			x: -500,
-			y: 0
-		};
-
-		addPx = function ( num ) {
-			if ( num === 0 || typeof num === 'string' ) {
-				return num;
-			}
-
-			return num + 'px';
-		};
-
-		fly = function ( t, params ) {
-			var x, y, offscreen, target;
-
-			params = t.processParams( params, defaults );
-
-			x = addPx( params.x );
-			y = addPx( params.y );
-
-			offscreen = {
-				transform: 'translate(' + x + ',' + y + ')',
-				opacity: 0
-			};
-
-			if ( t.isIntro ) {
-				// animate to the current style
-				target = t.getStyle([ 'opacity', 'transform' ]);
-
-				// set offscreen style
-				t.setStyle( offscreen );
-			} else {
-				target = offscreen;
-			}
-
-			t.animateStyle( target, params ).then( t.complete );
-		};
-
-		Ractive.transitions.fly = fly;
-
-	}));
-
-/***/ },
-/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -24582,7 +24201,1111 @@
 
 
 /***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';  
+
+	var
+	 lexer = __webpack_require__(18),
+	 data_tables = __webpack_require__(19),
+	 _ = __webpack_require__(16);
+	          
+	    
+	    var cache = {};
+	    var drawableIndex = 0;
+	    
+	    function ParserException(message) {
+	        this.message = message;
+	        this.name = "ParserException";
+	    }
+	    
+	    function lex(string) {
+	        if(cache[string] !== undefined)return cache[string];
+	        var lexed = lexer.collect(string);
+	        cache[string] = lexed;
+	        return lexed;
+	    }
+	    
+	    var decorationstack = [];
+	    
+	    function parseNote(lexer) {
+	        var newNote = {
+	            type: "note",
+	            type_class: "drawable"
+	        };
+	        
+	        while(lexer[0] && lexer[0].subType === "decoration") {
+	            lexer.shift();
+	        }
+	        
+	        if(lexer[0].subType == "accidental") {
+	            newNote.accidental = lexer.shift().data;
+	        }
+	        
+	        if(!lexer[0] || lexer[0].subType !== "letter"){
+	            lexer.shift();
+	            return new ParserException("Missing note name");
+	        }
+	        
+	        if(lexer[0] && lexer[0].subType == "letter") {
+	            newNote.note = lexer.shift().data;
+	        }
+	        
+	        if(lexer[0] && lexer[0].subType == "pitch") {
+	            newNote.octave = lexer.shift().data;
+	        }
+	        
+	        if(lexer[0] && lexer[0].subType == "length") {
+	            newNote.notelength = lexer.shift().data;
+	        }
+	        
+	        return newNote;
+	    }
+	    
+	    function parseRest(lexer) {
+	        var newRest = {};
+	        
+	        newRest.type_class = lexer[0].subType === "visible" ? "drawable" : "hidden";
+	        newRest.type = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
+	        
+	        lexer.shift();
+	        
+	        if(lexer[0] && lexer[0].subType == "length") {
+	            newRest.notelength = lexer.shift().data;
+	        }
+	        
+	        return newRest;
+	    }
+	    
+	    function noteGroup(parsed, lexed, name, start, stop) {
+	        if(lexed[0].type === start) {
+	            lexed.shift();
+	                        
+	            var groupNotes = [];
+	                        
+	            while(lexed.length > 0 && lexed[0].type != stop) {
+	                if(lexed[0].type === "note") {
+	                    groupNotes.push(parseNote(lexed));
+	                    continue;
+	                } else {
+	                    /*throw new*/ groupNotes.push(new ParserException("Only notes are allowed in " + name + "s"));
+	                    lexed.shift();
+	                    continue;
+	                }
+	            }
+	                        
+	            parsed.push({
+	                type: name,
+	                type_class: "drawable",
+	                notes: groupNotes
+	            });
+	                        
+	            lexed.shift();
+	            return true;
+	        }
+	        
+	        if(lexed[0].type === stop) {
+	            parsed.push(new ParserException("Closing " + name + " found before starting it"));
+	            lexed.shift();
+	            return true;
+	        }
+	        
+	        return false;
+	    }
+	    
+	    function parse(lexed) {
+	        
+	        var parsed = [];
+	        
+	        while(lexed.length > 0) {
+	            if(lexed[0].type === "err") {
+	                /*throw new*/parsed.push(new ParserException("Unrecognised sequence: " + lexed[0].data));
+	                lexed.shift();
+	                continue;
+	            }
+	                    
+	            if(lexed[0].type_class === "data") {
+	                lexed.shift();
+	                continue;
+	            }
+	            
+	            if(lexed[0].type === "beam") {
+	                lexed.shift();
+	                continue;
+	            }
+	            
+	            if(lexed[0].type === "chord_annotation") {
+	                parsed.push({
+	                    type_class: "drawable",
+	                    type: "chord_annotation",
+	                    text: lexed[0].data
+	                });
+	                lexed.shift();
+	                continue;
+	            }            
+	            
+	            if(lexed[0].type === "note") {
+	                parsed.push(parseNote(lexed));
+	                continue;
+	            }
+	            
+	            if(lexed[0].type === "rest") {
+	                parsed.push(parseRest(lexed));
+	                continue;
+	            }
+	            
+	            if(lexed[0].type === "space") {
+	                parsed.push({
+	                    type: "space",
+	                    type_class: "hidden"
+	                });
+	                lexed.shift();
+	                continue;
+	            }
+	                    
+	            if(noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop"))continue;
+	            if(noteGroup(parsed, lexed, "slur", "slur_start", "slur_stop"))continue;
+	            if(noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop"))continue;                    
+	               
+	            if(lexed[0].type === "barline") {
+	                lexed.shift();
+	                parsed.push({
+	                    type: "barline",
+	                    type_class: "drawable"                                    
+	                });
+	                continue;
+	            }
+	        }
+	        
+	        return parsed;
+	    }
+	    
+	    module.exports = function(line) {        
+	        
+	        if(line.action !== "move") {           
+	                
+	            var lexed = lex(line.raw);
+	            
+	            console.log("DEBUG-LEXED:", lexed);
+	            
+	            if(lexed.length > 0) {    
+	                line.parsed = parse(lexed); 
+	            }
+	        }
+	           
+	        console.log("DEBUG-PARSED:", line.parsed);
+	        return line;       
+	    } 
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var
+	    _ = __webpack_require__(16),
+	    svg = __webpack_require__(24),
+	    randomColor = __webpack_require__(21);
+
+	var
+	    draw,
+	    scoreLines,
+	    data = {},
+	    lineHeight = 25;
+
+	var arrangeGroups = function() {
+	    var offset = 0;
+
+	    if (data.title != null) offset = 4;
+
+	    for (var i = 0; i < scoreLines.length; i++) {
+	        if (scoreLines[i] === undefined) continue;
+
+	        if (scoreLines[i] != 0) {
+	            scoreLines[i].move(0, lineHeight * offset);
+	            offset += 1;
+	        }
+	    }
+	}
+
+	var symbolHandler = {
+	    "drawable": function(a) {
+
+	        if (scoreLines[a.i] === undefined) {
+	            scoreLines[a.i] = draw.group();
+	        } else {
+	            scoreLines.splice(a.i, 0, draw.group());
+	        }
+
+	        if (drawingFunctions[a.parsed[0].type] === undefined) {
+	            console.log("NOT YET IMPLEMENTED");
+	            return;
+	        }
+
+	        for (var j = 0, totalOffset = 0; j < a.parsed.length; j++)
+	            totalOffset += drawingFunctions[a.parsed[j].type](scoreLines[a.i], a, j, totalOffset);
+
+	    },
+	    "data": function(a) {
+
+	        scoreLines[a.i] = 0;
+
+	        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
+	            console.log("NOT YET IMPLEMENTED");
+	            return;
+	        }
+
+	        informationFieldFunctions[a.parsed[0].type](a);
+	    },
+	    "hidden": function(a) {
+	        scoreLines[a.i] = 0;
+	    }
+	};
+
+	var deleteSymbolHandler = {
+	    "drawable": function(a) {
+	        if (scoreLines[a.i]) scoreLines[a.i].remove();
+	        scoreLines[a.i] = undefined;
+	    },
+	    "data": function(a) {
+
+	        scoreLines[a.i] = undefined;
+
+	        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
+	            console.log("NOT YET IMPLEMENTED");
+	            return;
+	        }
+
+	        delInformationFieldFunctions[a.parsed[0].type](a);
+	    },
+	    "hidden": function(a) {
+	        scoreLines[a.i] = undefined;
+	    }
+	};
+
+	var actionHandler = {
+	    "add": function(a) {
+	        symbolHandler[a.type_class](a);
+	        console.log("ADD", scoreLines);
+	    },
+	    "del": function(a) {
+	        deleteSymbolHandler[a.type_class](a);
+	        console.log("DEL", scoreLines);
+	    },
+	    "move": function(a) {
+	        if (a.i < a.j) {
+	            scoreLines[a.i] = scoreLines[a.j];
+	            scoreLines[a.j] = undefined;
+	        }
+	        console.log("MOV", scoreLines);
+	    },
+	    "endofinput": _.noop
+	}
+
+	var drawingFunctions = {
+	    "note": function(line, a, j, totalOffset) {
+	        line.rect(a.parsed[j].notelength * 20, 20).attr({
+	            fill: a.error ? '#F00' : randomColor({
+	                luminosity: 'dark'
+	            })
+	        }).move(totalOffset, 0);
+	        return a.parsed[j].notelength * 20 + 5;
+	    },
+	    "barline": function(line, a, j, totalOffset) {
+	        line.circle(20).attr({
+	            fill: "#CCC"
+	        }).move(totalOffset, 0);
+	        return 25;
+	    },
+	    "space": function() {
+	        return 25;
+	    }
+	};
+
+	var informationFieldFunctions = {
+	    "title": function(a) {
+	        if (data.title) data.title.remove();
+	        data.title = draw.text(a.parsed[0].data).font({
+	            family: 'Georgia',
+	            size: 32,
+	            anchor: 'middle',
+	            leading: '1.5em'
+	        }).move(400, 0);
+	    },
+	    "rhythm": function(a) {
+	        if (data.rhythm) data.rhythm.remove();
+	        data.rhythm = draw.text(a.parsed[0].data).font({
+	            family: 'Georgia',
+	            size: 16,
+	            anchor: 'middle',
+	            leading: '1.5em'
+	        }).move(20, 60);
+	    }
+	}
+
+	var delInformationFieldFunctions = {
+	    "title": function(a) {
+	        data.title.remove();
+	        data.title = null;
+	    },
+	    "rhythm": function(a) {
+	        data.rhythm.remove();
+	        data.rhythm = null;
+	    }
+	}
+
+	//exported functions
+	module.exports = {
+	    initialize: function(canvasSelector) {
+	        draw = svg('canvas');
+	        scoreLines = [];
+	    },
+
+	    onNext: function(a) {
+	        actionHandler[a.action](a);
+	        arrangeGroups();
+	        scoreLines = scoreLines.slice(0, a.newLength);
+	        return a;
+	    }
+
+	};
+
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	    Rx = __webpack_require__(23);
+
+	    'use strict';
+	    
+	    //create RxObserveables from ractive observe
+	    Rx.Observable.fromRactive = function(ractive, name) {
+	        return Rx.Observable.create(function(observer) {
+	            ractive.observe(name, function(newValue, oldValue) {
+	                observer.onNext({ newValue: newValue, oldValue: oldValue});
+	            });
+	        });       
+	    }
+	    
+	    //create RxObserveables from lexer
+	    Rx.Observable.fromJsLex = function(lexer, inputValue) {
+	        return Rx.Observable.create(function(observer) {
+	            lexer.lex(inputValue, function(a) { observer.onNext(a); });
+	        });       
+	    }    
+	    module.exports = Rx;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+
+		ractive-adaptors-rxjs
+		======================
+
+		Version 0.1.0.
+
+		RxJS adaptor for Ractive
+
+		==========================
+
+		Troubleshooting: If you're using a module system in your app (AMD or
+		something more nodey) then you may need to change the paths below,
+		where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
+
+		==========================
+
+		Usage: Include this file on your page below Ractive, e.g:
+
+		    <script src='lib/ractive.js'></script>
+		    <script src='lib/rxjs.js'></script>
+		    <script src='lib/ractive-adaptors-rxjs.js'></script>
+
+		Or, if you're using a module loader, require this module:
+
+		    // requiring the plugin will 'activate' it - no need to use
+		    // the return value
+		    require( 'ractive-adaptors-rxjs' );
+
+		Then, tell Ractive to use the `RxJS` adaptor:
+
+			ractive = new Ractive({
+				el: 'body',
+				template: myTemplate,
+				adapt: 'RxJS',
+				data: {
+					foo: someReactiveProperty
+				}
+			});
+
+	*/
+
+	(function ( global, factory ) {
+
+		factory( __webpack_require__( 8), __webpack_require__(23) );
+		
+
+	}( typeof window !== 'undefined' ? window : this, function ( Ractive, Rx ) {
+
+		'use strict';
+
+		var RxWrapper = function ( ractive, observable, keypath ) {
+			var self = this;
+
+			this.ractive = ractive;
+			this.value = observable;
+			this.keypath = keypath;
+
+			this.dispose = observable.subscribe( function ( value ) {
+				if ( self.updating ) {
+					return;
+				}
+
+				self._value = value;
+
+				self.updating = true;
+				ractive.set( keypath, value );
+				self.updating = false;
+			});
+		};
+
+		RxWrapper.prototype = {
+			get: function () {
+				return this._value;
+			},
+			teardown: function () {
+				this.dispose();
+			},
+			reset: function ( value ) {
+				if ( this.updating ) {
+					return;
+				}
+
+				if ( value instanceof Rx.Observable ) {
+					return false;
+				}
+
+				this.updating = true;
+				// TODO how do you set the value of a Rx.Observable?!
+				this.updating = false;
+			}
+		};
+
+		Ractive.adaptors.RxJS = {
+			filter: function ( object ) {
+				return object instanceof Rx.Observable;
+			},
+			wrap: function ( ractive, observable, keypath ) {
+				return new RxWrapper( ractive, observable, keypath );
+			}
+		};
+
+	}));
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+
+		ractive-transitions-fade
+		========================
+
+		Version 0.1.2.
+
+		This plugin does exactly what it says on the tin - it fades elements
+		in and out, using CSS transitions. You can control the following
+		properties: `duration`, `delay` and `easing` (which must be a valid
+		CSS transition timing function, and defaults to `linear`).
+
+		The `duration` property is in milliseconds, and defaults to 300 (you
+		can also use `fast` or `slow` instead of a millisecond value, which
+		equate to 200 and 600 respectively). As a shorthand, you can use
+		`intro='fade:500'` instead of `intro='fade:{"duration":500}'` - this
+		applies to many other transition plugins as well.
+
+		If an element has an opacity other than 1 (whether directly, because
+		of an inline style, or indirectly because of a CSS rule), it will be
+		respected. You can override the target opacity of an intro fade by
+		specifying a `to` property between 0 and 1.
+
+		==========================
+
+		Troubleshooting: If you're using a module system in your app (AMD or
+		something more nodey) then you may need to change the paths below,
+		where it says `require( 'Ractive' )` or `define([ 'Ractive' ]...)`.
+
+		==========================
+
+		Usage: Include this file on your page below Ractive, e.g:
+
+		    <script src='lib/ractive.js'></script>
+		    <script src='lib/ractive-transitions-fade.js'></script>
+
+		Or, if you're using a module loader, require this module:
+
+		    // requiring the plugin will 'activate' it - no need to use
+		    // the return value
+		    require( 'ractive-transitions-fade' );
+
+		Add a fade transition like so:
+
+		    <div intro='fade'>this will fade in</div>
+
+	*/
+
+	(function ( global, factory ) {
+
+		'use strict';
+
+		// Common JS (i.e. browserify) environment
+		if ( typeof module !== 'undefined' && module.exports && "function" === 'function' ) {
+			factory( __webpack_require__( 8 ) );
+		}
+
+		// AMD?
+		else if ( true ) {
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(8) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		}
+
+		// browser global
+		else if ( global.Ractive ) {
+			factory( global.Ractive );
+		}
+
+		else {
+			throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fade plugin' );
+		}
+
+	}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
+
+		'use strict';
+
+		var fade, defaults;
+
+		defaults = {
+			delay: 0,
+			duration: 300,
+			easing: 'linear'
+		};
+
+		fade = function ( t, params ) {
+			var targetOpacity;
+
+			params = t.processParams( params, defaults );
+
+			if ( t.isIntro ) {
+				targetOpacity = t.getStyle( 'opacity' );
+				t.setStyle( 'opacity', 0 );
+			} else {
+				targetOpacity = 0;
+			}
+
+			t.animateStyle( 'opacity', targetOpacity, params ).then( t.complete );
+		};
+
+		Ractive.transitions.fade = fade;
+
+	}));
+
+/***/ },
 /* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+
+		ractive-transitions-fly
+		=======================
+
+		Version 0.1.3.
+
+		This transition uses CSS transforms to 'fly' elements to their
+		natural location on the page, fading in from transparent as they go.
+		By default, they will fly in from left.
+
+		==========================
+
+		Troubleshooting: If you're using a module system in your app (AMD or
+		something more nodey) then you may need to change the paths below,
+		where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
+
+		==========================
+
+		Usage: Include this file on your page below Ractive, e.g:
+
+		    <script src='lib/ractive.js'></script>
+		    <script src='lib/ractive-transitions-fly.js'></script>
+
+		Or, if you're using a module loader, require this module:
+
+		    // requiring the plugin will 'activate' it - no need to use
+		    // the return value
+		    require( 'ractive-transitions-fly' );
+
+		You can adjust the following parameters: `x`, `y`, `duration`,
+		`delay` and `easing`.
+
+	*/
+
+	(function ( global, factory ) {
+
+		'use strict';
+
+		// Common JS (i.e. browserify) environment
+		if ( typeof module !== 'undefined' && module.exports && "function" === 'function' ) {
+			factory( __webpack_require__( 8 ) );
+		}
+
+		// AMD?
+		else if ( true ) {
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(8) ], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		}
+
+		// browser global
+		else if ( global.Ractive ) {
+			factory( global.Ractive );
+		}
+
+		else {
+			throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fly plugin' );
+		}
+
+	}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
+
+		'use strict';
+
+		var fly, addPx, defaults;
+
+		defaults = {
+			duration: 400,
+			easing: 'easeOut',
+			opacity: 0,
+			x: -500,
+			y: 0
+		};
+
+		addPx = function ( num ) {
+			if ( num === 0 || typeof num === 'string' ) {
+				return num;
+			}
+
+			return num + 'px';
+		};
+
+		fly = function ( t, params ) {
+			var x, y, offscreen, target;
+
+			params = t.processParams( params, defaults );
+
+			x = addPx( params.x );
+			y = addPx( params.y );
+
+			offscreen = {
+				transform: 'translate(' + x + ',' + y + ')',
+				opacity: 0
+			};
+
+			if ( t.isIntro ) {
+				// animate to the current style
+				target = t.getStyle([ 'opacity', 'transform' ]);
+
+				// set offscreen style
+				t.setStyle( offscreen );
+			} else {
+				target = offscreen;
+			}
+
+			t.animateStyle( target, params ).then( t.complete );
+		};
+
+		Ractive.transitions.fly = fly;
+
+	}));
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* See LICENSE file for terms of use */
+
+	/*
+	 * Text diff implementation.
+	 *
+	 * This library supports the following APIS:
+	 * JsDiff.diffChars: Character by character diff
+	 * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
+	 * JsDiff.diffLines: Line based diff
+	 *
+	 * JsDiff.diffCss: Diff targeted at CSS content
+	 *
+	 * These methods are based on the implementation proposed in
+	 * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
+	 * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
+	 */
+	var JsDiff = (function() {
+	  /*jshint maxparams: 5*/
+	  function clonePath(path) {
+	    return { newPos: path.newPos, components: path.components.slice(0) };
+	  }
+	  function removeEmpty(array) {
+	    var ret = [];
+	    for (var i = 0; i < array.length; i++) {
+	      if (array[i]) {
+	        ret.push(array[i]);
+	      }
+	    }
+	    return ret;
+	  }
+	  function escapeHTML(s) {
+	    var n = s;
+	    n = n.replace(/&/g, '&amp;');
+	    n = n.replace(/</g, '&lt;');
+	    n = n.replace(/>/g, '&gt;');
+	    n = n.replace(/"/g, '&quot;');
+
+	    return n;
+	  }
+
+	  var Diff = function(ignoreWhitespace) {
+	    this.ignoreWhitespace = ignoreWhitespace;
+	  };
+	  Diff.prototype = {
+	      diff: function(oldString, newString) {
+	        // Handle the identity case (this is due to unrolling editLength == 0
+	        if (newString === oldString) {
+	          return [{ value: newString }];
+	        }
+	        if (!newString) {
+	          return [{ value: oldString, removed: true }];
+	        }
+	        if (!oldString) {
+	          return [{ value: newString, added: true }];
+	        }
+
+	        newString = this.tokenize(newString);
+	        oldString = this.tokenize(oldString);
+
+	        var newLen = newString.length, oldLen = oldString.length;
+	        var maxEditLength = newLen + oldLen;
+	        var bestPath = [{ newPos: -1, components: [] }];
+
+	        // Seed editLength = 0
+	        var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+	        if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
+	          return bestPath[0].components;
+	        }
+
+	        for (var editLength = 1; editLength <= maxEditLength; editLength++) {
+	          for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
+	            var basePath;
+	            var addPath = bestPath[diagonalPath-1],
+	                removePath = bestPath[diagonalPath+1];
+	            oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
+	            if (addPath) {
+	              // No one else is going to attempt to use this value, clear it
+	              bestPath[diagonalPath-1] = undefined;
+	            }
+
+	            var canAdd = addPath && addPath.newPos+1 < newLen;
+	            var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
+	            if (!canAdd && !canRemove) {
+	              bestPath[diagonalPath] = undefined;
+	              continue;
+	            }
+
+	            // Select the diagonal that we want to branch from. We select the prior
+	            // path whose position in the new string is the farthest from the origin
+	            // and does not pass the bounds of the diff graph
+	            if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
+	              basePath = clonePath(removePath);
+	              this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
+	            } else {
+	              basePath = clonePath(addPath);
+	              basePath.newPos++;
+	              this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
+	            }
+
+	            var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
+
+	            if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
+	              return basePath.components;
+	            } else {
+	              bestPath[diagonalPath] = basePath;
+	            }
+	          }
+	        }
+	      },
+
+	      pushComponent: function(components, value, added, removed) {
+	        var last = components[components.length-1];
+	        if (last && last.added === added && last.removed === removed) {
+	          // We need to clone here as the component clone operation is just
+	          // as shallow array clone
+	          components[components.length-1] =
+	            {value: this.join(last.value, value), added: added, removed: removed };
+	        } else {
+	          components.push({value: value, added: added, removed: removed });
+	        }
+	      },
+	      extractCommon: function(basePath, newString, oldString, diagonalPath) {
+	        var newLen = newString.length,
+	            oldLen = oldString.length,
+	            newPos = basePath.newPos,
+	            oldPos = newPos - diagonalPath;
+	        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
+	          newPos++;
+	          oldPos++;
+
+	          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
+	        }
+	        basePath.newPos = newPos;
+	        return oldPos;
+	      },
+
+	      equals: function(left, right) {
+	        var reWhitespace = /\S/;
+	        if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
+	          return true;
+	        } else {
+	          return left === right;
+	        }
+	      },
+	      join: function(left, right) {
+	        return left + right;
+	      },
+	      tokenize: function(value) {
+	        return value;
+	      }
+	  };
+
+	  var CharDiff = new Diff();
+
+	  var WordDiff = new Diff(true);
+	  var WordWithSpaceDiff = new Diff();
+	  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
+	    return removeEmpty(value.split(/(\s+|\b)/));
+	  };
+
+	  var CssDiff = new Diff(true);
+	  CssDiff.tokenize = function(value) {
+	    return removeEmpty(value.split(/([{}:;,]|\s+)/));
+	  };
+
+	  var LineDiff = new Diff();
+	  LineDiff.tokenize = function(value) {
+	    var retLines = [],
+	        lines = value.split(/^/m);
+
+	    for(var i = 0; i < lines.length; i++) {
+	      var line = lines[i],
+	          lastLine = lines[i - 1];
+
+	      // Merge lines that may contain windows new lines
+	      if (line == '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
+	        retLines[retLines.length - 1] += '\n';
+	      } else if (line) {
+	        retLines.push(line);
+	      }
+	    }
+
+	    return retLines;
+	  };
+
+	  return {
+	    Diff: Diff,
+
+	    diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
+	    diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
+	    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
+	    diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+
+	    diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
+
+	    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
+	      var ret = [];
+
+	      ret.push('Index: ' + fileName);
+	      ret.push('===================================================================');
+	      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
+	      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+
+	      var diff = LineDiff.diff(oldStr, newStr);
+	      if (!diff[diff.length-1].value) {
+	        diff.pop();   // Remove trailing newline add
+	      }
+	      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+
+	      function contextLines(lines) {
+	        return lines.map(function(entry) { return ' ' + entry; });
+	      }
+	      function eofNL(curRange, i, current) {
+	        var last = diff[diff.length-2],
+	            isLast = i === diff.length-2,
+	            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
+
+	        // Figure out if this is the last line for the given file and missing NL
+	        if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
+	          curRange.push('\\ No newline at end of file');
+	        }
+	      }
+
+	      var oldRangeStart = 0, newRangeStart = 0, curRange = [],
+	          oldLine = 1, newLine = 1;
+	      for (var i = 0; i < diff.length; i++) {
+	        var current = diff[i],
+	            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+	        current.lines = lines;
+
+	        if (current.added || current.removed) {
+	          if (!oldRangeStart) {
+	            var prev = diff[i-1];
+	            oldRangeStart = oldLine;
+	            newRangeStart = newLine;
+
+	            if (prev) {
+	              curRange = contextLines(prev.lines.slice(-4));
+	              oldRangeStart -= curRange.length;
+	              newRangeStart -= curRange.length;
+	            }
+	          }
+	          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
+	          eofNL(curRange, i, current);
+
+	          if (current.added) {
+	            newLine += lines.length;
+	          } else {
+	            oldLine += lines.length;
+	          }
+	        } else {
+	          if (oldRangeStart) {
+	            // Close out any changes that have been output (or join overlapping)
+	            if (lines.length <= 8 && i < diff.length-2) {
+	              // Overlapping
+	              curRange.push.apply(curRange, contextLines(lines));
+	            } else {
+	              // end the range and output
+	              var contextSize = Math.min(lines.length, 4);
+	              ret.push(
+	                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
+	                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
+	                  + ' @@');
+	              ret.push.apply(ret, curRange);
+	              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
+	              if (lines.length <= 4) {
+	                eofNL(ret, i, current);
+	              }
+
+	              oldRangeStart = 0;  newRangeStart = 0; curRange = [];
+	            }
+	          }
+	          oldLine += lines.length;
+	          newLine += lines.length;
+	        }
+	      }
+
+	      return ret.join('\n') + '\n';
+	    },
+
+	    applyPatch: function(oldStr, uniDiff) {
+	      var diffstr = uniDiff.split('\n');
+	      var diff = [];
+	      var remEOFNL = false,
+	          addEOFNL = false;
+
+	      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
+	        if(diffstr[i][0] === '@') {
+	          var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
+	          diff.unshift({
+	            start:meh[3],
+	            oldlength:meh[2],
+	            oldlines:[],
+	            newlength:meh[4],
+	            newlines:[]
+	          });
+	        } else if(diffstr[i][0] === '+') {
+	          diff[0].newlines.push(diffstr[i].substr(1));
+	        } else if(diffstr[i][0] === '-') {
+	          diff[0].oldlines.push(diffstr[i].substr(1));
+	        } else if(diffstr[i][0] === ' ') {
+	          diff[0].newlines.push(diffstr[i].substr(1));
+	          diff[0].oldlines.push(diffstr[i].substr(1));
+	        } else if(diffstr[i][0] === '\\') {
+	          if (diffstr[i-1][0] === '+') {
+	            remEOFNL = true;
+	          } else if(diffstr[i-1][0] === '-') {
+	            addEOFNL = true;
+	          }
+	        }
+	      }
+
+	      var str = oldStr.split('\n');
+	      for (var i = diff.length - 1; i >= 0; i--) {
+	        var d = diff[i];
+	        for (var j = 0; j < d.oldlength; j++) {
+	          if(str[d.start-1+j] !== d.oldlines[j]) {
+	            return false;
+	          }
+	        }
+	        Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
+	      }
+
+	      if (remEOFNL) {
+	        while (!str[str.length-1]) {
+	          str.pop();
+	        }
+	      } else if (addEOFNL) {
+	        str.push('');
+	      }
+	      return str.join('\n');
+	    },
+
+	    convertChangesToXML: function(changes){
+	      var ret = [];
+	      for ( var i = 0; i < changes.length; i++) {
+	        var change = changes[i];
+	        if (change.added) {
+	          ret.push('<ins>');
+	        } else if (change.removed) {
+	          ret.push('<del>');
+	        }
+
+	        ret.push(escapeHTML(change.value));
+
+	        if (change.added) {
+	          ret.push('</ins>');
+	        } else if (change.removed) {
+	          ret.push('</del>');
+	        }
+	      }
+	      return ret.join('');
+	    },
+
+	    // See: http://code.google.com/p/google-diff-match-patch/wiki/API
+	    convertChangesToDMP: function(changes){
+	      var ret = [], change;
+	      for ( var i = 0; i < changes.length; i++) {
+	        change = changes[i];
+	        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
+	      }
+	      return ret;
+	    }
+	  };
+	})();
+
+	if (true) {
+	    module.exports = JsDiff;
+	}
+
+
+/***/ },
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -31746,14 +32469,21 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(22)(module), (function() { return this; }())))
 
 /***/ },
-/* 15 */
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function() { throw new Error("define cannot be used indirect"); };
+
+
+/***/ },
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var
 	    jslex = __webpack_require__(20),
-	    _ = __webpack_require__(14);
+	    _ = __webpack_require__(16);
 
 
 
@@ -31975,7 +32705,7 @@
 	module.exports = jslex(spec);
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -32044,719 +32774,728 @@
 	module.exports = data_tables;
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
-	 * Toastr
-	 * Copyright 2012-2014 John Papa and Hans Fjällemark.
-	 * All Rights Reserved.
-	 * Use, reproduction, distribution, and modification of this code is subject to the terms and
-	 * conditions of the MIT license, available at http://www.opensource.org/licenses/mit-license.php
-	 *
-	 * Author: John Papa and Hans Fjällemark
-	 * ARIA Support: Greta Krafsig
-	 * Project: https://github.com/CodeSeven/toastr
+	/**
+	 * jslex - A lexer in JavaScript.
+	 * @author Jim R. Wilson (jimbojw)
 	 */
-	; (function (define) {
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function ($) {
-	        return (function () {
-	            var $container;
-	            var listener;
-	            var toastId = 0;
-	            var toastType = {
-	                error: 'error',
-	                info: 'info',
-	                success: 'success',
-	                warning: 'warning'
-	            };
 
-	            var toastr = {
-	                clear: clear,
-	                remove: remove,
-	                error: error,
-	                getContainer: getContainer,
-	                info: info,
-	                options: {},
-	                subscribe: subscribe,
-	                success: success,
-	                version: '2.0.3',
-	                warning: warning
-	            };
+	var _ = __webpack_require__(16);
+	    
+	     /**
+	     * jslex constructor.
+	     * @param {object} spec Lexer specification.
+	     * @return {object} 
+	     */
+	    function jslex( spec ) {
 
-	            return toastr;
+	        if (spec === undefined) {
+	            throw "no specification supplied";
+	        }
+	        
+	        var
+	            
+	            // jslex object
+	            lexer = new JSLex(),
+	                
+	            // specification
+	            specification = lexer.specification = {},
+	            
+	            // list of states
+	            states = lexer.states = [];
+	                    
+	        
+	        // establish list of states
+	        for (var k in spec) {
+	            states[states.length] = k;
+	        }
+	        
+	        // build out internal representation of the provided spec
+	        for (var i=0, l=states.length; i<l; i++) {
 
-	            //#region Accessible Methods
-	            function error(message, title, optionsOverride) {
-	                return notify({
-	                    type: toastType.error,
-	                    iconClass: getOptions().iconClasses.error,
-	                    message: message,
-	                    optionsOverride: optionsOverride,
-	                    title: title
-	                });
+	            var
+	                s = states[i],
+	                state = spec[s];
+
+	            if (specification[s]) {
+	                throw "Duplicate state declaration encountered for state '" + s + "'";
 	            }
-
-	            function getContainer(options, create) {
-	                if (!options) { options = getOptions(); }
-	                $container = $('#' + options.containerId);
-	                if ($container.length) {
-	                    return $container;
+	            
+	            var rules = specification[s] = [];
+	            
+	            for (var k in state) {
+	                try {
+	                    var re = new RegExp('^' + k);
+	                } catch(err) {
+	                    throw "Invalid regexp '" + k + "' in state '" + s + "' (" + err.message + ")";
 	                }
-	                if(create) {
-	                    $container = createContainer(options);
-	                }
-	                return $container;
-	            }
-
-	            function info(message, title, optionsOverride) {
-	                return notify({
-	                    type: toastType.info,
-	                    iconClass: getOptions().iconClasses.info,
-	                    message: message,
-	                    optionsOverride: optionsOverride,
-	                    title: title
-	                });
-	            }
-
-	            function subscribe(callback) {
-	                listener = callback;
-	            }
-
-	            function success(message, title, optionsOverride) {
-	                return notify({
-	                    type: toastType.success,
-	                    iconClass: getOptions().iconClasses.success,
-	                    message: message,
-	                    optionsOverride: optionsOverride,
-	                    title: title
-	                });
-	            }
-
-	            function warning(message, title, optionsOverride) {
-	                return notify({
-	                    type: toastType.warning,
-	                    iconClass: getOptions().iconClasses.warning,
-	                    message: message,
-	                    optionsOverride: optionsOverride,
-	                    title: title
-	                });
-	            }
-
-	            function clear($toastElement) {
-	                var options = getOptions();
-	                if (!$container) { getContainer(options); }
-	                if (!clearToast($toastElement, options)) {
-	                    clearContainer(options);
-	                }
-	            }
-
-	            function remove($toastElement) {
-	                var options = getOptions();
-	                if (!$container) { getContainer(options); }
-	                if ($toastElement && $(':focus', $toastElement).length === 0) {
-	                    removeToast($toastElement);
-	                    return;
-	                }
-	                if ($container.children().length) {
-	                    $container.remove();
-	                }
-	            }
-	            //#endregion
-
-	            //#region Internal Methods
-
-	            function clearContainer(options){
-	                var toastsToClear = $container.children();
-	                for (var i = toastsToClear.length - 1; i >= 0; i--) {
-	                    clearToast($(toastsToClear[i]), options);
+	                rules[rules.length] = {
+	                    re: re,
+	                    action: state[k]
 	                };
 	            }
+	        }
+	        
+	        // return jslex object
+	        return lexer;
+	    }
 
-	            function clearToast($toastElement, options){
-	                if ($toastElement && $(':focus', $toastElement).length === 0) {
-	                    $toastElement[options.hideMethod]({
-	                        duration: options.hideDuration,
-	                        easing: options.hideEasing,
-	                        complete: function () { removeToast($toastElement); }
-	                    });
-	                    return true;
+	    // End of File marker
+	    var EOF = {};
+
+	    /**
+	     * Utility function for comparing two matches.
+	     * @param {object} m1 Left-hand side match.
+	     * @param {object} m2 Right-hand side match.
+	     * @return {int} Difference between the matches.
+	     */
+	    function matchcompare( m1, m2 ) {
+	        return m2.len - m1.len || m1.index - m2.index;
+	    }
+
+	    /**
+	     * JSLex prototype.
+	     */
+	    function JSLex() { }
+	    JSLex.prototype = {
+
+	        /**
+	         * Scanner function - makes a new scanner object which is used to get tokens one at a time.
+	         * @param {string} input Input text to tokenize.
+	         * @param {function} Scanner function.
+	         */
+	        scanner: function scanner( input ) {
+	        
+	            var
+	                
+	                // avoid ambiguity between the lexer and the api object
+	                lexer = this,
+	                states = lexer.states,
+	                specification = lexer.specification,
+	                
+	                // position within input stream
+	                pos = 0,
+	                
+	                // current line number
+	                line = 0,
+	                
+	                // curret column number
+	                col = 0,
+	                
+	                offset,
+	                less,
+	                go,
+	                newstate,
+	                inputlen = input.length,
+	                nlre = /\n/g,
+	            
+	                // initial state
+	                state = states[0];            
+	    
+	            /**
+	             * The api bject will be set to "this" when executing spec callbacks.
+	             */ 
+	            var api = {
+	                
+	                /**
+	                 * Analogous to yytext and yyleng in lex - will be set during scan.
+	                 */
+	                text: null,
+	                leng: null,
+	            
+	                /**
+	                 * Position of in stream, line number and column number of match.
+	                 */
+	                pos: null,
+	                line: null,
+	                column: null,
+	            
+	                /**
+	                 * Analogous to input() in lex.
+	                 * @return {string} The next character in the stream.
+	                 */
+	                input: function(){
+	                    return input.charAt(pos + this.leng + offset++);
+	                },
+	                
+	                /**
+	                 * Similar to unput() in lex, but does not allow modifying the stream.
+	                 * @return {int} The offset position after the operation.
+	                 */
+	                unput: function(){
+	                    return offset = offset > 0 ? offset-- : 0;
+	                },
+	                
+	                /**
+	                 * Analogous to yyless(n) in lex - retains the first n characters from this pattern, and returns 
+	                 * the rest to the input stream, such that they will be used in the next pattern-matching operation.
+	                 * @param {int} n Number of characters to retain.
+	                 * @return {int} Length of the stream after the operation has completed.
+	                 */
+	                less: function(n) {
+	                    less = n;
+	                    offset = 0;
+	                    this.text = this.text.substr(0, n);
+	                    return this.leng = this.text.length;
+	                },
+	                
+	                /**
+	                 * Like less(), but instead of retaining the first n characters, it chops off the last n.
+	                 * @param {int} n Number of characters to chop.
+	                 * @return {int} Length of the stream after the operation has completed.
+	                 */
+	                pushback: function(n) {
+	                    return this.less(this.leng - n);
+	                },
+	                
+	                /**
+	                 * Similar to REJECT in lex, except it doesn't break the current execution context.
+	                 * TIP: reject() should be the last instruction in a spec callback.
+	                 */
+	                reject: function() {
+	                    go = true;
+	                },
+	                
+	                /**
+	                 * Analogous to BEGIN in lex - sets the named state (start condition).
+	                 * @param {string|int} state Name of state to switch to, or ordinal number (0 is first, etc).
+	                 * @return {string} The new state on successful switch, throws exception on failure.
+	                 */
+	                begin: function(state) {
+	                    if (specification[state]) {
+	                        return newstate = state;
+	                    }
+	                    var s = states[parseInt(state)];
+	                    if (s) {
+	                        return newstate = s;
+	                    }
+	                    throw "Unknown state '" + state + "' requested";
+	                },
+	                
+	                /**
+	                 * Simple accessor for reading in the current state.
+	                 * @return {string} The current state.
+	                 */
+	                state: function(){
+	                    return state;
 	                }
-	                return false;
-	            }
-
-	            function createContainer(options) {
-	                $container = $('<div/>')
-	                    .attr('id', options.containerId)
-	                    .addClass(options.positionClass)
-	                    .attr('aria-live', 'polite')
-	                    .attr('role', 'alert');
-
-	                $container.appendTo($(options.target));
-	                return $container;
-	            }
-
-	            function getDefaults() {
-	                return {
-	                    tapToDismiss: true,
-	                    toastClass: 'toast',
-	                    containerId: 'toast-container',
-	                    debug: false,
-
-	                    showMethod: 'fadeIn', //fadeIn, slideDown, and show are built into jQuery
-	                    showDuration: 300,
-	                    showEasing: 'swing', //swing and linear are built into jQuery
-	                    onShown: undefined,
-	                    hideMethod: 'fadeOut',
-	                    hideDuration: 1000,
-	                    hideEasing: 'swing',
-	                    onHidden: undefined,
-
-	                    extendedTimeOut: 1000,
-	                    iconClasses: {
-	                        error: 'toast-error',
-	                        info: 'toast-info',
-	                        success: 'toast-success',
-	                        warning: 'toast-warning'
-	                    },
-	                    iconClass: 'toast-info',
-	                    positionClass: 'toast-top-right',
-	                    timeOut: 5000, // Set timeOut and extendedTimeout to 0 to make it sticky
-	                    titleClass: 'toast-title',
-	                    messageClass: 'toast-message',
-	                    target: 'body',
-	                    closeHtml: '<button>&times;</button>',
-	                    newestOnTop: true
-	                };
-	            }
-
-	            function publish(args) {
-	                if (!listener) { return; }
-	                listener(args);
-	            }
-
-	            function notify(map) {
-	                var options = getOptions(),
-	                    iconClass = map.iconClass || options.iconClass;
-
-	                if (typeof (map.optionsOverride) !== 'undefined') {
-	                    options = $.extend(options, map.optionsOverride);
-	                    iconClass = map.optionsOverride.iconClass || iconClass;
+	                
+	            };
+	            
+	            /**
+	             * Scan method to be returned to caller - grabs the next token and fires appropriate calback.
+	             * @return {string} The next token extracted from the stream.
+	             */
+	            function scan() {
+	            
+	                if (pos >= inputlen) {
+	                    return EOF;
 	                }
-
-	                toastId++;
-
-	                $container = getContainer(options, true);
-	                var intervalId = null,
-	                    $toastElement = $('<div/>'),
-	                    $titleElement = $('<div/>'),
-	                    $messageElement = $('<div/>'),
-	                    $closeElement = $(options.closeHtml),
-	                    response = {
-	                        toastId: toastId,
-	                        state: 'visible',
-	                        startTime: new Date(),
-	                        options: options,
-	                        map: map
-	                    };
-
-	                if (map.iconClass) {
-	                    $toastElement.addClass(options.toastClass).addClass(iconClass);
+	                api.pos = pos;
+	                api.line = line;
+	                api.column = col;
+	                var
+	                    str = pos ? input.substr(pos) : input,
+	                    rules = specification[state],
+	                    matches = [];
+	                for (var i=0, l=rules.length; i<l; i++) {
+	                    var
+	                        rule = rules[i],
+	                        m = str.match(rule.re);
+	                    if (m && m[0].length) {
+	                        matches[matches.length] = {
+	                            index: i,
+	                            text: m[0],
+	                            len: m[0].length,
+	                            rule: rule,
+	                            captureGroups: _.tail(m)
+	                        };
+	                    }
 	                }
-
-	                if (map.title) {
-	                    $titleElement.append(map.title).addClass(options.titleClass);
-	                    $toastElement.append($titleElement);
+	                if (!matches.length) {
+	                    var ch = str.charAt(0);
+	                    pos++;
+	                    if (ch=="\n") {
+	                        line++;
+	                        col = 0;
+	                    } else {
+	                        col++;
+	                    }
+	                    return ch;
 	                }
-
-	                if (map.message) {
-	                    $messageElement.append(map.message).addClass(options.messageClass);
-	                    $toastElement.append($messageElement);
+	                matches.sort(matchcompare);
+	                go = true;
+	                for (var j=0, n=matches.length; j<n && go; j++) {
+	                    var
+	                        offset = 0,
+	                        less = null,
+	                        go = false,
+	                        newstate = null,
+	                        result,
+	                        m = matches[j],
+	                        action = m.rule.action;
+	                    api.text = m.text;
+	                    api.leng = m.len;
+	                    if (!action) {
+	                        break;
+	                    }
+	                    var result = action.apply(api, m.captureGroups);
+	                    if (newstate && newstate != state) {
+	                        state = newstate;
+	                        break;
+	                    }
 	                }
-
-	                if (options.closeButton) {
-	                    $closeElement.addClass('toast-close-button').attr("role", "button");
-	                    $toastElement.prepend($closeElement);
-	                }
-
-	                $toastElement.hide();
-	                if (options.newestOnTop) {
-	                    $container.prepend($toastElement);
+	                var
+	                    text = less===null ? m.text : m.text.substr(0, less),
+	                    len = text.length;
+	                pos += len + offset;
+	                var nlm = text.match(nlre);
+	                if (nlm) {
+	                    line += nlm.length;
+	                    col = len - text.lastIndexOf("\n") - 1;
 	                } else {
-	                    $container.append($toastElement);
+	                    col += len;
 	                }
-
-
-	                $toastElement[options.showMethod](
-	                    { duration: options.showDuration, easing: options.showEasing, complete: options.onShown }
-	                );
-
-	                if (options.timeOut > 0) {
-	                    intervalId = setTimeout(hideToast, options.timeOut);
+	                if (result !== undefined) {
+	                    return result;
 	                }
-
-	                $toastElement.hover(stickAround, delayedHideToast);
-	                if (!options.onclick && options.tapToDismiss) {
-	                    $toastElement.click(hideToast);
-	                }
-
-	                if (options.closeButton && $closeElement) {
-	                    $closeElement.click(function (event) {
-	                        if( event.stopPropagation ) {
-	                            event.stopPropagation();
-	                        } else if( event.cancelBubble !== undefined && event.cancelBubble !== true ) {
-	                            event.cancelBubble = true;
-	                        }
-	                        hideToast(true);
-	                    });
-	                }
-
-	                if (options.onclick) {
-	                    $toastElement.click(function () {
-	                        options.onclick();
-	                        hideToast();
-	                    });
-	                }
-
-	                publish(response);
-
-	                if (options.debug && console) {
-	                    console.log(response);
-	                }
-
-	                return $toastElement;
-
-	                function hideToast(override) {
-	                    if ($(':focus', $toastElement).length && !override) {
+	            }
+	            
+	            return scan;
+	        },
+	        
+	        /**
+	         * Similar to lex's yylex() function, consumes all input, calling calback for each token.
+	         * @param {string} input Text to lex.
+	         * @param {function} callback Function to execute for each token.
+	         */
+	        lex: function lex( input, callback ) {
+	            var self = this;
+	                var
+	                    token,
+	                    scanner = self.scanner(input);
+	                while (true) {
+	                    token = scanner();
+	                    if (token === EOF) {
 	                        return;
 	                    }
-	                    return $toastElement[options.hideMethod]({
-	                        duration: options.hideDuration,
-	                        easing: options.hideEasing,
-	                        complete: function () {
-	                            removeToast($toastElement);
-	                            if (options.onHidden && response.state !== 'hidden') {
-	                                options.onHidden();
-	                            }
-	                            response.state = 'hidden';
-	                            response.endTime = new Date();
-	                            publish(response);
-	                        }
-	                    });
-	                }
-
-	                function delayedHideToast() {
-	                    if (options.timeOut > 0 || options.extendedTimeOut > 0) {
-	                        intervalId = setTimeout(hideToast, options.extendedTimeOut);
+	                    if (token !== undefined) {
+	                        callback(token);
 	                    }
 	                }
-
-	                function stickAround() {
-	                    clearTimeout(intervalId);
-	                    $toastElement.stop(true, true)[options.showMethod](
-	                        { duration: options.showDuration, easing: options.showEasing }
-	                    );
-	                }
+	        },
+	        
+	        /**
+	         * Consumes all input, collecting tokens along the way.
+	         * @param {string} input Text to lex.
+	         * @return {array} List of tokens, may contain an Error at the end.
+	         */
+	        collect: function collect( input ) {
+	            var tokens = [];
+	            function callback( token ) {
+	                tokens[tokens.length] = token;
 	            }
-
-	            function getOptions() {
-	                return $.extend({}, getDefaults(), toastr.options);
-	            }
-
-	            function removeToast($toastElement) {
-	                if (!$container) { $container = getContainer(); }
-	                if ($toastElement.is(':visible')) {
-	                    return;
+	            try {
+	                this.lex(input, callback);
+	            } catch (err) {
+	                if (!(err instanceof Error)) {
+	                    err = new Error(err + '');
 	                }
-	                $toastElement.remove();
-	                $toastElement = null;
-	                if ($container.children().length === 0) {
-	                    $container.remove();
-	                }
+	                tokens[tokens.length] = err;
 	            }
-	            //#endregion
-
-	        })();
-	    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}(__webpack_require__(23)));
+	            return tokens;
+	        }
+	        
+	    };
+	        
+	    module.exports = jslex;
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* See LICENSE file for terms of use */
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;;(function(root, factory) {
 
-	/*
-	 * Text diff implementation.
-	 *
-	 * This library supports the following APIS:
-	 * JsDiff.diffChars: Character by character diff
-	 * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
-	 * JsDiff.diffLines: Line based diff
-	 *
-	 * JsDiff.diffCss: Diff targeted at CSS content
-	 *
-	 * These methods are based on the implementation proposed in
-	 * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
-	 * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
-	 */
-	var JsDiff = (function() {
-	  /*jshint maxparams: 5*/
-	  function clonePath(path) {
-	    return { newPos: path.newPos, components: path.components.slice(0) };
-	  }
-	  function removeEmpty(array) {
-	    var ret = [];
-	    for (var i = 0; i < array.length; i++) {
-	      if (array[i]) {
-	        ret.push(array[i]);
-	      }
+	  // Support AMD
+	  if (true) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+	  // Support CommonJS
+	  } else if (typeof exports === 'object') {
+	    var randomColor = factory();
+	    
+	    // Support NodeJS & Component, which allow module.exports to be a function
+	    if (typeof module === 'object' && module && module.exports) {
+	      exports = module.exports = randomColor;
 	    }
-	    return ret;
-	  }
-	  function escapeHTML(s) {
-	    var n = s;
-	    n = n.replace(/&/g, '&amp;');
-	    n = n.replace(/</g, '&lt;');
-	    n = n.replace(/>/g, '&gt;');
-	    n = n.replace(/"/g, '&quot;');
-
-	    return n;
-	  }
-
-	  var Diff = function(ignoreWhitespace) {
-	    this.ignoreWhitespace = ignoreWhitespace;
+	    
+	    // Support CommonJS 1.1.1 spec
+	    exports.randomColor = randomColor;
+	  
+	  // Support vanilla script loading
+	  } else {
+	    root.randomColor = factory();
 	  };
-	  Diff.prototype = {
-	      diff: function(oldString, newString) {
-	        // Handle the identity case (this is due to unrolling editLength == 0
-	        if (newString === oldString) {
-	          return [{ value: newString }];
-	        }
-	        if (!newString) {
-	          return [{ value: oldString, removed: true }];
-	        }
-	        if (!oldString) {
-	          return [{ value: newString, added: true }];
-	        }
 
-	        newString = this.tokenize(newString);
-	        oldString = this.tokenize(oldString);
+	}(this, function() {
 
-	        var newLen = newString.length, oldLen = oldString.length;
-	        var maxEditLength = newLen + oldLen;
-	        var bestPath = [{ newPos: -1, components: [] }];
+	  // Shared color dictionary
+	  var colorDictionary = {};
 
-	        // Seed editLength = 0
-	        var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-	        if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
-	          return bestPath[0].components;
-	        }
+	  // Populate the color dictionary
+	  loadColorBounds();
 
-	        for (var editLength = 1; editLength <= maxEditLength; editLength++) {
-	          for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
-	            var basePath;
-	            var addPath = bestPath[diagonalPath-1],
-	                removePath = bestPath[diagonalPath+1];
-	            oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-	            if (addPath) {
-	              // No one else is going to attempt to use this value, clear it
-	              bestPath[diagonalPath-1] = undefined;
-	            }
+	  var randomColor = function(options) {
+	    options = options || {};
 
-	            var canAdd = addPath && addPath.newPos+1 < newLen;
-	            var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
-	            if (!canAdd && !canRemove) {
-	              bestPath[diagonalPath] = undefined;
-	              continue;
-	            }
+	    var H,S,B;
 
-	            // Select the diagonal that we want to branch from. We select the prior
-	            // path whose position in the new string is the farthest from the origin
-	            // and does not pass the bounds of the diff graph
-	            if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
-	              basePath = clonePath(removePath);
-	              this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
-	            } else {
-	              basePath = clonePath(addPath);
-	              basePath.newPos++;
-	              this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
-	            }
+	    // Check if we need to generate multiple colors
+	    if (options.count) {
 
-	            var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
+	      var totalColors = options.count,
+	          colors = [];
 
-	            if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
-	              return basePath.components;
-	            } else {
-	              bestPath[diagonalPath] = basePath;
-	            }
-	          }
-	        }
-	      },
+	      options.count = false;
 
-	      pushComponent: function(components, value, added, removed) {
-	        var last = components[components.length-1];
-	        if (last && last.added === added && last.removed === removed) {
-	          // We need to clone here as the component clone operation is just
-	          // as shallow array clone
-	          components[components.length-1] =
-	            {value: this.join(last.value, value), added: added, removed: removed };
-	        } else {
-	          components.push({value: value, added: added, removed: removed });
-	        }
-	      },
-	      extractCommon: function(basePath, newString, oldString, diagonalPath) {
-	        var newLen = newString.length,
-	            oldLen = oldString.length,
-	            newPos = basePath.newPos,
-	            oldPos = newPos - diagonalPath;
-	        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
-	          newPos++;
-	          oldPos++;
-
-	          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
-	        }
-	        basePath.newPos = newPos;
-	        return oldPos;
-	      },
-
-	      equals: function(left, right) {
-	        var reWhitespace = /\S/;
-	        if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
-	          return true;
-	        } else {
-	          return left === right;
-	        }
-	      },
-	      join: function(left, right) {
-	        return left + right;
-	      },
-	      tokenize: function(value) {
-	        return value;
+	      while (totalColors > colors.length) {
+	        colors.push(randomColor(options));
 	      }
-	  };
 
-	  var CharDiff = new Diff();
-
-	  var WordDiff = new Diff(true);
-	  var WordWithSpaceDiff = new Diff();
-	  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
-	    return removeEmpty(value.split(/(\s+|\b)/));
-	  };
-
-	  var CssDiff = new Diff(true);
-	  CssDiff.tokenize = function(value) {
-	    return removeEmpty(value.split(/([{}:;,]|\s+)/));
-	  };
-
-	  var LineDiff = new Diff();
-	  LineDiff.tokenize = function(value) {
-	    var retLines = [],
-	        lines = value.split(/^/m);
-
-	    for(var i = 0; i < lines.length; i++) {
-	      var line = lines[i],
-	          lastLine = lines[i - 1];
-
-	      // Merge lines that may contain windows new lines
-	      if (line == '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
-	        retLines[retLines.length - 1] += '\n';
-	      } else if (line) {
-	        retLines.push(line);
-	      }
+	      return colors;
 	    }
 
-	    return retLines;
+	    // First we pick a hue (H)
+	    H = pickHue(options);
+
+	    // Then use H to determine saturation (S)
+	    S = pickSaturation(H, options);
+
+	    // Then use S and H to determine brightness (B).
+	    B = pickBrightness(H, S, options);
+
+	    // Then we return the HSB color in the desired format
+	    return setFormat([H,S,B], options);
 	  };
 
-	  return {
-	    Diff: Diff,
+	  function pickHue (options) {
 
-	    diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
-	    diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
-	    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
-	    diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+	    var hueRange = getHueRange(options.hue),
+	        hue = randomWithin(hueRange);
 
-	    diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
+	    // Instead of storing red as two seperate ranges,
+	    // we group them, using negative numbers
+	    if (hue < 0) {hue = 360 + hue}
 
-	    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
-	      var ret = [];
+	    return hue;
 
-	      ret.push('Index: ' + fileName);
-	      ret.push('===================================================================');
-	      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
-	      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+	  }
 
-	      var diff = LineDiff.diff(oldStr, newStr);
-	      if (!diff[diff.length-1].value) {
-	        diff.pop();   // Remove trailing newline add
-	      }
-	      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+	  function pickSaturation (hue, options) {
 
-	      function contextLines(lines) {
-	        return lines.map(function(entry) { return ' ' + entry; });
-	      }
-	      function eofNL(curRange, i, current) {
-	        var last = diff[diff.length-2],
-	            isLast = i === diff.length-2,
-	            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
-
-	        // Figure out if this is the last line for the given file and missing NL
-	        if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
-	          curRange.push('\\ No newline at end of file');
-	        }
-	      }
-
-	      var oldRangeStart = 0, newRangeStart = 0, curRange = [],
-	          oldLine = 1, newLine = 1;
-	      for (var i = 0; i < diff.length; i++) {
-	        var current = diff[i],
-	            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
-	        current.lines = lines;
-
-	        if (current.added || current.removed) {
-	          if (!oldRangeStart) {
-	            var prev = diff[i-1];
-	            oldRangeStart = oldLine;
-	            newRangeStart = newLine;
-
-	            if (prev) {
-	              curRange = contextLines(prev.lines.slice(-4));
-	              oldRangeStart -= curRange.length;
-	              newRangeStart -= curRange.length;
-	            }
-	          }
-	          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
-	          eofNL(curRange, i, current);
-
-	          if (current.added) {
-	            newLine += lines.length;
-	          } else {
-	            oldLine += lines.length;
-	          }
-	        } else {
-	          if (oldRangeStart) {
-	            // Close out any changes that have been output (or join overlapping)
-	            if (lines.length <= 8 && i < diff.length-2) {
-	              // Overlapping
-	              curRange.push.apply(curRange, contextLines(lines));
-	            } else {
-	              // end the range and output
-	              var contextSize = Math.min(lines.length, 4);
-	              ret.push(
-	                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
-	                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
-	                  + ' @@');
-	              ret.push.apply(ret, curRange);
-	              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
-	              if (lines.length <= 4) {
-	                eofNL(ret, i, current);
-	              }
-
-	              oldRangeStart = 0;  newRangeStart = 0; curRange = [];
-	            }
-	          }
-	          oldLine += lines.length;
-	          newLine += lines.length;
-	        }
-	      }
-
-	      return ret.join('\n') + '\n';
-	    },
-
-	    applyPatch: function(oldStr, uniDiff) {
-	      var diffstr = uniDiff.split('\n');
-	      var diff = [];
-	      var remEOFNL = false,
-	          addEOFNL = false;
-
-	      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
-	        if(diffstr[i][0] === '@') {
-	          var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
-	          diff.unshift({
-	            start:meh[3],
-	            oldlength:meh[2],
-	            oldlines:[],
-	            newlength:meh[4],
-	            newlines:[]
-	          });
-	        } else if(diffstr[i][0] === '+') {
-	          diff[0].newlines.push(diffstr[i].substr(1));
-	        } else if(diffstr[i][0] === '-') {
-	          diff[0].oldlines.push(diffstr[i].substr(1));
-	        } else if(diffstr[i][0] === ' ') {
-	          diff[0].newlines.push(diffstr[i].substr(1));
-	          diff[0].oldlines.push(diffstr[i].substr(1));
-	        } else if(diffstr[i][0] === '\\') {
-	          if (diffstr[i-1][0] === '+') {
-	            remEOFNL = true;
-	          } else if(diffstr[i-1][0] === '-') {
-	            addEOFNL = true;
-	          }
-	        }
-	      }
-
-	      var str = oldStr.split('\n');
-	      for (var i = diff.length - 1; i >= 0; i--) {
-	        var d = diff[i];
-	        for (var j = 0; j < d.oldlength; j++) {
-	          if(str[d.start-1+j] !== d.oldlines[j]) {
-	            return false;
-	          }
-	        }
-	        Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
-	      }
-
-	      if (remEOFNL) {
-	        while (!str[str.length-1]) {
-	          str.pop();
-	        }
-	      } else if (addEOFNL) {
-	        str.push('');
-	      }
-	      return str.join('\n');
-	    },
-
-	    convertChangesToXML: function(changes){
-	      var ret = [];
-	      for ( var i = 0; i < changes.length; i++) {
-	        var change = changes[i];
-	        if (change.added) {
-	          ret.push('<ins>');
-	        } else if (change.removed) {
-	          ret.push('<del>');
-	        }
-
-	        ret.push(escapeHTML(change.value));
-
-	        if (change.added) {
-	          ret.push('</ins>');
-	        } else if (change.removed) {
-	          ret.push('</del>');
-	        }
-	      }
-	      return ret.join('');
-	    },
-
-	    // See: http://code.google.com/p/google-diff-match-patch/wiki/API
-	    convertChangesToDMP: function(changes){
-	      var ret = [], change;
-	      for ( var i = 0; i < changes.length; i++) {
-	        change = changes[i];
-	        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
-	      }
-	      return ret;
+	    if (options.luminosity === 'random') {
+	      return randomWithin([0,100]);
 	    }
-	  };
-	})();
 
-	if (true) {
-	    module.exports = JsDiff;
+	    if (options.hue === 'monochrome') {
+	      return 0;
+	    }
+
+	    var saturationRange = getSaturationRange(hue);
+
+	    var sMin = saturationRange[0],
+	        sMax = saturationRange[1];
+
+	    switch (options.luminosity) {
+
+	      case 'bright':
+	        sMin = 55;
+	        break;
+
+	      case 'dark':
+	        sMin = sMax - 10;
+	        break;
+
+	      case 'light':
+	        sMax = 55;
+	        break;
+	   }
+
+	    return randomWithin([sMin, sMax]);
+
+	  }
+
+	  function pickBrightness (H, S, options) {
+
+	    var brightness,
+	        bMin = getMinimumBrightness(H, S),
+	        bMax = 100;
+
+	    switch (options.luminosity) {
+
+	      case 'dark':
+	        bMax = bMin + 20;
+	        break;
+
+	      case 'light':
+	        bMin = (bMax + bMin)/2;
+	        break;
+
+	      case 'random':
+	        bMin = 0;
+	        bMax = 100;
+	        break;
+	    }
+
+	    return randomWithin([bMin, bMax]);
+
+	  }
+
+	  function setFormat (hsv, options) {
+
+	    switch (options.format) {
+
+	      case 'hsvArray':
+	        return hsv;
+
+	      case 'hsv':
+	        return colorString('hsv', hsv);
+
+	      case 'rgbArray':
+	        return HSVtoRGB(hsv);
+
+	      case 'rgb':
+	        return colorString('rgb', HSVtoRGB(hsv));
+
+	      default:
+	        return HSVtoHex(hsv);
+	    }
+
+	  }
+
+	  function getMinimumBrightness(H, S) {
+
+	    var lowerBounds = getColorInfo(H).lowerBounds;
+
+	    for (var i = 0; i < lowerBounds.length - 1; i++) {
+
+	      var s1 = lowerBounds[i][0],
+	          v1 = lowerBounds[i][1];
+
+	      var s2 = lowerBounds[i+1][0],
+	          v2 = lowerBounds[i+1][1];
+
+	      if (S >= s1 && S <= s2) {
+
+	         var m = (v2 - v1)/(s2 - s1),
+	             b = v1 - m*s1;
+
+	         return m*S + b;
+	      }
+
+	    }
+
+	    return 0;
+	  }
+
+	  function getHueRange (colorInput) {
+
+	    if (typeof parseInt(colorInput) === 'number') {
+
+	      var number = parseInt(colorInput);
+
+	      if (number < 360 && number > 0) {
+	        return [number, number];
+	      }
+
+	    }
+
+	    if (typeof colorInput === 'string') {
+
+	      if (colorDictionary[colorInput]) {
+	        var color = colorDictionary[colorInput];
+	        if (color.hueRange) {return color.hueRange}
+	      }
+	    }
+
+	    return [0,360];
+
+	  }
+
+	  function getSaturationRange (hue) {
+	    return getColorInfo(hue).saturationRange;
+	  }
+
+	  function getColorInfo (hue) {
+
+	    // Maps red colors to make picking hue easier
+	    if (hue >= 334 && hue <= 360) {
+	      hue-= 360;
+	    }
+
+	    for (var colorName in colorDictionary) {
+	       var color = colorDictionary[colorName];
+	       if (color.hueRange &&
+	           hue >= color.hueRange[0] &&
+	           hue <= color.hueRange[1]) {
+	          return colorDictionary[colorName];
+	       }
+	    } return 'Color not found';
+	  }
+
+	  function randomWithin (range) {
+	    return Math.floor(range[0] + Math.random()*(range[1] + 1 - range[0]));
+	  }
+
+	  function shiftHue (h, degrees) {
+	    return (h + degrees)%360;
+	  }
+
+	  function HSVtoHex (hsv){
+
+	    var rgb = HSVtoRGB(hsv);
+
+	    function componentToHex(c) {
+	        var hex = c.toString(16);
+	        return hex.length == 1 ? "0" + hex : hex;
+	    }
+
+	    var hex = "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
+
+	    return hex;
+
+	  }
+
+	  function defineColor (name, hueRange, lowerBounds) {
+
+	    var sMin = lowerBounds[0][0],
+	        sMax = lowerBounds[lowerBounds.length - 1][0],
+
+	        bMin = lowerBounds[lowerBounds.length - 1][1],
+	        bMax = lowerBounds[0][1];
+
+	    colorDictionary[name] = {
+	      hueRange: hueRange,
+	      lowerBounds: lowerBounds,
+	      saturationRange: [sMin, sMax],
+	      brightnessRange: [bMin, bMax]
+	    };
+
+	  }
+
+	  function loadColorBounds () {
+
+	    defineColor(
+	      'monochrome',
+	      null,
+	      [[0,0],[100,0]]
+	    );
+
+	    defineColor(
+	      'red',
+	      [-26,18],
+	      [[20,100],[30,92],[40,89],[50,85],[60,78],[70,70],[80,60],[90,55],[100,50]]
+	    );
+
+	    defineColor(
+	      'orange',
+	      [19,46],
+	      [[20,100],[30,93],[40,88],[50,86],[60,85],[70,70],[100,70]]
+	    );
+
+	    defineColor(
+	      'yellow',
+	      [47,62],
+	      [[25,100],[40,94],[50,89],[60,86],[70,84],[80,82],[90,80],[100,75]]
+	    );
+
+	    defineColor(
+	      'green',
+	      [63,158],
+	      [[30,100],[40,90],[50,85],[60,81],[70,74],[80,64],[90,50],[100,40]]
+	    );
+
+	    defineColor(
+	      'blue',
+	      [159, 257],
+	      [[20,100],[30,86],[40,80],[50,74],[60,60],[70,52],[80,44],[90,39],[100,35]]
+	    );
+
+	    defineColor(
+	      'purple',
+	      [258, 282],
+	      [[20,100],[30,87],[40,79],[50,70],[60,65],[70,59],[80,52],[90,45],[100,42]]
+	    );
+
+	    defineColor(
+	      'pink',
+	      [283, 334],
+	      [[20,100],[30,90],[40,86],[60,84],[80,80],[90,75],[100,73]]
+	    );
+
+	  }
+
+	  function HSVtoRGB (hsv) {
+
+	    // this doesn't work for the values of 0 and 360
+	    // here's the hacky fix
+	    var h = hsv[0];
+	    if (h === 0) {h = 1}
+	    if (h === 360) {h = 359}
+
+	    // Rebase the h,s,v values
+	    h = h/360;
+	    var s = hsv[1]/100,
+	        v = hsv[2]/100;
+
+	    var h_i = Math.floor(h*6),
+	      f = h * 6 - h_i,
+	      p = v * (1 - s),
+	      q = v * (1 - f*s),
+	      t = v * (1 - (1 - f)*s),
+	      r = 256,
+	      g = 256,
+	      b = 256;
+
+	    switch(h_i) {
+	      case 0: r = v, g = t, b = p;  break;
+	      case 1: r = q, g = v, b = p;  break;
+	      case 2: r = p, g = v, b = t;  break;
+	      case 3: r = p, g = q, b = v;  break;
+	      case 4: r = t, g = p, b = v;  break;
+	      case 5: r = v, g = p, b = q;  break;
+	    }
+	    var result = [Math.floor(r*255), Math.floor(g*255), Math.floor(b*255)];
+	    return result;
+	  }
+
+	  function colorString (prefix, values) {
+	    return prefix + '(' + values.join(', ') + ')';
+	  }
+
+	  return randomColor;
+	}));
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function(module) {
+		if(!module.webpackPolyfill) {
+			module.deprecate = function() {};
+			module.paths = [];
+			// module.parent = undefined by default
+			module.children = [];
+			module.webpackPolyfill = 1;
+		}
+		return module;
 	}
 
 
 /***/ },
-/* 19 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global, process) {// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
@@ -42011,734 +42750,6 @@
 	}.call(this));
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(22)(module), (function() { return this; }()), __webpack_require__(25)))
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * jslex - A lexer in JavaScript.
-	 * @author Jim R. Wilson (jimbojw)
-	 */
-
-	var _ = __webpack_require__(14);
-	    
-	     /**
-	     * jslex constructor.
-	     * @param {object} spec Lexer specification.
-	     * @return {object} 
-	     */
-	    function jslex( spec ) {
-
-	        if (spec === undefined) {
-	            throw "no specification supplied";
-	        }
-	        
-	        var
-	            
-	            // jslex object
-	            lexer = new JSLex(),
-	                
-	            // specification
-	            specification = lexer.specification = {},
-	            
-	            // list of states
-	            states = lexer.states = [];
-	                    
-	        
-	        // establish list of states
-	        for (var k in spec) {
-	            states[states.length] = k;
-	        }
-	        
-	        // build out internal representation of the provided spec
-	        for (var i=0, l=states.length; i<l; i++) {
-
-	            var
-	                s = states[i],
-	                state = spec[s];
-
-	            if (specification[s]) {
-	                throw "Duplicate state declaration encountered for state '" + s + "'";
-	            }
-	            
-	            var rules = specification[s] = [];
-	            
-	            for (var k in state) {
-	                try {
-	                    var re = new RegExp('^' + k);
-	                } catch(err) {
-	                    throw "Invalid regexp '" + k + "' in state '" + s + "' (" + err.message + ")";
-	                }
-	                rules[rules.length] = {
-	                    re: re,
-	                    action: state[k]
-	                };
-	            }
-	        }
-	        
-	        // return jslex object
-	        return lexer;
-	    }
-
-	    // End of File marker
-	    var EOF = {};
-
-	    /**
-	     * Utility function for comparing two matches.
-	     * @param {object} m1 Left-hand side match.
-	     * @param {object} m2 Right-hand side match.
-	     * @return {int} Difference between the matches.
-	     */
-	    function matchcompare( m1, m2 ) {
-	        return m2.len - m1.len || m1.index - m2.index;
-	    }
-
-	    /**
-	     * JSLex prototype.
-	     */
-	    function JSLex() { }
-	    JSLex.prototype = {
-
-	        /**
-	         * Scanner function - makes a new scanner object which is used to get tokens one at a time.
-	         * @param {string} input Input text to tokenize.
-	         * @param {function} Scanner function.
-	         */
-	        scanner: function scanner( input ) {
-	        
-	            var
-	                
-	                // avoid ambiguity between the lexer and the api object
-	                lexer = this,
-	                states = lexer.states,
-	                specification = lexer.specification,
-	                
-	                // position within input stream
-	                pos = 0,
-	                
-	                // current line number
-	                line = 0,
-	                
-	                // curret column number
-	                col = 0,
-	                
-	                offset,
-	                less,
-	                go,
-	                newstate,
-	                inputlen = input.length,
-	                nlre = /\n/g,
-	            
-	                // initial state
-	                state = states[0];            
-	    
-	            /**
-	             * The api bject will be set to "this" when executing spec callbacks.
-	             */ 
-	            var api = {
-	                
-	                /**
-	                 * Analogous to yytext and yyleng in lex - will be set during scan.
-	                 */
-	                text: null,
-	                leng: null,
-	            
-	                /**
-	                 * Position of in stream, line number and column number of match.
-	                 */
-	                pos: null,
-	                line: null,
-	                column: null,
-	            
-	                /**
-	                 * Analogous to input() in lex.
-	                 * @return {string} The next character in the stream.
-	                 */
-	                input: function(){
-	                    return input.charAt(pos + this.leng + offset++);
-	                },
-	                
-	                /**
-	                 * Similar to unput() in lex, but does not allow modifying the stream.
-	                 * @return {int} The offset position after the operation.
-	                 */
-	                unput: function(){
-	                    return offset = offset > 0 ? offset-- : 0;
-	                },
-	                
-	                /**
-	                 * Analogous to yyless(n) in lex - retains the first n characters from this pattern, and returns 
-	                 * the rest to the input stream, such that they will be used in the next pattern-matching operation.
-	                 * @param {int} n Number of characters to retain.
-	                 * @return {int} Length of the stream after the operation has completed.
-	                 */
-	                less: function(n) {
-	                    less = n;
-	                    offset = 0;
-	                    this.text = this.text.substr(0, n);
-	                    return this.leng = this.text.length;
-	                },
-	                
-	                /**
-	                 * Like less(), but instead of retaining the first n characters, it chops off the last n.
-	                 * @param {int} n Number of characters to chop.
-	                 * @return {int} Length of the stream after the operation has completed.
-	                 */
-	                pushback: function(n) {
-	                    return this.less(this.leng - n);
-	                },
-	                
-	                /**
-	                 * Similar to REJECT in lex, except it doesn't break the current execution context.
-	                 * TIP: reject() should be the last instruction in a spec callback.
-	                 */
-	                reject: function() {
-	                    go = true;
-	                },
-	                
-	                /**
-	                 * Analogous to BEGIN in lex - sets the named state (start condition).
-	                 * @param {string|int} state Name of state to switch to, or ordinal number (0 is first, etc).
-	                 * @return {string} The new state on successful switch, throws exception on failure.
-	                 */
-	                begin: function(state) {
-	                    if (specification[state]) {
-	                        return newstate = state;
-	                    }
-	                    var s = states[parseInt(state)];
-	                    if (s) {
-	                        return newstate = s;
-	                    }
-	                    throw "Unknown state '" + state + "' requested";
-	                },
-	                
-	                /**
-	                 * Simple accessor for reading in the current state.
-	                 * @return {string} The current state.
-	                 */
-	                state: function(){
-	                    return state;
-	                }
-	                
-	            };
-	            
-	            /**
-	             * Scan method to be returned to caller - grabs the next token and fires appropriate calback.
-	             * @return {string} The next token extracted from the stream.
-	             */
-	            function scan() {
-	            
-	                if (pos >= inputlen) {
-	                    return EOF;
-	                }
-	                api.pos = pos;
-	                api.line = line;
-	                api.column = col;
-	                var
-	                    str = pos ? input.substr(pos) : input,
-	                    rules = specification[state],
-	                    matches = [];
-	                for (var i=0, l=rules.length; i<l; i++) {
-	                    var
-	                        rule = rules[i],
-	                        m = str.match(rule.re);
-	                    if (m && m[0].length) {
-	                        matches[matches.length] = {
-	                            index: i,
-	                            text: m[0],
-	                            len: m[0].length,
-	                            rule: rule,
-	                            captureGroups: _.tail(m)
-	                        };
-	                    }
-	                }
-	                if (!matches.length) {
-	                    var ch = str.charAt(0);
-	                    pos++;
-	                    if (ch=="\n") {
-	                        line++;
-	                        col = 0;
-	                    } else {
-	                        col++;
-	                    }
-	                    return ch;
-	                }
-	                matches.sort(matchcompare);
-	                go = true;
-	                for (var j=0, n=matches.length; j<n && go; j++) {
-	                    var
-	                        offset = 0,
-	                        less = null,
-	                        go = false,
-	                        newstate = null,
-	                        result,
-	                        m = matches[j],
-	                        action = m.rule.action;
-	                    api.text = m.text;
-	                    api.leng = m.len;
-	                    if (!action) {
-	                        break;
-	                    }
-	                    var result = action.apply(api, m.captureGroups);
-	                    if (newstate && newstate != state) {
-	                        state = newstate;
-	                        break;
-	                    }
-	                }
-	                var
-	                    text = less===null ? m.text : m.text.substr(0, less),
-	                    len = text.length;
-	                pos += len + offset;
-	                var nlm = text.match(nlre);
-	                if (nlm) {
-	                    line += nlm.length;
-	                    col = len - text.lastIndexOf("\n") - 1;
-	                } else {
-	                    col += len;
-	                }
-	                if (result !== undefined) {
-	                    return result;
-	                }
-	            }
-	            
-	            return scan;
-	        },
-	        
-	        /**
-	         * Similar to lex's yylex() function, consumes all input, calling calback for each token.
-	         * @param {string} input Text to lex.
-	         * @param {function} callback Function to execute for each token.
-	         */
-	        lex: function lex( input, callback ) {
-	            var self = this;
-	                var
-	                    token,
-	                    scanner = self.scanner(input);
-	                while (true) {
-	                    token = scanner();
-	                    if (token === EOF) {
-	                        return;
-	                    }
-	                    if (token !== undefined) {
-	                        callback(token);
-	                    }
-	                }
-	        },
-	        
-	        /**
-	         * Consumes all input, collecting tokens along the way.
-	         * @param {string} input Text to lex.
-	         * @return {array} List of tokens, may contain an Error at the end.
-	         */
-	        collect: function collect( input ) {
-	            var tokens = [];
-	            function callback( token ) {
-	                tokens[tokens.length] = token;
-	            }
-	            try {
-	                this.lex(input, callback);
-	            } catch (err) {
-	                if (!(err instanceof Error)) {
-	                    err = new Error(err + '');
-	                }
-	                tokens[tokens.length] = err;
-	            }
-	            return tokens;
-	        }
-	        
-	    };
-	        
-	    module.exports = jslex;
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;;(function(root, factory) {
-
-	  // Support AMD
-	  if (true) {
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-	  // Support CommonJS
-	  } else if (typeof exports === 'object') {
-	    var randomColor = factory();
-	    
-	    // Support NodeJS & Component, which allow module.exports to be a function
-	    if (typeof module === 'object' && module && module.exports) {
-	      exports = module.exports = randomColor;
-	    }
-	    
-	    // Support CommonJS 1.1.1 spec
-	    exports.randomColor = randomColor;
-	  
-	  // Support vanilla script loading
-	  } else {
-	    root.randomColor = factory();
-	  };
-
-	}(this, function() {
-
-	  // Shared color dictionary
-	  var colorDictionary = {};
-
-	  // Populate the color dictionary
-	  loadColorBounds();
-
-	  var randomColor = function(options) {
-	    options = options || {};
-
-	    var H,S,B;
-
-	    // Check if we need to generate multiple colors
-	    if (options.count) {
-
-	      var totalColors = options.count,
-	          colors = [];
-
-	      options.count = false;
-
-	      while (totalColors > colors.length) {
-	        colors.push(randomColor(options));
-	      }
-
-	      return colors;
-	    }
-
-	    // First we pick a hue (H)
-	    H = pickHue(options);
-
-	    // Then use H to determine saturation (S)
-	    S = pickSaturation(H, options);
-
-	    // Then use S and H to determine brightness (B).
-	    B = pickBrightness(H, S, options);
-
-	    // Then we return the HSB color in the desired format
-	    return setFormat([H,S,B], options);
-	  };
-
-	  function pickHue (options) {
-
-	    var hueRange = getHueRange(options.hue),
-	        hue = randomWithin(hueRange);
-
-	    // Instead of storing red as two seperate ranges,
-	    // we group them, using negative numbers
-	    if (hue < 0) {hue = 360 + hue}
-
-	    return hue;
-
-	  }
-
-	  function pickSaturation (hue, options) {
-
-	    if (options.luminosity === 'random') {
-	      return randomWithin([0,100]);
-	    }
-
-	    if (options.hue === 'monochrome') {
-	      return 0;
-	    }
-
-	    var saturationRange = getSaturationRange(hue);
-
-	    var sMin = saturationRange[0],
-	        sMax = saturationRange[1];
-
-	    switch (options.luminosity) {
-
-	      case 'bright':
-	        sMin = 55;
-	        break;
-
-	      case 'dark':
-	        sMin = sMax - 10;
-	        break;
-
-	      case 'light':
-	        sMax = 55;
-	        break;
-	   }
-
-	    return randomWithin([sMin, sMax]);
-
-	  }
-
-	  function pickBrightness (H, S, options) {
-
-	    var brightness,
-	        bMin = getMinimumBrightness(H, S),
-	        bMax = 100;
-
-	    switch (options.luminosity) {
-
-	      case 'dark':
-	        bMax = bMin + 20;
-	        break;
-
-	      case 'light':
-	        bMin = (bMax + bMin)/2;
-	        break;
-
-	      case 'random':
-	        bMin = 0;
-	        bMax = 100;
-	        break;
-	    }
-
-	    return randomWithin([bMin, bMax]);
-
-	  }
-
-	  function setFormat (hsv, options) {
-
-	    switch (options.format) {
-
-	      case 'hsvArray':
-	        return hsv;
-
-	      case 'hsv':
-	        return colorString('hsv', hsv);
-
-	      case 'rgbArray':
-	        return HSVtoRGB(hsv);
-
-	      case 'rgb':
-	        return colorString('rgb', HSVtoRGB(hsv));
-
-	      default:
-	        return HSVtoHex(hsv);
-	    }
-
-	  }
-
-	  function getMinimumBrightness(H, S) {
-
-	    var lowerBounds = getColorInfo(H).lowerBounds;
-
-	    for (var i = 0; i < lowerBounds.length - 1; i++) {
-
-	      var s1 = lowerBounds[i][0],
-	          v1 = lowerBounds[i][1];
-
-	      var s2 = lowerBounds[i+1][0],
-	          v2 = lowerBounds[i+1][1];
-
-	      if (S >= s1 && S <= s2) {
-
-	         var m = (v2 - v1)/(s2 - s1),
-	             b = v1 - m*s1;
-
-	         return m*S + b;
-	      }
-
-	    }
-
-	    return 0;
-	  }
-
-	  function getHueRange (colorInput) {
-
-	    if (typeof parseInt(colorInput) === 'number') {
-
-	      var number = parseInt(colorInput);
-
-	      if (number < 360 && number > 0) {
-	        return [number, number];
-	      }
-
-	    }
-
-	    if (typeof colorInput === 'string') {
-
-	      if (colorDictionary[colorInput]) {
-	        var color = colorDictionary[colorInput];
-	        if (color.hueRange) {return color.hueRange}
-	      }
-	    }
-
-	    return [0,360];
-
-	  }
-
-	  function getSaturationRange (hue) {
-	    return getColorInfo(hue).saturationRange;
-	  }
-
-	  function getColorInfo (hue) {
-
-	    // Maps red colors to make picking hue easier
-	    if (hue >= 334 && hue <= 360) {
-	      hue-= 360;
-	    }
-
-	    for (var colorName in colorDictionary) {
-	       var color = colorDictionary[colorName];
-	       if (color.hueRange &&
-	           hue >= color.hueRange[0] &&
-	           hue <= color.hueRange[1]) {
-	          return colorDictionary[colorName];
-	       }
-	    } return 'Color not found';
-	  }
-
-	  function randomWithin (range) {
-	    return Math.floor(range[0] + Math.random()*(range[1] + 1 - range[0]));
-	  }
-
-	  function shiftHue (h, degrees) {
-	    return (h + degrees)%360;
-	  }
-
-	  function HSVtoHex (hsv){
-
-	    var rgb = HSVtoRGB(hsv);
-
-	    function componentToHex(c) {
-	        var hex = c.toString(16);
-	        return hex.length == 1 ? "0" + hex : hex;
-	    }
-
-	    var hex = "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
-
-	    return hex;
-
-	  }
-
-	  function defineColor (name, hueRange, lowerBounds) {
-
-	    var sMin = lowerBounds[0][0],
-	        sMax = lowerBounds[lowerBounds.length - 1][0],
-
-	        bMin = lowerBounds[lowerBounds.length - 1][1],
-	        bMax = lowerBounds[0][1];
-
-	    colorDictionary[name] = {
-	      hueRange: hueRange,
-	      lowerBounds: lowerBounds,
-	      saturationRange: [sMin, sMax],
-	      brightnessRange: [bMin, bMax]
-	    };
-
-	  }
-
-	  function loadColorBounds () {
-
-	    defineColor(
-	      'monochrome',
-	      null,
-	      [[0,0],[100,0]]
-	    );
-
-	    defineColor(
-	      'red',
-	      [-26,18],
-	      [[20,100],[30,92],[40,89],[50,85],[60,78],[70,70],[80,60],[90,55],[100,50]]
-	    );
-
-	    defineColor(
-	      'orange',
-	      [19,46],
-	      [[20,100],[30,93],[40,88],[50,86],[60,85],[70,70],[100,70]]
-	    );
-
-	    defineColor(
-	      'yellow',
-	      [47,62],
-	      [[25,100],[40,94],[50,89],[60,86],[70,84],[80,82],[90,80],[100,75]]
-	    );
-
-	    defineColor(
-	      'green',
-	      [63,158],
-	      [[30,100],[40,90],[50,85],[60,81],[70,74],[80,64],[90,50],[100,40]]
-	    );
-
-	    defineColor(
-	      'blue',
-	      [159, 257],
-	      [[20,100],[30,86],[40,80],[50,74],[60,60],[70,52],[80,44],[90,39],[100,35]]
-	    );
-
-	    defineColor(
-	      'purple',
-	      [258, 282],
-	      [[20,100],[30,87],[40,79],[50,70],[60,65],[70,59],[80,52],[90,45],[100,42]]
-	    );
-
-	    defineColor(
-	      'pink',
-	      [283, 334],
-	      [[20,100],[30,90],[40,86],[60,84],[80,80],[90,75],[100,73]]
-	    );
-
-	  }
-
-	  function HSVtoRGB (hsv) {
-
-	    // this doesn't work for the values of 0 and 360
-	    // here's the hacky fix
-	    var h = hsv[0];
-	    if (h === 0) {h = 1}
-	    if (h === 360) {h = 359}
-
-	    // Rebase the h,s,v values
-	    h = h/360;
-	    var s = hsv[1]/100,
-	        v = hsv[2]/100;
-
-	    var h_i = Math.floor(h*6),
-	      f = h * 6 - h_i,
-	      p = v * (1 - s),
-	      q = v * (1 - f*s),
-	      t = v * (1 - (1 - f)*s),
-	      r = 256,
-	      g = 256,
-	      b = 256;
-
-	    switch(h_i) {
-	      case 0: r = v, g = t, b = p;  break;
-	      case 1: r = q, g = v, b = p;  break;
-	      case 2: r = p, g = v, b = t;  break;
-	      case 3: r = p, g = q, b = v;  break;
-	      case 4: r = t, g = p, b = v;  break;
-	      case 5: r = v, g = p, b = q;  break;
-	    }
-	    var result = [Math.floor(r*255), Math.floor(g*255), Math.floor(b*255)];
-	    return result;
-	  }
-
-	  function colorString (prefix, values) {
-	    return prefix + '(' + values.join(', ') + ')';
-	  }
-
-	  return randomColor;
-	}));
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function(module) {
-		if(!module.webpackPolyfill) {
-			module.deprecate = function() {};
-			module.paths = [];
-			// module.parent = undefined by default
-			module.children = [];
-			module.webpackPolyfill = 1;
-		}
-		return module;
-	}
-
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function() { throw new Error("define cannot be used indirect"); };
-
 
 /***/ },
 /* 24 */
