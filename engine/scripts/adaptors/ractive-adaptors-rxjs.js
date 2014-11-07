@@ -42,7 +42,7 @@
 
 (function ( global, factory ) {
 
-	factory( require( 'ractive'), require('rx') );
+	factory( require( 'vendor').Ractive, require('vendor').Rx );
 	
 
 }( typeof window !== 'undefined' ? window : this, function ( Ractive, Rx ) {

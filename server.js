@@ -8,7 +8,6 @@ var session = require('express-session');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google').Strategy;
 
-
 var routes = require('./routes/api');
 var databaseSetup = require('./data/database');
 
@@ -64,6 +63,10 @@ passport.use(new GoogleStrategy({
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 app.use('/api', routes);
+
+app.use('/experiments', express.static(path.join(__dirname, 'experiments')));
+
+app.use('/vendor', express.static(path.join(__dirname, 'node_modules')));
 
 app.get('/auth/google',
   passport.authenticate('google'),

@@ -1,5 +1,5 @@
 
-    Rx = require('rx');
+    Rx = require('vendor').Rx;
 
     'use strict';
     

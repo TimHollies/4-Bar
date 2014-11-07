@@ -1,170 +1,168 @@
 'use strict';
 
 var
-    _ = require('lodash'),
-    svg = require('svg.js'),
-    randomColor = require('randomcolor');
+    _ = require('vendor').lodash,
+    svg = require('vendor').svgjs, 
+    enums = require('./types'),
+    stave_symbols = require("./rendering/stave_symbols"),
+    add_data_fields = require("./rendering/data_fields").add,
+    remove_data_fields = require("./rendering/data_fields").remove,
+    glyphs = require('./rendering/glyphs'),
+    dispatcher = require('./dispatcher'),
+    data_tables = require('./data_tables');
 
 var
     draw,
     scoreLines,
-    data = {},
-    lineHeight = 25;
+    lineHeight = 80,
+    lineWidth = 1024,
+    selectedLine;
+
+var selectionRects = [];
 
 var arrangeGroups = function() {
-    var offset = 0;
+    var offset = 1;
 
-    if (data.title != null) offset = 4;
+    //if (data.title != null) offset = 4;
 
     for (var i = 0; i < scoreLines.length; i++) {
         if (scoreLines[i] === undefined) continue;
 
         if (scoreLines[i] != 0) {
-            scoreLines[i].move(0, lineHeight * offset);
+            scoreLines[i].move(50, lineHeight * offset);
             offset += 1;
         }
     }
 }
+ 
+var handler = [];
 
-var symbolHandler = {
-    "drawable": function(a) {
+handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a) {
 
-        if (scoreLines[a.i] === undefined) {
-            scoreLines[a.i] = draw.group();
+    if (scoreLines[a.i] === undefined) {
+        scoreLines[a.i] = draw.group();
+    } else {
+        scoreLines.splice(a.i, 0, draw.group());
+    }
+
+    var groupDraw = scoreLines[a.i];
+
+    for (var i = 0; i < 5; i++) {
+        groupDraw.rect(lineWidth, 1).move(0, i * 8).attr({
+            fill: 'black'
+        });
+    }
+
+    groupDraw.rect(1, 32).move(0, 0).attr({
+        fill: 'black'
+    });
+
+    groupDraw.rect(1, 32).move(1024, 0).attr({
+        fill: 'black'
+    });
+
+    if(a.i === selectedLine) {
+        selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({ fill: '#223378' }))
+    }
+
+    groupDraw.select = function() {
+        selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({ fill: '#223378' }));    
+    }
+
+    stave_symbols.treble_clef(groupDraw);
+
+    var pos_mod = lineWidth/(a.weight+1);
+
+    for (var j = 0, totalOffset = 1; j < a.parsed.length; j++) {
+
+        var currentSymbol = a.parsed[j];
+
+        if(!_(Object.keys(stave_symbols)).contains(currentSymbol.type)) {
+            console.log("Wanted to draw a " + currentSymbol.type + " don't know how");
+            continue;
+        }
+
+        stave_symbols[currentSymbol.type](groupDraw, currentSymbol, pos_mod * totalOffset);
+
+        if(_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
+            totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol);
         } else {
-            scoreLines.splice(a.i, 0, draw.group());
+            totalOffset += data_tables.symbol_width[currentSymbol.type];
         }
-
-        if (drawingFunctions[a.parsed[0].type] === undefined) {
-            console.log("NOT YET IMPLEMENTED");
-            return;
-        }
-
-        for (var j = 0, totalOffset = 0; j < a.parsed.length; j++)
-            totalOffset += drawingFunctions[a.parsed[j].type](scoreLines[a.i], a, j, totalOffset);
-
-    },
-    "data": function(a) {
-
-        scoreLines[a.i] = 0;
-
-        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
-            console.log("NOT YET IMPLEMENTED");
-            return;
-        }
-
-        informationFieldFunctions[a.parsed[0].type](a);
-    },
-    "hidden": function(a) {
-        scoreLines[a.i] = 0;
     }
 };
 
-var deleteSymbolHandler = {
-    "drawable": function(a) {
-        if (scoreLines[a.i]) scoreLines[a.i].remove();
-        scoreLines[a.i] = undefined;
-    },
-    "data": function(a) {
-
-        scoreLines[a.i] = undefined;
-
-        if (informationFieldFunctions[a.parsed[0].type] === undefined) {
-            console.log("NOT YET IMPLEMENTED");
-            return;
-        }
-
-        delInformationFieldFunctions[a.parsed[0].type](a);
-    },
-    "hidden": function(a) {
-        scoreLines[a.i] = undefined;
-    }
+handler[(enums.line_actions.delete << 2) + enums.line_types.drawable] = function(a) {
+    if (scoreLines[a.i]) scoreLines[a.i].remove();
+    scoreLines[a.i] = undefined;
 };
 
-var actionHandler = {
-    "add": function(a) {
-        symbolHandler[a.type_class](a);
-        console.log("ADD", scoreLines);
-    },
-    "del": function(a) {
-        deleteSymbolHandler[a.type_class](a);
-        console.log("DEL", scoreLines);
-    },
-    "move": function(a) {
+handler[(enums.line_actions.add << 2) + enums.line_types.data] = function(a) {
+
+    scoreLines[a.i] = 0;
+
+    if (add_data_fields[a.parsed[0].type] === undefined) {
+        console.log("NOT YET IMPLEMENTED");
+        return;
+    }
+
+    add_data_fields[a.parsed[0].type](a);
+};
+
+handler[(enums.line_actions.delete << 2) + enums.line_types.data] = function(a) {
+
+    scoreLines[a.i] = undefined;
+    if (remove_data_fields[a.parsed[0].type] === undefined) {
+        console.log("NOT YET IMPLEMENTED");
+        return;
+    }
+
+    remove_data_fields[a.parsed[0].type](a);
+};
+
+handler[(enums.line_actions.add << 2) + enums.line_types.hidden] = function(a) {
+    scoreLines[a.i] = 0;
+};
+
+handler[(enums.line_actions.delete << 2) + enums.line_types.hidden] = function(a) {
+    scoreLines[a.i] = undefined;
+}
+
+handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
+    handler[(enums.line_actions.move << 2) + enums.line_types.data] =
+    handler[(enums.line_actions.move << 2) + enums.line_types.hidden] = function(a) {
         if (a.i < a.j) {
             scoreLines[a.i] = scoreLines[a.j];
             scoreLines[a.j] = undefined;
         }
         console.log("MOV", scoreLines);
-    },
-    "endofinput": _.noop
-}
-
-var drawingFunctions = {
-    "note": function(line, a, j, totalOffset) {
-        line.rect(a.parsed[j].notelength * 20, 20).attr({
-            fill: a.error ? '#F00' : randomColor({
-                luminosity: 'dark'
-            })
-        }).move(totalOffset, 0);
-        return a.parsed[j].notelength * 20 + 5;
-    },
-    "barline": function(line, a, j, totalOffset) {
-        line.circle(20).attr({
-            fill: "#CCC"
-        }).move(totalOffset, 0);
-        return 25;
-    },
-    "space": function() {
-        return 25;
-    }
-};
-
-var informationFieldFunctions = {
-    "title": function(a) {
-        if (data.title) data.title.remove();
-        data.title = draw.text(a.parsed[0].data).font({
-            family: 'Georgia',
-            size: 32,
-            anchor: 'middle',
-            leading: '1.5em'
-        }).move(400, 0);
-    },
-    "rhythm": function(a) {
-        if (data.rhythm) data.rhythm.remove();
-        data.rhythm = draw.text(a.parsed[0].data).font({
-            family: 'Georgia',
-            size: 16,
-            anchor: 'middle',
-            leading: '1.5em'
-        }).move(20, 60);
-    }
-}
-
-var delInformationFieldFunctions = {
-    "title": function(a) {
-        data.title.remove();
-        data.title = null;
-    },
-    "rhythm": function(a) {
-        data.rhythm.remove();
-        data.rhythm = null;
-    }
 }
 
 //exported functions
 module.exports = {
     initialize: function(canvasSelector) {
         draw = svg('canvas');
+        draw.path(glyphs["flags.u8th"].d).attr({ fill: 'black'}).move(10,10).scale(1);
         scoreLines = [];
+
+        dispatcher.subscribe(function(a) {
+            if(a.type === "selection-changed") {
+                _(selectionRects).forEach(function(sr) { sr.remove(); });
+                selectedLine = a.start - 1;
+                if(scoreLines[selectedLine]) {
+                    scoreLines[selectedLine].select();
+                }
+            }
+        });
     },
 
     onNext: function(a) {
-        actionHandler[a.action](a);
-        arrangeGroups();
-        scoreLines = scoreLines.slice(0, a.newLength);
+        if(!a.error) {
+            handler[(a.action << 2) + a.type_class](a);
+            arrangeGroups();
+            scoreLines = scoreLines.slice(0, a.newLength);            
+        }
         return a;
     }
 
 };
-

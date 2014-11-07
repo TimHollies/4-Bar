@@ -1,13 +1,13 @@
 'use strict';
 
-    var $ = require("jquery");
+var $ = require("vendor").jquery;
 
 var
     Rx = require('scripts/rx.helper'),
     adapter = require('scripts/adaptors/ractive-adaptors-rxjs'),
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('toastr');
+    toastr = require('vendor').toastr;
 
 
 module.exports = function(ractive, context) {
@@ -38,4 +38,4 @@ module.exports = function(ractive, context) {
     });
 
     // toastr.success("YAY");
-}
+};

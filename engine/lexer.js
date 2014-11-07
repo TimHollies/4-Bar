@@ -1,11 +1,12 @@
 'use strict';
 
 var
-    jslex = require('scripts/jslex/jslex/jslex.js'),
-    _ = require('lodash');
+    _ = require('vendor').lodash,
+    Lexer = require('vendor').lex;
 
-
-
+//////////////////////
+// HELPER FUNCTIONS //
+//////////////////////
 var simpleType = function(name) {
     return function() {
         return {
@@ -28,197 +29,170 @@ var addSimpleStringInformationField = function(spec, key, type) {
     }
 }
 
-var spec = {
-    "start": {
 
-        // NOTES //
-        "([A-Ga-g])": function(note) {
-            return {
-                type: "note",
-                subType: "letter",
-                data: note
-            }
-        },
+////////////////////////////////
+//            LEXER           //
+////////////////////////////////
 
-        // RESTS //
-        "z": function() {
-            return {
-                type: "rest",
-                subType: "visible",
-                data: "short"
-            }
-        },
-        "x": function() {
-            return {
-                type: "rest",
-                subType: "invisible",
-                data: "short"
-            }
-        },
-        "Z": function() {
-            return {
-                type: "rest",
-                subType: "visible",
-                data: "long"
-            }
-        },
-        "X": function() {
-            return {
-                type: "rest",
-                subType: "invisible",
-                data: "long"
-            }
-        },
+var lexer = new Lexer;
 
-        // NOTE AND REST DECORATIONS //
-        "([0-9]+)?/?([0-9]+)?": function(notelength, notedenom) {
-            return {
-                type: "note",
-                subType: "length",
-                data: notedenom && notedenom.length > 0 ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength),
-            }
-        },
-        "([',]*)": function(pitchModifier) {
-            return {
-                type: "note",
-                subType: "pitch",
-                data: charCountInString(pitchModifier, "'") - charCountInString(pitchModifier, ",")
-            }
-        },
-        "(_|\\^|=|__|\\^\\^)": function(accidental) {
-            return {
-                type: "note",
-                subType: "accidental",
-                data: accidental
-            }
-        },
-
-        "\"([^\"]+)\"": function(data) {
-            return {
-                type: "chord_annotation",
-                data: data
-            }
-        },
-
-        "!([^!]+)!": function(data) {
-            return {
-                type: "decoration",
-                data: data
-            }
-        },
-
-        // BAR LINES //
-        "\\|": function() {
-            return {
-                type: "barline"
-            }
-        },
-        "\\|\\]": function() {
-            return {
-                type: "barline"
-            }
-        },
-        "\\|\\|": function() {
-            return {
-                type: "barline"
-            }
-        },
-        "\\[\\|": function() {
-            return {
-                type: "barline"
-            }
-        },
-        ":\\|": function() {
-            return {
-                type: "barline"
-            }
-        },
-        "\\|:": function() {
-            return {
-                type: "barline"
-            }
-        },
-        "::": function() {
-            return {
-                type: "barline"
-            }
-        },
-
-
-        // NOTE GROUPS //
-        "\\[": function() {
-            return {
-                type: "chord_start"
-            }
-        },
-
-        "\\]": function() {
-            return {
-                type: "chord_stop"
-            }
-        },
-
-        "{": function() {
-            return {
-                type: "grace_start"
-            }
-        },
-        "}": function() {
-            return {
-                type: "grace_stop"
-            }
-        },
-
-        "\\(": function() {
-            return {
-                type: "slur_start"
-            }
-        },
-        "\\)": function() {
-            return {
-                type: "slur_stop"
-            }
-        },
-
-        "`": function() {
-            return {
-                type: "beam"
-            }
-        },
-
-        // OTHER //
-        " ": function() {
-            return {
-                type: "space"
-            }
-        }
-    }
-};
-
-addSimpleStringInformationField(spec, "B", "book");
-addSimpleStringInformationField(spec, "C", "composer");
-addSimpleStringInformationField(spec, "D", "discography");
-addSimpleStringInformationField(spec, "F", "file url");
-addSimpleStringInformationField(spec, "G", "group");
-addSimpleStringInformationField(spec, "H", "history");
-addSimpleStringInformationField(spec, "N", "notes");
-addSimpleStringInformationField(spec, "O", "origin");
-addSimpleStringInformationField(spec, "R", "rhythm");
-addSimpleStringInformationField(spec, "r", "remark");
-addSimpleStringInformationField(spec, "S", "source");
-addSimpleStringInformationField(spec, "T", "title");
-addSimpleStringInformationField(spec, "Z", "transcription");
-
-//not quite true..
-addSimpleStringInformationField(spec, "M", "meter");
-addSimpleStringInformationField(spec, "L", "length");
-addSimpleStringInformationField(spec, "K", "key");
-
-spec.start["(.)"] = function(data) {
+///////////
+// NOTES //
+///////////
+lexer.addRule(/([A-Ga-g])/, function(note) {
     return {
-        type: "err",
+        type: "note",
+        subType: "letter",
+        data: note
+    }
+});
+
+///////////
+// RESTS //
+///////////
+lexer.addRule(/z/, function() {
+    return {
+        type: "rest",
+        subType: "visible",
+        data: "short"
+    }
+}).addRule(/x/, function() {
+    return {
+        type: "rest",
+        subType: "invisible",
+        data: "short"
+    }
+}).addRule(/Z/, function() {
+    return {
+        type: "rest",
+        subType: "visible",
+        data: "long"
+    }
+}).addRule(/X/, function() {
+    return {
+        type: "rest",
+        subType: "invisible",
+        data: "long"
+    }
+});
+
+///////////////////////////////
+// NOTE AND REST DECORATIONS //
+///////////////////////////////
+lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
+    return {
+        type: "note",
+        subType: "length",
+        data: notedenom && notedenom.length > 0 ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength),
+    }
+}).addRule(/([',]+)/, function(pitchModifier) {
+    return {
+        type: "note",
+        subType: "pitch",
+        data: charCountInString(pitchModifier, "'") - charCountInString(pitchModifier, ",")
+    }
+}).addRule(/(_|\^|=|__|\^\^)/, function(accidental) {
+    return {
+        type: "note",
+        subType: "accidental",
+        data: accidental
+    }
+}).addRule(/"([^"]+)"/, function(data) {
+    return {
+        type: "chord_annotation",
         data: data
     }
-}
+}).addRule(/!([^!]+)!/, function(data) {
+    return {
+        type: "decoration",
+        data: data
+    }
+});
 
-module.exports = jslex(spec);
+///////////////
+// BAR LINES //
+///////////////
+lexer.addRule(/\|/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/\|\]/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/\|\|/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/\[\|/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/:\|/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/\|:/, function() {
+    return {
+        type: "barline"
+    }
+}).addRule(/::/, function() {
+    return {
+        type: "barline"
+    }
+});
+
+/////////////////
+// NOTE GROUPS //
+/////////////////
+lexer.addRule(/\[/, function() {
+    return {
+        type: "chord_start"
+    }
+}).addRule(/\]/, function() {
+    return {
+        type: "chord_stop"
+    }
+
+}).addRule(/{/, function() {
+    return {
+        type: "grace_start"
+    }
+}).addRule(/}/, function() {
+    return {
+        type: "grace_stop"
+    }
+}).addRule(/\(/, function() {
+    return {
+        type: "slur_start"
+    }
+}).addRule(/\)/, function() {
+    return {
+        type: "slur_stop"
+    }
+});
+
+
+
+///////////
+// OTHER //
+///////////
+lexer.addRule(/ /, function() {
+    return {
+        type: "space"
+    }
+}).addRule(/`/, function() {
+    return {
+        type: "beam"
+    }
+});
+
+module.exports = function(input) {
+    lexer.setInput(input);
+    var output = [];
+    for(var i=0, data = lexer.lex(); data != undefined; data = lexer.lex()) {
+        output[i] = data;
+        i++;
+    }
+    return output;
+};

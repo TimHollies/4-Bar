@@ -2,34 +2,44 @@
 
     'use strict';
 
-    var
-        Ractive = require('ractive'),
-        toastr = require('toastr'),
-        routingConfig = require("../routes/config.route");
-        //audio = require("./engine/audio/audio");
+    require.ensure('vendor', function() {
+        $(document).ready(function() {
+            var
+                Ractive = require('vendor').Ractive,
+                toastr = require('vendor').toastr,
+                routingConfig = require("../routes/config.route");
+            //audio = require("./engine/audio/audio");
 
-    function route() {
-        var currentRoute = location.hash.substring(1);
+            function route() {
+                var currentRoute = location.hash.substring(1);
 
-        if (routingConfig[currentRoute] !== undefined) {
-            var currentRouteConfig = routingConfig[currentRoute];
-            var dummyData = {};
-            var ractive = new Ractive({
-                el: "#stage",
-                template: currentRouteConfig.template,
-                data: dummyData,
-                lazy: false
-            });
+                if (routingConfig[currentRoute] !== undefined) {
+                    var currentRouteConfig = routingConfig[currentRoute];
 
-            currentRouteConfig.model(ractive, dummyData);
+                    var dummyData = {};
+                    var ractive = new Ractive({
+                        el: "#stage",
+                        template: currentRouteConfig.template,
+                        data: dummyData,
+                        lazy: false
+                    });
 
-        } else {
-            toastr.error("No route found");
-        }
-    }
+                    currentRouteConfig.model(ractive, dummyData);
 
-    route();
+                } else {
+                    toastr.error("No route found");
+                }
+            }
 
-    window.onhashchange = route;
+            route();
+
+            window.onhashchange = route;
+
+        });
+
+    });
+
+
+
 
 })(require('jquery'), undefined);

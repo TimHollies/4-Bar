@@ -16,8 +16,9 @@ gulp.task('sass', function () {
 
 gulp.task('scripts', function() {
     gulp.src('./app/app.js')
-        .pipe(webpack(require('./config/webpack.config.js')(__dirname)))
-        .pipe(gulp.dest('./public'));
+        .pipe(webpack(require('./config/webpack.config.js')))
+        .pipe(gulp.dest('./public'))
+        .pipe(livereload());
 });
 
 gulp.task('copyfonts', function() {
@@ -26,6 +27,7 @@ gulp.task('copyfonts', function() {
 });
 
 gulp.task('watch', function() {
+     livereload.listen();
     gulp.watch('./assets/styles/*.scss', [ 'sass' ]);
     gulp.watch('./app/**/*.js', [ 'scripts' ]);
     gulp.watch('./app/**/*.html', [ 'scripts' ]);
