@@ -50,6 +50,8 @@ function parseNote(lexer, parsed) {
         newNote.notelength = lexer.shift().data;
     }
 
+    newNote.beamDepth = Math.floor(Math.log2(newNote.notelength)) - 1;
+
     parsed.weight += newNote.notelength;
     parsed.symbols.push(newNote);
 }
@@ -135,8 +137,14 @@ function parse(lexed) {
             continue;
         }
 
-        if (lexed[0].type_class === "data") {
-            lexed.shift();
+        if (lexed[0].type === "data") {
+            var lexedToken = lexed.shift();
+            parsed.symbols.push({
+                type_class: "data",
+                type: lexedToken.subtype,
+                data: lexedToken.data
+            });
+            
             continue;
         }
 
@@ -180,10 +188,11 @@ function parse(lexed) {
         if (noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop")) continue;
 
         if (lexed[0].type === "barline") {
-            lexed.shift();
+            var symbol = lexed.shift();
             parsed.symbols.push({
                 type: "barline",
-                type_class: "drawable"
+                type_class: "drawable",
+                subtype: symbol.subtype
             });
             parsed.weight += 1;
             continue;
@@ -205,7 +214,7 @@ module.exports = function(line) {
                 line.parsed = parseOutput.symbols;
                 line.weight = parseOutput.weight;
 
-                if (!(lexed.length === 1 && lexer[0].type_class === "data")) {
+                if (!(line.parsed.length === 1 && line.parsed[0].type_class === "data")) {
                     line.type_class = enums.line_types.drawable;
                 } else {
                     line.type_class = enums.line_types.data;

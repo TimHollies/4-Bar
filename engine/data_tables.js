@@ -81,7 +81,9 @@ data_tables.symbol_width = {
     },
     "rest": 1,
     "beat_rest": 1,
-    "barline": 1
+    "barline": 1,
+    "space": 0,
+    "chord_annotation": 0
 };
 
 module.exports = data_tables;

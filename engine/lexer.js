@@ -97,7 +97,7 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
         subType: "accidental",
         data: accidental
     }
-}).addRule(/"([^"]+)"/, function(data) {
+}).addRule(/"([^"]+)"/, function(match, data) {
     return {
         type: "chord_annotation",
         data: data
@@ -114,31 +114,38 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
 ///////////////
 lexer.addRule(/\|/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "normal"
     }
 }).addRule(/\|\]/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "heavy_end"
     }
 }).addRule(/\|\|/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "double"
     }
 }).addRule(/\[\|/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "heavy_start"
     }
 }).addRule(/:\|/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "repeat_end"
     }
 }).addRule(/\|:/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "repeat_start"
     }
 }).addRule(/::/, function() {
     return {
-        type: "barline"
+        type: "barline",
+        subtype: "double_repeat"
     }
 });
 
@@ -171,8 +178,14 @@ lexer.addRule(/\[/, function() {
         type: "slur_stop"
     }
 });
-
-
+///T: *([^\n]+)\n/
+lexer.addRule(/T: *([\w ]+)(?:\n|$)/, function(match, title) {
+    return {
+        type: "data",
+        subtype: "title",
+        data: title
+    }
+});
 
 ///////////
 // OTHER //

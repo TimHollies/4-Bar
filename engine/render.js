@@ -21,15 +21,14 @@ var
 var selectionRects = [];
 
 var arrangeGroups = function() {
-    var offset = 1;
-
-    //if (data.title != null) offset = 4;
+    var offset = 1,
+        center_offset = (draw.node.clientWidth - lineWidth)/2;
 
     for (var i = 0; i < scoreLines.length; i++) {
         if (scoreLines[i] === undefined) continue;
 
         if (scoreLines[i] != 0) {
-            scoreLines[i].move(50, lineHeight * offset);
+            scoreLines[i].move(center_offset, lineHeight * offset);
             offset += 1;
         }
     }
@@ -47,20 +46,10 @@ handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a)
 
     var groupDraw = scoreLines[a.i];
 
-    for (var i = 0; i < 5; i++) {
-        groupDraw.rect(lineWidth, 1).move(0, i * 8).attr({
-            fill: 'black'
-        });
-    }
+    //draw stave
+    stave_symbols.stave(groupDraw, lineWidth);
 
-    groupDraw.rect(1, 32).move(0, 0).attr({
-        fill: 'black'
-    });
-
-    groupDraw.rect(1, 32).move(1024, 0).attr({
-        fill: 'black'
-    });
-
+    //draw selected box if this line is selected
     if(a.i === selectedLine) {
         selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({ fill: '#223378' }))
     }
@@ -69,26 +58,55 @@ handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a)
         selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({ fill: '#223378' }));    
     }
 
+    //draw clef
     stave_symbols.treble_clef(groupDraw);
 
-    var pos_mod = lineWidth/(a.weight+1);
+    //if this is line 1 then draw time sig
+    if(a.i === 0) {
+        stave_symbols.timesig(groupDraw, 6, 8);
+    }
+
+    //draw symbols
+    var 
+        pos_mod = lineWidth/(a.weight+1),
+        beam_list = [],
+        beam_depth = 0;
 
     for (var j = 0, totalOffset = 1; j < a.parsed.length; j++) {
 
         var currentSymbol = a.parsed[j];
+
+        if(currentSymbol.beamDepth != undefined && currentSymbol.beamDepth < 0) {
+            if(currentSymbol.beamDepth <= beam_depth) {
+                beam_list.push(currentSymbol);
+                beam_depth = currentSymbol.beamDepth;
+            } 
+        } else {
+            //draw beam
+            if(beam_list.length > 1) stave_symbols.beam(groupDraw, beam_list);
+            beam_list = [];
+            beam_depth = 0;
+        }
 
         if(!_(Object.keys(stave_symbols)).contains(currentSymbol.type)) {
             console.log("Wanted to draw a " + currentSymbol.type + " don't know how");
             continue;
         }
 
-        stave_symbols[currentSymbol.type](groupDraw, currentSymbol, pos_mod * totalOffset);
+        currentSymbol.svg = stave_symbols[currentSymbol.type](groupDraw, currentSymbol, pos_mod * totalOffset);
 
         if(_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
             totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol);
         } else {
             totalOffset += data_tables.symbol_width[currentSymbol.type];
         }
+    }
+
+    if(beam_list.length > 0) {
+        //draw beam
+        if(beam_list.length > 1)stave_symbols.beam(groupDraw, beam_list);
+        beam_list = [];
+        beam_depth = 0;
     }
 };
 
@@ -106,7 +124,7 @@ handler[(enums.line_actions.add << 2) + enums.line_types.data] = function(a) {
         return;
     }
 
-    add_data_fields[a.parsed[0].type](a);
+    add_data_fields[a.parsed[0].type](a, draw);
 };
 
 handler[(enums.line_actions.delete << 2) + enums.line_types.data] = function(a) {
@@ -142,7 +160,7 @@ handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
 module.exports = {
     initialize: function(canvasSelector) {
         draw = svg('canvas');
-        draw.path(glyphs["flags.u8th"].d).attr({ fill: 'black'}).move(10,10).scale(1);
+
         scoreLines = [];
 
         dispatcher.subscribe(function(a) {

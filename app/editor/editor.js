@@ -8,7 +8,8 @@ var
     parser = engine.parser,
     renderer = engine.render,
     diff = engine.diff,
-    dispatcher = require('engine/dispatcher');
+    dispatcher = require('engine/dispatcher'),
+    enums = require('engine/types');
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
@@ -44,22 +45,24 @@ module.exports = function(ractive, context) {
                 ractive.set("errors", a.error_details.message);
             }
             //if(a.action != "del")console.log(a.parsed); 
-            /*if(a.type_class === "data" && a.parsed[0].type === "title") {
-                    if(!(a.action === "del") && a.parsed[0].data.length > 0) {
-                        ractive.set("title", a.parsed[0].data);
-                    } else {
-                        ractive.set("title", emptyTuneName);
-                    }                
-                }  */
+            if (a.type_class === enums.line_types.data && a.parsed[0].type === "title") {
+                if (!(a.action === enums.line_actions.delete) && a.parsed[0].data.length > 0) {
+                    ractive.set("title", a.parsed[0].data);
+                } else {
+                    ractive.set("title", emptyTuneName);
+                }
+            }
         });
 
-    var oldStart = -1, oldStop = -1;
+    var oldStart = -1,
+        oldStop = -1;
+
     function checkTextAreaSelection() {
         var field = document.getElementById("abc"),
             start = field.value.substr(0, field.selectionStart).split("\n").length,
             stop = field.value.substr(0, field.selectionEnd).split("\n").length;
 
-        if(start != oldStart || stop != oldStop) {
+        if (start != oldStart || stop != oldStop) {
             dispatcher.send({
                 type: "selection-changed",
                 start: start,

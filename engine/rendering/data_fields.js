@@ -10,7 +10,7 @@ var informationFieldFunctions = {
             size: 32,
             anchor: 'middle',
             leading: '1.5em'
-        }).move(400, 0);
+        }).move(draw.bbox().width/2, 0);
     },
     "rhythm": function(a, draw) {
         if (data.rhythm) data.rhythm.remove();
