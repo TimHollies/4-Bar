@@ -1,15 +1,15 @@
     <div class="header row coloured" intro='fade'>
         <div class="central-menu">
-            <h1>Welcome to WebABC</h1><small>Version 0.0.1</small>
+            <h1>WebABC</h1><small>Version 0.0.1</small>
         </div>
-        <!--<div class="user-box">
+        <div class="user-box">
             {{#if loggedIn === false }}
-                <button class="google-button"><div class="left"><i class="fa fa-google-plus"></i></div><div class="right">Sign in with Google+</div></button>
+                <button class="google-button" on-click="log_in"><div class="left"><i class="fa fa-google-plus"></i></div><div class="right">Sign in with Google+</div></button>
             {{else}}
                 <span>Hi {{user.name.givenName}}</span>
                 <a href="/logout">Log out</a>
             {{/if}}
-        </div>-->
+        </div>
     </div>
     <div class="row editor">
         <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>
@@ -21,7 +21,7 @@
                 </div>
                 <ul class="item-list">
                     {{#each filterTuneNames(tuneNames, search_filter)}}
-                        <li on-click="new_tune">{{name}}<br><small>12/09/2014 - Reel - Gm</small></li>
+                        <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>12/09/2014 - Reel - Gm</small></li>
                     {{/each}}
                 </ul>
             </div>

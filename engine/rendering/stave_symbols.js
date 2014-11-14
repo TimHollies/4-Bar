@@ -4,9 +4,12 @@ var drawing_functions = {},
     randomColor = require('randomcolor'),
     glyphs = require('./glyphs'),
     _ = require('vendor').lodash,
-    SVG = require('vendor').svgjs;
+    SVG = require('vendor').svgjs,
+    data_tables = require("../data_tables");
 
-var POS_SWITCH = 5;
+var 
+    POS_SWITCH = 5,
+    MAX_GRAD = 0.05;
 
 /**
  * Draws a stave of width 'width'
@@ -21,13 +24,13 @@ drawing_functions.stave = function(line, width) {
         });
     }
 
-    line.rect(1, 32).move(0, 0).attr({
-        fill: 'black'
-    });
+    // line.rect(1, 32).move(0, 0).attr({
+    //     fill: 'black'
+    // });
 
-    line.rect(1, 32).move(width, 0).attr({
-        fill: 'black'
-    });
+    // line.rect(1, 32).move(width, 0).attr({
+    //     fill: 'black'
+    // });
 }
 
 
@@ -45,6 +48,29 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
         stem_tail = null,
         stem = null;
 
+    //invalid note length?
+    if(data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
+        console.log("INVALID NOTE LENGTH");
+        for(var i=0; i<data_tables.allowed_note_lengths.length; i++) {
+            if(currentNote.notelength > data_tables.allowed_note_lengths[i]) {
+                currentNote.notelength = data_tables.allowed_note_lengths[i-1];
+                break;
+            }
+        }
+    }
+
+    //dotted note?
+    if((2*currentNote.notelength)%3 === 0) {
+        noteGroup.circle(4,4).fill('black').move(3,6);
+    }
+
+    //double dotted note?
+    if((4*currentNote.notelength)%7 === 0) {
+        noteGroup.circle(4,4).fill('black').move(3,6);
+        noteGroup.circle(4,4).fill('black').move(8,6);
+    }
+
+    //dot type
     if (currentNote.notelength < 4) {
         notedot = noteGroup.path(glyphs["noteheads.quarter"].d).attr({
             fill: 'black'
@@ -86,8 +112,9 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
                 color: color
             });
 
-            //curly bit for quavers
-            notedot.move(-10, 0);
+            notedot.move(-10, 4);
+
+            //curly bit for quavers            
             if (currentNote.notelength == 1) {
                 stem_tail = noteGroup.path(glyphs["flags.u8th"].d).attr({
                     fill: 'black'
@@ -98,6 +125,8 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
             stem_end.y = -24;
         }
     }
+
+    //accidentals
 
     switch (currentNote.accidental) {
         case "_":
@@ -132,8 +161,9 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
 
     noteGroup.stem_tail = stem_tail;
     noteGroup.stem = stem;
+    noteGroup.dot = notedot;
 
-    noteGroup.move(totalOffset, 36 - (currentNote.pos * 4));
+    noteGroup.move(totalOffset, 32 - (currentNote.pos * 4));
 
     return noteGroup;
 };
@@ -157,19 +187,19 @@ drawing_functions.barline = function(line, currentSymbol, totalOffset) {
             break;
 
         case "repeat_start":
-            barline_group.circle(4).move(totalOffset + 8, 10).attr({
+            barline_group.circle(4).move(totalOffset + 12, 10).attr({
                 fill: 'black'
             });
 
-            barline_group.circle(4).move(totalOffset + 8, 19).attr({
+            barline_group.circle(4).move(totalOffset + 12, 19).attr({
                 fill: 'black'
             });
         case "heavy_start":
-            barline_group.rect(2, 32).move(totalOffset, 0).attr({
+            barline_group.rect(4, 32).move(totalOffset, 0).attr({
                 fill: 'black'
             });
 
-            barline_group.rect(1, 32).move(totalOffset + 4, 0).attr({
+            barline_group.rect(1, 32).move(totalOffset + 8, 0).attr({
                 fill: 'black'
             });
             break;
@@ -183,7 +213,7 @@ drawing_functions.barline = function(line, currentSymbol, totalOffset) {
                 fill: 'black'
             });
         case "heavy_end":
-            barline_group.rect(2, 32).move(totalOffset, 0).attr({
+            barline_group.rect(4, 32).move(totalOffset, 0).attr({
                 fill: 'black'
             });
 
@@ -193,7 +223,7 @@ drawing_functions.barline = function(line, currentSymbol, totalOffset) {
             break;
 
         case "double_repeat":
-            barline_group.rect(2, 32).move(totalOffset, 0).attr({
+            barline_group.rect(4, 32).move(totalOffset, 0).attr({
                 fill: 'black'
             });
 
@@ -314,21 +344,26 @@ drawing_functions.beam = function(line, beamed_notes) {
 
     var
         startX = beamed_notes[0].svg.x(),
-        startY = beamed_notes[0].svg.y() + beamed_notes[0].svg.stem_end.y,
+        startY = beamed_notes[0].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)),//+ beamed_notes[0].svg.stem_end.y,
         endX = beamed_notes[beamed_notes.length - 1].svg.x(),
-        endY = beamed_notes[beamed_notes.length - 1].svg.y() + beamed_notes[beamed_notes.length - 1].svg.stem_end.y,
+        endY = beamed_notes[beamed_notes.length - 1].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)),// + !upstem ? beamed_notes[beamed_notes.length - 1].svg.stem_end.y : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y),
         grad = (startY - endY) / (endX - startX);
 
+    //if(grad > MAX_GRAD) grad = MAX_GRAD;
+    //if(grad < -MAX_GRAD) grad = -MAX_GRAD;
 
+    //console.log(grad);
 
     line.polygon(new SVG.PointArray([
         [startX, startY],
-        [startX, startY + 2],
-        [endX, endY + 2],
+        [startX, startY + 3],
+        [endX, endY + 3],
         [endX, endY]
     ])).fill('black').stroke({
         width: 1
     });
+
+    //console.log("UP", upstem);
 
     beamed_notes.forEach(function(note, i) {
         note.svg.stem_tail.remove();
@@ -336,10 +371,15 @@ drawing_functions.beam = function(line, beamed_notes) {
         //if(i === 0 || i === beamed_notes.length - 1)return;
         note.svg.stem.remove();
 
-        note.svg.stem = note.svg.line(0, 0, 0, -((note.svg.y() - startY) + ((note.svg.x() - startX) * grad))).stroke({
+        note.svg.stem = note.svg.line(0, 8, 0, -((note.svg.y() - startY) + ((note.svg.x() - startX) * grad))).stroke({
             width: 1,
             color: 'black'
         });
+        if(upstem) {
+            note.svg.dot.move(-10, 4);
+        } else {
+            note.svg.dot.move(0, 4);
+        }        
     });
 } 
 

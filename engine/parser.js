@@ -6,7 +6,7 @@ var
     _ = require('vendor').lodash,
     enums = require('./types'),
 
-    cache = {},
+    typecache = [],
     drawableIndex = 0,
     decorationstack = [];
 
@@ -217,20 +217,24 @@ module.exports = function(line) {
                 if (!(line.parsed.length === 1 && line.parsed[0].type_class === "data")) {
                     line.type_class = enums.line_types.drawable;
                 } else {
-                    line.type_class = enums.line_types.data;
+                    line.type_class = enums.line_types.data;                    
                 }
             } else {
                 line.parsed = [];
                 line.type_class = enums.line_types.hidden;
             }
+            typecache[line.i] = line.type_class;
         } catch(err) {
             console.log("ERR", err);
             line.type_class = enums.line_types.hidden;
             line.error_details = err;
             line.error = true;
         }
-
     }
+
+    // if (line.action === enums.line_actions.delete) {
+    //     line.type_class = typecache[line.i] === undefined ? enums.line_types.hidden : typecache[line.i];
+    // }
 
     return line;
 }

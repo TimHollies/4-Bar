@@ -1,11 +1,20 @@
 #!/usr/bin/env node
 
-var databaseSetup = require('../data/database');
-var q = require('q');
+var 
+  databaseSetup = require('../data/database'),
+  q = require('q');
 
 databaseSetup.drop();
 
-["Tam Lin", "Catharsis", "Shards of Foula", "Kitchen Girl", "Woo"].forEach(databaseSetup.addTune);
+["Tam Lin", "Catharsis", "Shards of Foula", "Kitchen Girl", "Woo", "Meh"].forEach(function(tuneName) {
+  databaseSetup.action(function(db) {
+    var tunes = db.get("tunes");
+    tunes.insert({
+      name: tuneName,
+      data: "X: 1\nT: Farewell To Chernobyl\nR: reel\nM: 4/4\nL: 1/8\nK: Dmin\nD3F ADFA|DFAF GFED|A,3C EA,CE|A,CEC c=BAF|\nD3F ADFA|DFAF FGA=B|c2Gc EcGe|fedc d3c:|\n|d2fd gdfd|d2fd gfec|d2fd gdfd|e2ef edcA|\nd2fd gdfd|d2fd gfeg|a4 afef|e2ef edcA|\nd2fd gdfd|d2fd efec|d2fd gdfd|e2ef edcA|\nAdfd Adfd|Bdfd Bdfd|cege agfe|fedc dBAF||"
+    });
+  });
+});
 
 //var regex = /T: *[^\n]*/;
 /*

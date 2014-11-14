@@ -1,18 +1,38 @@
-var express = require('express');
-var router = express.Router();
-var db = require('../data/database');
+var
+    express = require('express'),
+    router = express.Router(),
+    monk = require('monk'),
+    db = monk('localhost/webabc');
 
 /* GET home page. */
 router.get('/tunes', function(req, res) {
-  res.type('json');
-  db.getTunes(res);
-  //res.send("hurray");
+
+    var collection = db.get("tunes");
+
+    collection.find({}, {
+        limit: 20
+    }, function(e, docs) {
+        res.json(docs);
+    })
+
 });
 
-router.get('/user/current', function(req, res){
-  if(req.user === undefined) res.send("");
-  res.type('json');
-  res.send(req.user);
+/* GET home page. */
+router.get('/tunes/:id', function(req, res) {
+
+    var collection = db.get("tunes");
+
+    collection.findById(req.params.id,
+        function(e, docs) {
+            res.json(docs);
+        });
+
+});
+
+router.get('/user/current', function(req, res) {
+    if (req.user === undefined) res.send("");
+    res.type('json');
+    res.send(req.user);
 });
 
 module.exports = router;

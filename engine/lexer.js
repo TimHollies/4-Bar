@@ -107,6 +107,11 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
         type: "decoration",
         data: data
     }
+}).addRule(/~/, function(data) {
+    return {
+        type: "decoration",
+        data: data
+    }
 });
 
 ///////////////
@@ -178,12 +183,59 @@ lexer.addRule(/\[/, function() {
         type: "slur_stop"
     }
 });
-///T: *([^\n]+)\n/
+
+//////////////////
+// DATA FIELDS  //
+//////////////////
+
 lexer.addRule(/T: *([\w ]+)(?:\n|$)/, function(match, title) {
     return {
         type: "data",
         subtype: "title",
         data: title
+    }
+});
+
+lexer.addRule(/X: *([0-9]+)(?:\n|$)/, function(match, num) {
+    return {
+        type: "data",
+        subtype: "number",
+        data: num
+    }
+});
+
+lexer.addRule(/R: *([\w ]+)(?:\n|$)/, function(match, rhythm) {
+    return {
+        type: "data",
+        subtype: "rhythm",
+        data: rhythm
+    }
+});
+
+lexer.addRule(/M: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
+    return {
+        type: "data",
+        subtype: "timesig",
+        data: {
+            top: top,
+            bottom: bottom
+        }
+    }
+});
+
+lexer.addRule(/L: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
+    return {
+        type: "data",
+        subtype: "notelength",
+        data: parseInt(top) / parseInt(bottom)
+    }
+});
+
+lexer.addRule(/K: *([\w ]+)(?:\n|$)/, function(match, key) {
+    return {
+        type: "data",
+        subtype: "key",
+        data: key
     }
 });
 

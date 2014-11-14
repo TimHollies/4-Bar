@@ -7,5 +7,6 @@ module.exports = {
 	Ractive: require('ractive'),
     toastr: require('toastr'),
     Rx: require('rx'),
-    jquery: require('jquery')
+    jquery: require('jquery'),
+    page: require('page')
 };

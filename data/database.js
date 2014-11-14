@@ -3,6 +3,12 @@ var monk = require("monk"),
 
 var exports = {};
 
+exports.action = function(callback) {
+    var db = monk('localhost/webabc');    
+    callback(db);
+    db.close();
+}
+
 exports.addTune = function(tuneName) {
     
     var db = monk('localhost/webabc');

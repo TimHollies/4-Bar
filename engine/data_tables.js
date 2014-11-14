@@ -86,4 +86,7 @@ data_tables.symbol_width = {
     "chord_annotation": 0
 };
 
+//not all note lengths can be represented with a single note
+data_tables.allowed_note_lengths = [1,2,3,4,6,7,8,12,14,16,24,28];
+
 module.exports = data_tables;

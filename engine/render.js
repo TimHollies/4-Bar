@@ -15,7 +15,7 @@ var
     draw,
     scoreLines,
     lineHeight = 80,
-    lineWidth = 1024,
+    lineWidth = 800,
     selectedLine;
 
 var selectionRects = [];
@@ -44,7 +44,8 @@ handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a)
         scoreLines.splice(a.i, 0, draw.group());
     }
 
-    var groupDraw = scoreLines[a.i];
+    var groupDraw = scoreLines[a.i],
+        leadin = 0;
 
     //draw stave
     stave_symbols.stave(groupDraw, lineWidth);
@@ -60,17 +61,23 @@ handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a)
 
     //draw clef
     stave_symbols.treble_clef(groupDraw);
+    leadin += 30;
 
     //if this is line 1 then draw time sig
     if(a.i === 0) {
         stave_symbols.timesig(groupDraw, 6, 8);
+        leadin += 30;
     }
 
     //draw symbols
-    var 
-        pos_mod = lineWidth/(a.weight+1),
+    var         
+        pos_mod = (lineWidth-leadin)/(a.weight+1),
         beam_list = [],
         beam_depth = 0;
+
+    if(a.parsed[a.parsed.length-1].type == "barline") {
+        pos_mod = (lineWidth-leadin)/(a.weight);
+    }
 
     for (var j = 0, totalOffset = 1; j < a.parsed.length; j++) {
 
@@ -93,7 +100,7 @@ handler[(enums.line_actions.add << 2) + enums.line_types.drawable] = function(a)
             continue;
         }
 
-        currentSymbol.svg = stave_symbols[currentSymbol.type](groupDraw, currentSymbol, pos_mod * totalOffset);
+        currentSymbol.svg = stave_symbols[currentSymbol.type](groupDraw, currentSymbol, (pos_mod * totalOffset) + leadin);
 
         if(_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
             totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol);

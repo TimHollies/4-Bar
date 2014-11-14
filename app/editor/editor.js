@@ -8,6 +8,7 @@ var
     parser = engine.parser,
     renderer = engine.render,
     diff = engine.diff,
+    $ = require('vendor').jquery,
     dispatcher = require('engine/dispatcher'),
     enums = require('engine/types');
 
@@ -16,11 +17,44 @@ require('scripts/transitions/ractive.transitions.fly');
 
 var emptyTuneName = "Untitled Tune";
 
-module.exports = function(ractive, context) {
+var textFile = null,
+    makeTextFile = function(text) {
+        var data = new Blob([text], {
+            type: 'text/plain'
+        });
+
+        // If we are replacing a previously generated file we need to
+        // manually revoke the object URL to avoid memory leaks.
+        if (textFile !== null) {
+            window.URL.revokeObjectURL(textFile);
+        }
+
+        textFile = window.URL.createObjectURL(data);
+
+        return textFile;
+    };
+
+function parseQuery(qstr) {
+    var query = {};
+    var a = qstr.split('&');
+    for (var i in a) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1]);
+    }
+
+    return query;
+}
+
+module.exports = function(ractive, context, page, urlcontext, user) {
+
+    var parameters = parseQuery(urlcontext.querystring);
+    console.log("CTX", parameters);
 
     renderer.initialize();
 
     var lines = [];
+
+    var dialog = document.getElementById('window');
 
     ractive.set("title", emptyTuneName);
 
@@ -76,7 +110,7 @@ module.exports = function(ractive, context) {
     //handle events
     ractive.on({
         "navigate_back": function(event) {
-            window.location.hash = "";
+            page.show("/");
         },
         "editor_mouseup": function() {
             var field = document.getElementById("abc");
@@ -93,7 +127,28 @@ module.exports = function(ractive, context) {
         },
         "app_mouseup": function() {
             checkTextAreaSelection();
+        },
+        "share_url": function() {
+            ractive.set("quick_url", "localhost:3000/editor?tune=" + encodeURIComponent(ractive.get("inputValue")));
+            dialog.show();
+        },
+        "share_url_modal_close": function() {
+            dialog.close();
+        },
+        "generate_abc_blob": function(event) {
+            event.node.href = makeTextFile(ractive.get("inputValue"));
+            event.node.download = ractive.get("title") + ".abc";
+            console.log(event);
         }
     });
 
+    if (parameters.tuneid) {
+        $.getJSON("/api/tunes/" + parameters.tuneid, function(res) {
+            ractive.set("inputValue", res.data);
+        });
+    }
+
+    if (parameters.tune) {
+        ractive.set("inputValue", parameters.tune);
+    }
 };

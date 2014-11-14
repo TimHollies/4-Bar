@@ -10,13 +10,24 @@ var
     toastr = require('vendor').toastr;
 
 
-module.exports = function(ractive, context) {
+module.exports = function(ractive, context, page, urlcontext, user) {
 
     ractive.set("loggedIn", false);
 
     ractive.on('new_tune', function(event) {
-        window.location.hash = "editor";
+        page("/editor");
     });
+
+    ractive.on('view_tune', function(event) {
+        var tuneId = event.node.attributes["tune-id"].value;
+        console.log(tuneId);
+        page("/editor?tuneid=" + tuneId);
+    });
+
+    ractive.on('log_in', function() {
+        page("/auth/google");
+    });
+
 
     $.getJSON("/api/tunes")
         .then(function(data) {

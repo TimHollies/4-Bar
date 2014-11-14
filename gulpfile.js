@@ -33,3 +33,7 @@ gulp.task('watch', function() {
     gulp.watch('./app/**/*.html', [ 'scripts' ]);
     gulp.watch('./engine/**/*.js', [ 'scripts' ]);
 });
+
+gulp.task('style-watch', function() {
+    gulp.watch('./assets/styles/*.scss', [ 'sass' ]);
+});

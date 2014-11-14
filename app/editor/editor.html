@@ -1,29 +1,40 @@
-    <div class="header row" intro='fade' on-mouseup="app_mouseup">
-        <div class="back-button" on-click="navigate_back">
-            <p><i class="fa fa-arrow-left"></i></p>
-        </div>
-        <div class="central-menu">
-            <h3 class="tune-title">{{title}}</h3>
-            <br />
-            <div class="flat-button"><p>File</p></div>
-            <div class="flat-button"><p>Edit</p></div>
-        </div>
-        <div class="user-box">
-            {{#if loggedIn === false }}
-            <a href="/auth/google" class="google-button"><span class="fa fa-google-plus"></span> Google</a>
-            {{else}}
-            <span>Hi {{user.name.givenName}}</span>
-            <a href="/logout">Log out</a>
-            {{/if}}
-        </div>
+<div class="header row" intro='fade' on-mouseup="app_mouseup">
+
+    <div class="back-button" on-click="navigate_back">
+        <p><i class="fa fa-arrow-left"></i></p>
     </div>
-    <div class="row toolbar" on-mouseup="app_mouseup">
-        {{errors}}
+    <div class="central-menu">
+        <h3 class="tune-title">{{title}}</h3>
+        <br />
+        <div class="flat-button"><p>File</p></div>
+        <div class="flat-button"><p>Edit</p></div>
     </div>
-    <div class="row editor" intro='fade' on-mouseup="app_mouseup">
-        <div class="column third" id="abc-container">
-            <textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" on-mouseup="editor_mouseup" on-paste="editor_paste" placeholder="Start typing a tune.."  spellcheck='false'/>
-        </div>
-        <div class="column two-thirds" id="canvas">        
-        </div>
+    <div class="user-box">
+        {{#if loggedIn === false }}
+        <a href="/auth/google" class="google-button"><span class="fa fa-google-plus"></span> Google</a>
+        {{else}}
+        <span>Hi {{user.name.givenName}}</span>
+        <a href="/logout">Log out</a>
+        {{/if}}
     </div>
+</div>
+<div class="row toolbar" on-mouseup="app_mouseup">
+    {{errors}}
+    <div class="toolbar-button-group">
+        <a title="Download tune as ABC" download="tune.abc" on-click="generate_abc_blob"><i class="fa fa-download"></i> ABC</a>
+        <a title="Download tune as PDF"><i class="fa fa-file-pdf-o"></i> PDF</a>
+        <a title="Get a quick link to this tune" on-click="share_url"><i class="fa fa-link"></i> Quick URL</a>
+    </div>
+</div>
+<div class="row editor" intro='fade' on-mouseup="app_mouseup">
+    <dialog id="window">
+        <h3>URL</h3>
+        <p style="width: 480px;word-break: break-all;">{{quick_url}}</p>
+        <button on-click="share_url_modal_close">Done</button>
+    </dialog>
+    <div class="column third" id="abc-container">
+        <textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" on-mouseup="editor_mouseup" on-paste="editor_paste" placeholder="Start typing a tune.."  spellcheck='false'/>
+    </div>
+    <div class="column two-thirds" id="canvas">        
+    </div>
+</div>

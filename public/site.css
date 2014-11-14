@@ -1779,12 +1779,12 @@ html, body, .container, #stage {
   .row.header h1, .row.header h3 {
     display: inline; }
   .row.header.coloured {
-    background-color: #607d8b;
+    background-color: #03A9F4;
     color: white; }
   .row.header .back-button {
     flex: 0 0 40px;
     color: white;
-    background-color: #607d8b;
+    background-color: #03A9F4;
     cursor: pointer; }
   .row.header .user-box {
     flex: 0 0 128px; }
@@ -1819,6 +1819,19 @@ html, body, .container, #stage {
 
 #task-pane {
   background-color: white; }
+
+.toolbar-button-group {
+  padding: 8px; }
+  .toolbar-button-group a {
+    padding: 4px;
+    border: 1px black solid;
+    border-radius: 2px;
+    color: #343434;
+    cursor: pointer;
+    background-color: #c8c8c8;
+    text-decoration: none; }
+    .toolbar-button-group a:hover {
+      background-color: #dfdfdf; }
 
 .header.row {
   color: rgba(0, 0, 0, 0.87);
@@ -1911,7 +1924,8 @@ h1, h2, h3, h4 {
   color: white;
   text-decoration: none;
   width: 164px;
-  font-size: 12px; }
+  font-size: 12px;
+  cursor: pointer; }
   .google-button:hover {
     background-color: #650000; }
   .google-button .left {

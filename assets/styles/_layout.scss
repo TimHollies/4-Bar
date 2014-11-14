@@ -22,7 +22,7 @@ html, body, .container, #stage {
         
         &.coloured {
             background-color: $color_primary;
-            color: white;
+            color: white; 
         }
         
         .back-button {
@@ -80,4 +80,20 @@ html, body, .container, #stage {
 
 #task-pane {
     background-color: white;
+}
+
+.toolbar-button-group {
+    padding: 8px;
+    a {
+        padding: 4px;
+        border: 1px black solid;
+        border-radius: 2px;
+        color: rgb(52, 52, 52);
+        cursor: pointer;
+        background-color: rgb(200, 200, 200);
+        text-decoration: none;
+        &:hover {
+            background-color: rgb(223, 223, 223);
+        }
+    }
 }
