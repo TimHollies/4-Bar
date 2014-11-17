@@ -9,7 +9,8 @@ var line_types = {
 var line_actions = {
 	"delete": 0,
 	"add": 1,
-	"move": 2
+	"move": 2,
+	"nothing": 3
 };
 
 Object.freeze(line_types);

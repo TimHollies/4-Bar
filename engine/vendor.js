@@ -8,5 +8,7 @@ module.exports = {
     toastr: require('toastr'),
     Rx: require('rx'),
     jquery: require('jquery'),
-    page: require('page')
+    page: require('page'),
+    jsDiff: require('diff'),
+    codeMirror: require('codemirror')
 };

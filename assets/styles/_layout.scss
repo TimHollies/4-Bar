@@ -71,11 +71,16 @@ html, body, .container, #stage {
 
 #canvas {
     padding: 20px;
-    flex-direction: column;
-    display:flex;
-    svg {
-        flex: 1;
-    }
+    position: absolute;
+    top: 98px;
+    bottom: 0px;
+    left: 30%;
+    right: 0px;
+    //flex-direction: column;
+    //display:flex;
+    //svg {
+    //    flex: 1;
+    //}
 }
 
 #task-pane {

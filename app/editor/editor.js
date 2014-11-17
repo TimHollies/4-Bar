@@ -10,7 +10,8 @@ var
     diff = engine.diff,
     $ = require('vendor').jquery,
     dispatcher = require('engine/dispatcher'),
-    enums = require('engine/types');
+    enums = require('engine/types'),
+    CodeMirror = require('vendor').codeMirror;
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
@@ -47,6 +48,24 @@ function parseQuery(qstr) {
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
+    var editor = CodeMirror.fromTextArea(document.getElementById("abc"), {
+        lineNumbers: true,
+        mode: "htmlmixed"
+    });
+
+    editor.on("change", function(instance) {
+        ractive.set("inputValue", instance.getValue());
+    });
+
+    editor.on("cursorActivity", function(instance) {
+        dispatcher.send({
+                type: "selection-changed",
+                start: instance.getCursor(true).line,
+                stop: instance.getCursor(false).line
+            });
+    });
+
+
     var parameters = parseQuery(urlcontext.querystring);
     console.log("CTX", parameters);
 
@@ -66,27 +85,47 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         };
     }
 
+    function rerenderScore(change) {
+        diff(change)
+            .map(parser)
+            .map(renderer.onNext)
+            .forEach(function(a) {
+                if (a.type_class === enums.line_types.data && a.parsed[0].type === "title") {
+                    if (!(a.action === enums.line_actions.delete) && a.parsed[0].data.length > 0) {
+                        ractive.set("title", a.parsed[0].data);
+                    } else {
+                        ractive.set("title", emptyTuneName);
+                    }
+                }
+            });
+    }
+
+    var debouncedRerenderScore = _.debounce(rerenderScore, 50);
+
+    ractive.observe('inputValue', function(newValue, oldValue) {
+        debouncedRerenderScore({
+            newValue: newValue,
+            oldValue: oldValue || ""
+        });
+    });
+
+    /*
     //composition root
     var mainObservable = Rx.Observable.fromRactive(ractive, 'inputValue')
-        .throttle(25)
+        .throttle(100)
         .selectMany(diff)
         .map(parser)
         .map(renderer.onNext)
         .subscribe(function(a) {
-            if (!a.error) {
+            //console.log(a);
+            /*if (!a.error) {
                 ractive.set("errors", "");
             } else {
                 ractive.set("errors", a.error_details.message);
             }
             //if(a.action != "del")console.log(a.parsed); 
-            if (a.type_class === enums.line_types.data && a.parsed[0].type === "title") {
-                if (!(a.action === enums.line_actions.delete) && a.parsed[0].data.length > 0) {
-                    ractive.set("title", a.parsed[0].data);
-                } else {
-                    ractive.set("title", emptyTuneName);
-                }
-            }
-        });
+            
+        });*/
 
     var oldStart = -1,
         oldStop = -1;
@@ -97,11 +136,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             stop = field.value.substr(0, field.selectionEnd).split("\n").length;
 
         if (start != oldStart || stop != oldStop) {
-            dispatcher.send({
-                type: "selection-changed",
-                start: start,
-                stop: stop
-            });
+            
             oldStart = start;
             oldStop = stop;
         }
@@ -111,22 +146,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     ractive.on({
         "navigate_back": function(event) {
             page.show("/");
-        },
-        "editor_mouseup": function() {
-            var field = document.getElementById("abc");
-            checkTextAreaSelection();
-        },
-        "editor_keyup": function() {
-            var field = document.getElementById("abc");
-            if (field.scrollHeight > field.clientHeight) {
-                console.log("grow");
-                field.style.height = field.scrollHeight + "px";
-            }
-
-            checkTextAreaSelection();
-        },
-        "app_mouseup": function() {
-            checkTextAreaSelection();
         },
         "share_url": function() {
             ractive.set("quick_url", "localhost:3000/editor?tune=" + encodeURIComponent(ractive.get("inputValue")));
@@ -144,11 +163,13 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     if (parameters.tuneid) {
         $.getJSON("/api/tunes/" + parameters.tuneid, function(res) {
-            ractive.set("inputValue", res.data);
+            //ractive.set("inputValue", res.data);
+            editor.setValue(res.data);
         });
     }
 
     if (parameters.tune) {
-        ractive.set("inputValue", parameters.tune);
+        //ractive.set("inputValue", parameters.tune);
+        editor.setValue(parameters.tune);
     }
 };

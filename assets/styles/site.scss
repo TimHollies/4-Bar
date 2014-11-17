@@ -18,10 +18,24 @@ body {
     }    
 }
 
+dialog {
+    z-index: 10000;
+}
+
 #abc-container {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
+    //display: flex;
+    //flex-direction: column;
+    //padding: 20px;
+    position: absolute;
+    top: 98px;
+    bottom: 0px;
+    left: 0px;
+    width: 30%;
+    .CodeMirror {
+        height: 100%;
+        font-size: 13pt;
+        font-family: Courier New;
+    } 
 }
 
 #abc {

@@ -6,7 +6,7 @@ var
     _ = require('vendor').lodash,
     enums = require('./types'),
 
-    typecache = [],
+    typecache = new Map(),
     drawableIndex = 0,
     decorationstack = [];
 
@@ -144,7 +144,7 @@ function parse(lexed) {
                 type: lexedToken.subtype,
                 data: lexedToken.data
             });
-            
+
             continue;
         }
 
@@ -202,39 +202,52 @@ function parse(lexed) {
     return parsed;
 }
 
+function processLine(action, i, raw) {
+    //console.log(action, i, raw);
+    var data = {};
+
+    try {
+        var lexed = lexer(raw);
+        if (lexed.length > 0) {
+            var parseOutput = parse(lexed);
+            data.parsed = parseOutput.symbols;
+            data.weight = parseOutput.weight;
+
+            if (!(data.parsed.length === 1 && data.parsed[0].type_class === "data")) {
+                data.type_class = enums.line_types.drawable;
+            } else {
+                data.type_class = enums.line_types.data;
+            }
+        } else {
+            data.type_class = enums.line_types.drawable;
+            data.parsed = [];
+        }
+
+    } catch (err) {
+        console.log("ERR", err);
+        line.error_details = err;
+        line.error = true;
+    }
+    return data;
+}
+
 module.exports = function(line) {
 
-    if (line.action !== enums.line_actions.move) {
-        try {
-            var lexed = lexer(line.raw);
-
-            if (lexed.length > 0) {
-
-                var parseOutput = parse(lexed)
-                line.parsed = parseOutput.symbols;
-                line.weight = parseOutput.weight;
-
-                if (!(line.parsed.length === 1 && line.parsed[0].type_class === "data")) {
-                    line.type_class = enums.line_types.drawable;
-                } else {
-                    line.type_class = enums.line_types.data;                    
-                }
-            } else {
-                line.parsed = [];
-                line.type_class = enums.line_types.hidden;
-            }
-            typecache[line.i] = line.type_class;
-        } catch(err) {
-            console.log("ERR", err);
-            line.type_class = enums.line_types.hidden;
-            line.error_details = err;
-            line.error = true;
+    if (line.action === "ADD") {
+        for (var i = 0; i < line.lineLength; i++) {
+            var data = processLine(line.action, i + line.lineno, line.split[i].raw);            
+            typecache.set(i + line.lineno, data.type_class);
+            line.split[i].type_class = data.type_class;
+            line.split[i].parsed = data.parsed;
+            line.split[i].weight = data.weight;
         }
     }
 
-    // if (line.action === enums.line_actions.delete) {
-    //     line.type_class = typecache[line.i] === undefined ? enums.line_types.hidden : typecache[line.i];
-    // }
+    if (line.action === "DEL") {
+        for (var i = 0; i < line.lineLength; i++) {
+            line.split[i].type_class = typecache.get(i + line.lineno);
+        }
+    }
 
     return line;
 }

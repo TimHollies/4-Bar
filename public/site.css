@@ -1812,10 +1812,11 @@ html, body, .container, #stage {
 
 #canvas {
   padding: 20px;
-  flex-direction: column;
-  display: flex; }
-  #canvas svg {
-    flex: 1; }
+  position: absolute;
+  top: 98px;
+  bottom: 0px;
+  left: 30%;
+  right: 0px; }
 
 #task-pane {
   background-color: white; }
@@ -1852,10 +1853,19 @@ body {
   body.image {
     background-image: url('/styles/images/background.png'); }
 
+dialog {
+  z-index: 10000; }
+
 #abc-container {
-  display: flex;
-  flex-direction: column;
-  padding: 20px; }
+  position: absolute;
+  top: 98px;
+  bottom: 0px;
+  left: 0px;
+  width: 30%; }
+  #abc-container .CodeMirror {
+    height: 100%;
+    font-size: 13pt;
+    font-family: Courier New; }
 
 #abc {
   font-family: Courier New;
