@@ -1,20 +1,30 @@
+'use strict';
+
 var Rx = require('vendor').Rx,
-	_ = require('vendor').lodash;
+    _ = require('vendor').lodash;
 
-var subscribers = [];
+var subscribers = new Map();
 
-function send(data) {
-	//console.log("DISPATCH", data);
-	_(subscribers).forEach(function(sub) {
-		sub(data);
-	});
+function send(eventName, data) {
+
+    if (!subscribers.has(eventName)) {
+    	console.log("No subscribers for " + eventName);
+    }
+
+    _(subscribers.get(eventName)).forEach(function(sub) {
+        sub(data);
+    });
 }
 
-function subscribe(func) {
-	subscribers.push(func);
+function on(eventName, func) {
+    if (subscribers.has(eventName)) {
+        subscribers.get(eventName).push(func)
+    } else {
+        subscribers.set(eventName, [func]);
+    }
 }
 
 module.exports = {
-	subscribe: subscribe,
-	send: send
+    on: on,
+    send: send
 };

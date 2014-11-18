@@ -3,5 +3,6 @@
 module.exports = {
 	parser: require('./parser'),
 	render: require('./render'),
-	diff: require('./diff')
+	diff: require('./diff'),
+	dispatcher: require('./dispatcher')
 };

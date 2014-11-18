@@ -6,8 +6,7 @@
     <div class="central-menu">
         <h3 class="tune-title">{{title}}</h3>
         <br />
-        <div class="flat-button"><p>File</p></div>
-        <div class="flat-button"><p>Edit</p></div>
+        <div id="menuButtons"></div>
     </div>
     <div class="user-box">
         {{#if loggedIn === false }}
@@ -20,11 +19,13 @@
 </div>
 <div class="row toolbar" on-mouseup="app_mouseup">
     {{errors}}
+    <!--
     <div class="toolbar-button-group">
         <a title="Download tune as ABC" download="tune.abc" on-click="generate_abc_blob"><i class="fa fa-download"></i> ABC</a>
         <a title="Download tune as PDF"><i class="fa fa-file-pdf-o"></i> PDF</a>
         <a title="Get a quick link to this tune" on-click="share_url"><i class="fa fa-link"></i> Quick URL</a>
-    </div>
+    </div>-->
+    <div id="t1"></div>
 </div>
 <div class="row editor" intro='fade' on-mouseup="app_mouseup">
     <dialog id="window">

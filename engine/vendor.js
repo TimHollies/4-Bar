@@ -10,5 +10,6 @@ module.exports = {
     jquery: require('jquery'),
     page: require('page'),
     jsDiff: require('diff'),
-    codeMirror: require('codemirror')
+    codeMirror: require('codemirror'),
+    filesaver: require('filesaver.js')
 };

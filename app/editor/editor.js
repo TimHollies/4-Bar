@@ -11,7 +11,9 @@ var
     $ = require('vendor').jquery,
     dispatcher = require('engine/dispatcher'),
     enums = require('engine/types'),
-    CodeMirror = require('vendor').codeMirror;
+    CodeMirror = require('vendor').codeMirror,
+    initializeUI = require("./ui"),
+    FileSaver = require('vendor').filesaver;
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
@@ -53,13 +55,14 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         mode: "htmlmixed"
     });
 
+    renderer.initialize();
+
     editor.on("change", function(instance) {
         ractive.set("inputValue", instance.getValue());
     });
 
     editor.on("cursorActivity", function(instance) {
-        dispatcher.send({
-                type: "selection-changed",
+        dispatcher.send("selection-changed", {
                 start: instance.getCursor(true).line,
                 stop: instance.getCursor(false).line
             });
@@ -68,8 +71,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     var parameters = parseQuery(urlcontext.querystring);
     console.log("CTX", parameters);
-
-    renderer.initialize();
 
     var lines = [];
 
@@ -130,18 +131,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     var oldStart = -1,
         oldStop = -1;
 
-    function checkTextAreaSelection() {
-        var field = document.getElementById("abc"),
-            start = field.value.substr(0, field.selectionStart).split("\n").length,
-            stop = field.value.substr(0, field.selectionEnd).split("\n").length;
-
-        if (start != oldStart || stop != oldStop) {
-            
-            oldStart = start;
-            oldStop = stop;
-        }
-    }
-
     //handle events
     ractive.on({
         "navigate_back": function(event) {
@@ -161,6 +150,11 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         }
     });
 
+    dispatcher.on("download_abc", function() {
+        var blob = new Blob([ractive.get("inputValue")], {type: "text/plain;charset=utf-8"});
+        FileSaver(blob, ractive.get("title") + ".abc");
+    });
+
     if (parameters.tuneid) {
         $.getJSON("/api/tunes/" + parameters.tuneid, function(res) {
             //ractive.set("inputValue", res.data);
@@ -172,4 +166,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         //ractive.set("inputValue", parameters.tune);
         editor.setValue(parameters.tune);
     }
+
+    initializeUI();
 };

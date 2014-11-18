@@ -4,13 +4,16 @@ var gulp = require('gulp'),
     livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
     webpack = require('gulp-webpack'),
-    WebpackDevServer = require("webpack-dev-server");
+    WebpackDevServer = require("webpack-dev-server"),
+    sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('default', ['copyfonts', 'scripts', 'sass']);
 
 gulp.task('sass', function () {
     gulp.src('./assets/styles/*.scss')
+        .pipe(sourcemaps.init())
         .pipe(sass())
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest('./public'));
 });
 
@@ -35,5 +38,5 @@ gulp.task('watch', function() {
 });
 
 gulp.task('style-watch', function() {
-    gulp.watch('./assets/styles/*.scss', [ 'sass' ]);
+    gulp.watch('./assets/styles/**/*.scss', [ 'sass' ]);
 });

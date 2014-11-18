@@ -1,26 +1,26 @@
 'use strict';
 
 var
-_ = require('vendor').lodash,
-svg = require('vendor').svgjs,
-enums = require('./types'),
-stave_symbols = require("./rendering/stave_symbols"),
-add_data_fields = require("./rendering/data_fields").add,
-remove_data_fields = require("./rendering/data_fields").remove,
-glyphs = require('./rendering/glyphs'),
-dispatcher = require('./dispatcher'),
-data_tables = require('./data_tables');
+    _ = require('vendor').lodash,
+    svg = require('vendor').svgjs,
+    enums = require('./types'),
+    stave_symbols = require("./rendering/stave_symbols"),
+    add_data_fields = require("./rendering/data_fields").add,
+    remove_data_fields = require("./rendering/data_fields").remove,
+    glyphs = require('./rendering/glyphs'),
+    dispatcher = require('./dispatcher'),
+    data_tables = require('./data_tables');
 
 var
-draw,
-lineHeight = 80,
-lineWidth = 800,
-selectedLine_start,
-selectedLine_end;
+    draw,
+    lineHeight = 80,
+    lineWidth = 800,
+    selectedLine_start,
+    selectedLine_end;
 
 var
-score_lines = [],
-score_lines_group;
+    score_lines = [],
+    score_lines_group;
 
 var selectionRects = [];
 
@@ -28,7 +28,7 @@ var handler = [];
 
 var drawDrawableLine = function(groupDraw, a, lineNumber) {
 
-    if(a.parsed.length === 0) return;
+    if (a.parsed.length === 0) return;
 
     var leadin = 0;
 
@@ -60,9 +60,9 @@ var drawDrawableLine = function(groupDraw, a, lineNumber) {
 
     //draw symbols
     var
-    pos_mod = (lineWidth - leadin) / (a.weight + 1),
-    beam_list = [],
-    beam_depth = 0;
+        pos_mod = (lineWidth - leadin) / (a.weight + 1),
+        beam_list = [],
+        beam_depth = 0;
 
     if (a.parsed[a.parsed.length - 1].type == "barline") {
         pos_mod = (lineWidth - leadin) / (a.weight);
@@ -140,13 +140,13 @@ handler[(enums.line_actions.delete << 2) + enums.line_types.hidden] = function(a
 }
 
 handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
-handler[(enums.line_actions.move << 2) + enums.line_types.data] =
-handler[(enums.line_actions.move << 2) + enums.line_types.hidden] = function(a) {
-    if (a.i < a.j) {
-        scoreLines[a.i] = scoreLines[a.j];
-        scoreLines[a.j] = undefined;
-    }
-    console.log("MOV", scoreLines);
+    handler[(enums.line_actions.move << 2) + enums.line_types.data] =
+    handler[(enums.line_actions.move << 2) + enums.line_types.hidden] = function(a) {
+        if (a.i < a.j) {
+            scoreLines[a.i] = scoreLines[a.j];
+            scoreLines[a.j] = undefined;
+        }
+        console.log("MOV", scoreLines);
 }
 
 //exported functions
@@ -159,20 +159,18 @@ module.exports = {
 
         score_lines_group.move(100, 80);
 
-        dispatcher.subscribe(function(a) {
-            if (a.type === "selection-changed") {
-                _(selectionRects).forEach(function(sr) {
-                    sr.remove();
-                });
+        dispatcher.on("selection-changed", function(a) {
+            _(selectionRects).forEach(function(sr) {
+                sr.remove();
+            });
 
-                selectedLine_start = a.start;
-                selectedLine_end = a.stop;
+            selectedLine_start = a.start;
+            selectedLine_end = a.stop;
 
-                for(var i=selectedLine_start; i<=selectedLine_end; i++) {
-                    if (score_lines[i]) {
-                        score_lines[i].select();
-                    }
-                }                
+            for (var i = selectedLine_start; i <= selectedLine_end; i++) {
+                if (score_lines[i]) {
+                    score_lines[i].select();
+                }
             }
         });
     },
@@ -181,20 +179,22 @@ module.exports = {
 
         if (lines.action === "ADD") {
 
-            var renderedLines = _.map(lines.split, function(line, i) {
+            var renderedLines = _(lines.split).filter(function(line) {
+                return !line.error && line.type_class === enums.line_types.drawable;
+            }).map(function(line, i) {
                 var svgline = score_lines_group.group();
                 drawDrawableLine(svgline, line, i + lines.lineno);
 
-                svgline.move(0, (i + lines.lineno)*80);
+                svgline.move(0, (i + lines.lineno) * 80);
 
-                return svgline;         
-            });
+                return svgline;
+            }).value();
 
             var args = [lines.lineno, 0].concat(renderedLines);
             Array.prototype.splice.apply(score_lines, args);
 
-            for(var i=lines.lineno + lines.lineLength; i<score_lines.length; i++) {
-                score_lines[i].move(0, i*80);
+            for (var i = lines.lineno + lines.lineLength; i < score_lines.length; i++) {
+                score_lines[i].move(0, i * 80);
             }
 
         }
@@ -207,10 +207,10 @@ module.exports = {
                 removed_line.remove();
             });
 
-            for(var i=lines.lineno; i<score_lines.length; i++) {
-                score_lines[i].move(0, i*80);
+            for (var i = lines.lineno; i < score_lines.length; i++) {
+                score_lines[i].move(0, i * 80);
             }
-            
+
         }
 
         return lines;

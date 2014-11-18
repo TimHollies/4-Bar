@@ -225,8 +225,8 @@ function processLine(action, i, raw) {
 
     } catch (err) {
         console.log("ERR", err);
-        line.error_details = err;
-        line.error = true;
+        data.error_details = err;
+        data.error = true;
     }
     return data;
 }
@@ -235,7 +235,12 @@ module.exports = function(line) {
 
     if (line.action === "ADD") {
         for (var i = 0; i < line.lineLength; i++) {
-            var data = processLine(line.action, i + line.lineno, line.split[i].raw);            
+            var data = processLine(line.action, i + line.lineno, line.split[i].raw);    
+
+            if(data.error) {
+                console.log("SHIT");
+            }
+
             typecache.set(i + line.lineno, data.type_class);
             line.split[i].type_class = data.type_class;
             line.split[i].parsed = data.parsed;
