@@ -6,7 +6,6 @@ module.exports = {
 	lex: require('lex'),
 	Ractive: require('ractive'),
     toastr: require('toastr'),
-    Rx: require('rx'),
     jquery: require('jquery'),
     page: require('page'),
     jsDiff: require('diff'),

@@ -7,6 +7,7 @@ var
     bodyParser = require('body-parser'),
     session = require('express-session'),
     passport = require('passport'),
+    compress = require('compression'),
     GoogleStrategy = require('passport-google').Strategy,
 
     routes = require('./routes/routes')(__dirname),
@@ -15,7 +16,8 @@ var
 
     app = express();
 
-app.use(favicon(path.join(__dirname,'public','images','favicon.ico')));
+app.use(compress());
+app.use(favicon(path.join(__dirname, 'public', 'images', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -24,6 +26,7 @@ app.use(session({
     secret: 'something'
 }));
 
+//Authentication
 
 passport.serializeUser(function(user, done) {
     done(null, user.identifier);
@@ -48,15 +51,15 @@ passport.use(new GoogleStrategy({
         //process.nextTick(function () {
 
         // To keep the example simple, the user's Google profile is returned to
-        // represent the logged-in user.  In a typical application, you would want
-        // to associate the Google account with a user record in your database,
-        // and return that user instead.
+        // represent the logged-in user.  In a typical application, you would
+        // want to associate the Google account with a user record in your
+        //  database, and return that user instead.
         profile.identifier = identifier;
         console.log(profile);
 
         databaseSetup.getUser(identifier)
             .then(function(user) {
-                console.log("USER", user);
+                console.log('USER', user);
                 if (!user) databaseSetup.addUser(profile);
                 return done(null, profile);
             });
@@ -125,4 +128,7 @@ app.use(function(err, req, res, next) {
     });
 });
 
+/**
+ * Exports the express app
+ */
 module.exports = app;

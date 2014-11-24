@@ -1,0 +1,23 @@
+    <div class="header row coloured" intro='fade'>
+        <div class="central-menu">
+            <h1>WebABC</h1><small>Version 0.0.1</small>
+        </div>
+        <div class="user-box">
+            {{#if loggedIn === false }}
+                <button class="google-button" on-click="log_in"><div class="left"><i class="fa fa-google-plus"></i></div><div class="right">Sign in with Google+</div></button>
+            {{else}}
+                <span>Hi {{user.name.givenName}}</span>
+                <a href="/logout">Log out</a>
+            {{/if}}
+        </div>
+    </div>
+    <div class="row editor">
+        <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>
+            <div class="text-area-padding">
+                
+            </div>
+        </div>
+        <div class="column three-quarters" intro='fade:{ delay: 200 }' id='task-pane'>
+            <h1>Yay User!</h1>
+        </div>
+    </div>

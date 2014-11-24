@@ -7,7 +7,8 @@ require.ensure('vendor', function() {
         toastr = require('vendor').toastr,
         routingConfig = require("../routes/config.route"),
         page = require('vendor').page,
-        $ = require('vendor').jquery;
+        $ = require('vendor').jquery,
+        _ = require('vendor').lodash;
 
     $(document).ready(function() {
         //audio = require("./engine/audio/audio");
@@ -18,14 +19,30 @@ require.ensure('vendor', function() {
                 var currentRouteConfig = routingConfig[currentRoute];
 
                 var dummyData = {};
+                var partials = [];
+                var partialviews = {};
+
+                if(currentRouteConfig.partials !== undefined) {
+                    partials = currentRouteConfig.partials;
+                    partialviews = partials.reduce(function(a, b) {
+                        a[b.name] = b.view;
+                        return a;
+                    }, {});
+                }
+
                 var ractive = new Ractive({
                     el: "#stage",
                     template: currentRouteConfig.template,
                     data: dummyData,
-                    lazy: false
+                    lazy: false,
+                    partials: partialviews
                 });
 
                 currentRouteConfig.model(ractive, dummyData, page, context);
+
+                _(partials).each(function(partial) {
+                    partial.model(ractive);
+                });
 
             } else {
                 toastr.error("No route found in lookup");
@@ -45,6 +62,10 @@ require.ensure('vendor', function() {
 
         page('/editor', function(context) {
             route("editor", context);
+        });
+
+        page('/user', function(context) {
+            route("user", context);
         });
 
         page('editor/:tuneid', function(context) {

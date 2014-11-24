@@ -2,8 +2,6 @@
 
 var
     _ = require('vendor').lodash,
-    Rx = require('scripts/rx.helper'),
-    adapter = require('scripts/adaptors/ractive-adaptors-rxjs'),
     engine = require('engine/engine'),
     parser = engine.parser,
     renderer = engine.render,

@@ -1,21 +1,23 @@
-var
-    home = require('app/home/home'),
-    editor = require('app/editor/editor');
-
 module.exports = {
     "": {
         template: require("app/home/home.html"),
-        model: home
+        partials: [
+            require("app/partials/userbox")    
+        ],
+        model: require('app/home/home')
     },
     editor: {
         template: require("app/editor/editor.html"),
-        model: editor
+        partials: [
+            require("app/partials/userbox") 
+        ],
+        model: require('app/editor/editor')
     },
-    dog: {
-        template: "home",
-        model: {
-            title: "Test Title 2",
-            body: "WOOOOOOOOOOOOOOOOOOOOOOOooooooooooooooooooooooooooooWWWWWWWWWWWWWWWWoooooooooooooooo"
-        }
+    user: {
+        template: require("app/user/user.html"),
+        partials: [
+            require("app/partials/userbox") 
+        ],
+        model: require('app/user/user')
     }
 };

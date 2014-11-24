@@ -1,0 +1,108 @@
+<mockup version="1.0" skin="sketch" fontFace="Balsamiq Sans" measuredW="1076" measuredH="589" mockupW="911" mockupH="535">
+  <controls>
+    <control controlID="36" controlTypeID="com.balsamiq.mockups::BrowserWindow" x="165" y="54" w="911" h="535" measuredW="450" measuredH="400" zOrder="0" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>WebABC%0Ahttp%3A//webabc.org</text>
+      </controlProperties>
+    </control>
+    <control controlID="39" controlTypeID="com.balsamiq.mockups::TextArea" x="181" y="226" w="224" h="323" measuredW="200" measuredH="140" zOrder="1" locked="false" isInGroup="-1">
+      <controlProperties>
+        <state>up</state>
+        <text>X%3A%204%0AT%3A%20Tam%20Lin%0AR%3A%20reel%0AM%3A%204/4%0AL%3A%201/8%0AK%3A%20Dmin%0A%7CB%2CDFD%20B%2CDFD%7CCEGE%20CEGE%7CFAGE%20FEDC%7C%0AA%2CDFD%20A%2CDFD%7CB%2CDFD%20B%2CDFD%7CCEGE%20CEGE%7CFDEC%20D3A%3A%7C%0A%7C%3Ad%5EcdA%20FDD2%7Cd%5EcdA%20FDD2%7CcEEE%20cEdE%7CcEEE%20A%3DBcA%7C%0Ad%5EcdA%20FDD2%7Cd%5EcdA%20FDD2%7CB%2CDFD%20CEGE%7CFDEC%20D3%3A%7C</text>
+      </controlProperties>
+    </control>
+    <control controlID="40" controlTypeID="com.balsamiq.mockups::Image" x="420" y="226" w="641" h="323" measuredW="77" measuredH="79" zOrder="2" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>MUSICAL%20SCORE</text>
+      </controlProperties>
+    </control>
+    <control controlID="41" controlTypeID="com.balsamiq.mockups::Label" x="212" y="134" w="-1" h="-1" measuredW="67" measuredH="26" zOrder="3" locked="false" isInGroup="-1">
+      <controlProperties>
+        <bold>true</bold>
+        <italic>true</italic>
+        <size>18</size>
+        <text>Tam%20Lin</text>
+      </controlProperties>
+    </control>
+    <control controlID="42" controlTypeID="com.balsamiq.mockups::Button" x="174" y="134" w="31" h="53" measuredW="31" measuredH="27" zOrder="4" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>%3C</text>
+      </controlProperties>
+    </control>
+    <control controlID="43" controlTypeID="com.balsamiq.mockups::MenuBar" x="212" y="158" w="-1" h="-1" measuredW="189" measuredH="29" zOrder="5" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>File%2C%20Edit%2C%20View%2C%20Help</text>
+      </controlProperties>
+    </control>
+    <control controlID="44" controlTypeID="com.balsamiq.mockups::Canvas" x="165" y="193" w="911" h="24" measuredW="100" measuredH="70" zOrder="6" locked="false" isInGroup="-1">
+      <controlProperties>
+        <borderStyle>square</borderStyle>
+        <color>14540253</color>
+      </controlProperties>
+    </control>
+    <control controlID="45" controlTypeID="com.balsamiq.mockups::Icon" x="1012" y="133" w="-1" h="-1" measuredW="48" measuredH="48" zOrder="7" locked="false" isInGroup="-1">
+      <controlProperties>
+        <icon>EmoticonIcon%7Clarge</icon>
+      </controlProperties>
+    </control>
+    <control controlID="46" controlTypeID="com.balsamiq.mockups::Label" x="968" y="137" w="-1" h="-1" measuredW="29" measuredH="21" zOrder="8" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>User</text>
+      </controlProperties>
+    </control>
+    <control controlID="47" controlTypeID="com.balsamiq.mockups::Link" x="968" y="163" w="-1" h="-1" measuredW="36" measuredH="19" zOrder="9" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>logout</text>
+      </controlProperties>
+    </control>
+    <control controlID="51" controlTypeID="com.balsamiq.mockups::Label" x="174" y="195" w="-1" h="-1" measuredW="44" measuredH="21" zOrder="10" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>Toolbar</text>
+      </controlProperties>
+    </control>
+    <control controlID="52" controlTypeID="com.balsamiq.mockups::TitleWindow" x="637" y="250" w="206" h="105" measuredW="450" measuredH="400" zOrder="11" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>Chord%20Picker</text>
+      </controlProperties>
+    </control>
+    <control controlID="53" controlTypeID="com.balsamiq.mockups::RoundButton" x="646" y="286" w="-1" h="-1" measuredW="32" measuredH="32" zOrder="12" locked="false" isInGroup="-1">
+      <controlProperties>
+        <shape>rectangle</shape>
+        <text>C</text>
+      </controlProperties>
+    </control>
+    <control controlID="54" controlTypeID="com.balsamiq.mockups::RoundButton" x="685" y="286" w="45" h="32" measuredW="32" measuredH="32" zOrder="13" locked="false" isInGroup="-1">
+      <controlProperties>
+        <shape>rectangle</shape>
+        <text>Dm</text>
+      </controlProperties>
+    </control>
+    <control controlID="55" controlTypeID="com.balsamiq.mockups::RoundButton" x="737" y="286" w="-1" h="-1" measuredW="32" measuredH="32" zOrder="14" locked="false" isInGroup="-1">
+      <controlProperties>
+        <shape>rectangle</shape>
+        <text>G</text>
+      </controlProperties>
+    </control>
+    <control controlID="56" controlTypeID="com.balsamiq.mockups::RoundButton" x="777" y="286" w="45" h="32" measuredW="32" measuredH="32" zOrder="15" locked="false" isInGroup="-1">
+      <controlProperties>
+        <shape>rectangle</shape>
+        <text>Em</text>
+      </controlProperties>
+    </control>
+    <control controlID="57" controlTypeID="com.balsamiq.mockups::StickyNote" x="456" y="239" w="169" h="176" measuredW="109" measuredH="123" zOrder="16" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>Appropriate%20chords%20for%20the%20current%20cursor%20position%20are%20displayed%20in%20the%20box.%20If%20a%20chord%20in%20the%20box%20is%20clicked%20it%20will%20be%20inserted%20into%20the%20ABC%20script%20at%20the%20cursor%20position.%20</text>
+      </controlProperties>
+    </control>
+    <control controlID="58" controlTypeID="com.balsamiq.mockups::StickyNote" x="882" y="286" w="-1" h="-1" measuredW="109" measuredH="123" zOrder="17" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>The%20Chord%20Picker%20box%20can%20be%20moved%20around%20and%20closed.</text>
+      </controlProperties>
+    </control>
+    <control controlID="59" controlTypeID="com.balsamiq.mockups::Icon" x="822" y="255" w="-1" h="-1" measuredW="16" measuredH="16" zOrder="18" locked="false" isInGroup="-1">
+      <controlProperties>
+        <icon>XIcon%7Cxsmall</icon>
+      </controlProperties>
+    </control>
+  </controls>
+</mockup>

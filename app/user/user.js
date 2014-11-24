@@ -9,7 +9,7 @@ var
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {
-
+   
     ractive.on('new_tune', function(event) {
         page("/editor");
     });
@@ -23,7 +23,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     $.getJSON("/api/tunes")
         .then(function(data) {
             ractive.set("tuneNames", data);
-        });    
+        });
 
     ractive.set("filterTuneNames", function(tuneNames, filter) {
         if (filter.length <= 0) return tuneNames;

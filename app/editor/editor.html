@@ -8,14 +8,7 @@
         <br />
         <div id="menuButtons"></div>
     </div>
-    <div class="user-box">
-        {{#if loggedIn === false }}
-        <a href="/auth/google" class="google-button"><span class="fa fa-google-plus"></span> Google</a>
-        {{else}}
-        <span>Hi {{user.name.givenName}}</span>
-        <a href="/logout">Log out</a>
-        {{/if}}
-    </div>
+    {{>userbox}}
 </div>
 <div class="row toolbar" on-mouseup="app_mouseup">
     {{errors}}

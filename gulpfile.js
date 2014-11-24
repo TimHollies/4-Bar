@@ -1,10 +1,7 @@
 var gulp = require('gulp'),
     path = require('path'),
-    jslint = require('gulp-jslint'),
-    livereload = require('gulp-livereload'),
     sass = require('gulp-sass'),
     webpack = require('gulp-webpack'),
-    WebpackDevServer = require("webpack-dev-server"),
     sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('default', ['copyfonts', 'scripts', 'sass']);
@@ -20,8 +17,7 @@ gulp.task('sass', function () {
 gulp.task('scripts', function() {
     gulp.src('./app/app.js')
         .pipe(webpack(require('./config/webpack.config.js')))
-        .pipe(gulp.dest('./public'))
-        .pipe(livereload());
+        .pipe(gulp.dest('./public'));
 });
 
 gulp.task('copyfonts', function() {

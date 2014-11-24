@@ -1,5 +1,5 @@
  //select many:
- var Rx = require('scripts/rx.helper'),
+ var 
      enums = require('./types'),
      JsDiff = require('vendor').jsDiff;
 
