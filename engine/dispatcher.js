@@ -16,12 +16,22 @@ function send(eventName, data) {
     });
 }
 
-function on(eventName, func) {
+function subscribeEvent(eventName, func) {
     if (subscribers.has(eventName)) {
         subscribers.get(eventName).push(func)
     } else {
         subscribers.set(eventName, [func]);
     }
+}
+
+function on(eventName, func) {
+    if(_.isObject(eventName) && func === undefined) {
+        for(var propt in eventName){
+            subscribeEvent(propt, eventName[propt]);
+        }
+    } else {
+        subscribeEvent(eventName, func);
+    }    
 }
 
 module.exports = {

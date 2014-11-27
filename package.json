@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "body-parser": "~1.0.0",
+    "combokeys": "^2.0.0",
     "compress": "^0.99.0",
     "compression": "^1.2.0",
     "config": "~1.6.0",
@@ -37,6 +38,7 @@
     "rebound": "0.0.10",
     "rx": "~2.3.14",
     "sass-loader": "~0.3.0",
+    "screenfull": "^1.2.1",
     "static-favicon": "~1.0.0",
     "svg.js": "~1.0.0",
     "toastr": "~2.0.4",

@@ -75,19 +75,23 @@ h1, h2, h3, h4 {
 }
 
 .tile-button {
-    border: $color_light solid 1px;
-    width: 160px;
+    //border: $color_light solid 1px;
+    width: 100%;
     padding: 10px;
-    height: 180px;
+    background-color: $color_highlight;
+    color: white;
+    //height: 180px;
     cursor: pointer;
+    margin-top: 8px;
    // box-shadow: rgba(0, 0, 0, 0.32) 4px 4px;
     h4 {
         margin: 0;
+        font-weight: lighter;
     }
 }
 
 .tile-button-container {
-    padding: 20px;
+    padding: 0 20px 0 20px;
 }
 
 .flat-button {

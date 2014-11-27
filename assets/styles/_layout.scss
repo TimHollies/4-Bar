@@ -1,8 +1,8 @@
-html, body, .container, #stage { 
+html, body, .container, .page-view { 
     height:100vh;
 }
 
-#stage {
+.page-view {
     display:flex;
     flex-direction: column;
 }
@@ -30,6 +30,11 @@ html, body, .container, #stage {
             color: white;
             background-color: $color_primary;
             cursor: pointer;
+            text-align: center;
+            vertical-align: middle;
+            p {
+                padding-top: 5px;
+            }
         }
         .user-box {
             flex: 0 0 128px;
@@ -66,6 +71,10 @@ html, body, .container, #stage {
                 flex: 3;
             }
         }
+
+        &.viewer {
+            text-align: center;
+        }
     }
 }
 
@@ -76,11 +85,18 @@ html, body, .container, #stage {
     bottom: 0px;
     left: 30%;
     right: 0px;
+    text-align: center;
     //flex-direction: column;
     //display:flex;
     //svg {
     //    flex: 1;
     //}
+}
+
+#view-viewer {
+    #canvas {
+        left: 0;
+    }
 }
 
 #task-pane {
@@ -100,5 +116,19 @@ html, body, .container, #stage {
         &:hover {
             background-color: rgb(223, 223, 223);
         }
+    }
+}
+
+.header {
+    &.tune-info {
+        margin: 0 auto 0 auto;
+        z-index: 10;
+    }
+}
+
+.app-name {
+    margin: 8px 0 0 10px;
+    h1 {
+        margin-right: 10px;
     }
 }

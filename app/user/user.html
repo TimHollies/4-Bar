@@ -1,6 +1,11 @@
+<section class="page-view" id="view-user"> 
     <div class="header row coloured" intro='fade'>
+        <div class="back-button" on-click="navigate_back">
+            <p><i class="fa fa-arrow-left"></i></p>
+        </div>
         <div class="central-menu">
-            <h1>WebABC</h1><small>Version 0.0.1</small>
+            <div class="app-name"><h1>WebABC</h1><small>Version 0.0.1</small></div>
+            
         </div>
         <div class="user-box">
             {{#if loggedIn === false }}
@@ -21,3 +26,4 @@
             <h1>Yay User!</h1>
         </div>
     </div>
+</section>

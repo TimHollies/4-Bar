@@ -6,13 +6,36 @@ var dispatcherEvents = {
     },
     "PDF": function() {
         dispatcher.send("download_pdf");
+    },
+    "Share": function() {
+        dispatcher.send("show_share_dialog");
+    },
+    "Save": function() {
+        dispatcher.send("save_tune");
     }
 };
 
+function logEvent(e) {
+    if (e.type === "action") {
+        var name = e.target.getCaption ? e.target.getCaption() : 'Menu';
+        console.log('"' + name + '" dispatched: ' + e.type);
+        dispatcherEvents[name] !== undefined ? dispatcherEvents[name]() : false;
+    }
+};
+
+var EVENTS = goog.object.getValues(goog.ui.Component.EventType);
+
 var createToolbar = function() {
     var t1 = new goog.ui.Toolbar();
-    t1.addChild(new goog.ui.ToolbarButton('Button'), true);
-    t1.getChildAt(0).setTooltip('This is a tooltip for a button');
+
+    var button1 = goog.dom.htmlToDocumentFragment('<span><i class="fa fa-save"></i> Save</span>');
+
+    console.log(button1);
+
+    var tbutton1 = new goog.ui.ToolbarButton(button1);
+    tbutton1.setTooltip('This is a tooltip for a button');
+    t1.addChild(tbutton1, true);
+
     t1.addChild(new goog.ui.ToolbarButton('AnotherButton'), true);
     t1.addChild(new goog.ui.ToolbarSeparator(), true);
     t1.addChild(new goog.ui.ToolbarButton('Disabled'), true);
@@ -22,16 +45,18 @@ var createToolbar = function() {
         'icon goog-edit-bold'));
     toggleButton.setChecked(true);
     t1.addChild(toggleButton, true);
-    var btnLeft = new goog.ui.ToolbarButton('Left');
-    btnLeft.setCollapsed(goog.ui.ButtonSide.END);
-    t1.addChild(btnLeft, true);
-    var btnCenter = new goog.ui.ToolbarButton('Center');
-    btnCenter.setCollapsed(goog.ui.ButtonSide.END | goog.ui.ButtonSide.START);
-    t1.addChild(btnCenter, true);
-    var btnRight = new goog.ui.ToolbarButton('Right');
-    btnRight.setCollapsed(goog.ui.ButtonSide.START);
-    t1.addChild(btnRight, true);
+
+    var menu1 = new goog.ui.Menu();
+    menu1.setId("transposeMenu");
+    menu1.addItem(new goog.ui.MenuItem('No Transposition'));
+    menu1.addItem(new goog.ui.MenuItem('Trumpet/Clarinet Bb'));
+    menu1.addItem(new goog.ui.MenuItem('Sax Eb'));
+
+    t1.addChild(new goog.ui.ToolbarSelect("No Transposition", menu1), true);
+
     t1.render(goog.dom.getElement('t1'));
+
+    goog.events.listen(t1, EVENTS, logEvent);
 }
 
 function createMenu() {
@@ -51,20 +76,10 @@ function createMenu() {
     menu1.addItem(a);
 
     var menu2 = new goog.ui.Menu();
-	menu2.addItem(m1 = new goog.ui.MenuItem('Undo'));
-	menu2.addItem(m1 = new goog.ui.MenuItem('Redo'));
-
-    var EVENTS = goog.object.getValues(goog.ui.Component.EventType);
+    menu2.addItem(m1 = new goog.ui.MenuItem('Undo'));
+    menu2.addItem(m1 = new goog.ui.MenuItem('Redo'));    
 
     goog.events.listen(menu1, EVENTS, logEvent);
-
-    function logEvent(e) {
-        if (e.type === "action") {
-            var name = e.target.getCaption ? e.target.getCaption() : 'Menu';
-            console.log('"' + name + '" dispatched: ' + e.type);
-            dispatcherEvents[name] !== undefined ? dispatcherEvents[name]() : false;
-        }
-    };
 
     var b1 = new goog.ui.MenuButton('File', menu1);
     b1.setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);

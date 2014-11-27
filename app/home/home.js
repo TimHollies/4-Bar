@@ -10,20 +10,25 @@ var
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
-    ractive.on('new_tune', function(event) {
-        page("/editor");
+    ractive.on({
+        'new_tune': function(event) {
+            page("/editor");
+        },
+        'view_tutorial': function(event) {
+            page("/tutorial");
+        }
     });
 
     ractive.on('view_tune', function(event) {
         var tuneId = event.node.attributes["tune-id"].value;
         console.log(tuneId);
-        page("/editor?tuneid=" + tuneId);
+        page("/viewer?tuneid=" + tuneId);
     });
 
     $.getJSON("/api/tunes")
         .then(function(data) {
             ractive.set("tuneNames", data);
-        });    
+        });
 
     ractive.set("filterTuneNames", function(tuneNames, filter) {
         if (filter.length <= 0) return tuneNames;

@@ -17,22 +17,32 @@ router.get('/tunes', function(req, res) {
 
 });
 
-/* GET home page. */
-router.get('/tunes/:id', function(req, res) {
 
+
+router.get('/tune/:id', function(req, res) {
     var collection = db.get("tunes");
-
     collection.findById(req.params.id,
         function(e, docs) {
             res.json(docs);
         });
-
 });
 
-router.get('/user/current', function(req, res) {
+router.post('/tunes/add', function(req, res) {
+   res.send(req.body.tune);
+});
+
+router.get('/user', function(req, res) {
     if (req.user === undefined) res.send("");
     res.type('json');
     res.send(req.user);
 });
+
+router.get('/user/tunes', function(req, res) {
+    if (req.user === undefined) res.send("");
+    res.type('json');
+    res.send(req.user);
+});
+
+
 
 module.exports = router;

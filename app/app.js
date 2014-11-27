@@ -68,6 +68,18 @@ require.ensure('vendor', function() {
             route("user", context);
         });
 
+        page('/viewer', function(context) {
+            route("viewer", context);
+        });
+
+        page('/viewer/:tuneid', function(context) {
+            route("viewer", context);
+        });
+
+        page('/tutorial', function(context) {
+            route("tutorial", context);
+        });
+
         page('editor/:tuneid', function(context) {
             route("editor", context);
         });
@@ -84,6 +96,8 @@ require.ensure('vendor', function() {
         //window.onhashchange = route;
 
         page.start();
+
+        toastr.options.positionClass = "toast-bottom-right";
 
     });
 

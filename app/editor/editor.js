@@ -6,12 +6,14 @@ var
     parser = engine.parser,
     renderer = engine.render,
     diff = engine.diff,
-    $ = require('vendor').jquery,
-    dispatcher = require('engine/dispatcher'),
+    dispatcher = engine.dispatcher,
+    $ = require('vendor').jquery,    
     enums = require('engine/types'),
     CodeMirror = require('vendor').codeMirror,
     initializeUI = require("./ui"),
-    FileSaver = require('vendor').filesaver;
+    FileSaver = require('vendor').filesaver,
+    toastr = require('vendor').toastr,
+    Combokeys = require('vendor').combokeys;
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
@@ -61,9 +63,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     editor.on("cursorActivity", function(instance) {
         dispatcher.send("selection-changed", {
-                start: instance.getCursor(true).line,
-                stop: instance.getCursor(false).line
-            });
+            start: instance.getCursor(true).line,
+            stop: instance.getCursor(false).line
+        });
     });
 
 
@@ -108,24 +110,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         });
     });
 
-    /*
-    //composition root
-    var mainObservable = Rx.Observable.fromRactive(ractive, 'inputValue')
-        .throttle(100)
-        .selectMany(diff)
-        .map(parser)
-        .map(renderer.onNext)
-        .subscribe(function(a) {
-            //console.log(a);
-            /*if (!a.error) {
-                ractive.set("errors", "");
-            } else {
-                ractive.set("errors", a.error_details.message);
-            }
-            //if(a.action != "del")console.log(a.parsed); 
-            
-        });*/
-
     var oldStart = -1,
         oldStop = -1;
 
@@ -134,36 +118,58 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         "navigate_back": function(event) {
             page.show("/");
         },
-        "share_url": function() {
-            ractive.set("quick_url", "localhost:3000/editor?tune=" + encodeURIComponent(ractive.get("inputValue")));
-            dialog.show();
-        },
         "share_url_modal_close": function() {
             dialog.close();
         },
-        "generate_abc_blob": function(event) {
-            event.node.href = makeTextFile(ractive.get("inputValue"));
-            event.node.download = ractive.get("title") + ".abc";
-            console.log(event);
+        "silly-save": function() {
+            dispatcher.send("save_tune");
         }
     });
 
-    dispatcher.on("download_abc", function() {
-        var blob = new Blob([ractive.get("inputValue")], {type: "text/plain;charset=utf-8"});
-        FileSaver(blob, ractive.get("title") + ".abc");
+    dispatcher.on({
+        "download_abc": function() {
+            var blob = new Blob([ractive.get("inputValue")], {
+                type: "text/plain;charset=utf-8"
+            });
+            FileSaver(blob, ractive.get("title") + ".abc");
+        },
+        "change_tune_title": function(data) {
+            ractive.set("title", data);
+        },
+        "show_share_dialog": function() {
+            ractive.set("quick_url", "localhost:3000/editor?tune=" + encodeURIComponent(ractive.get("inputValue")));
+            dialog.show();
+        },
+        "save_tune": function() {
+            $.ajax({
+              type: "POST",
+              url: "/api/tunes/add",
+              data: {
+                tune: ractive.get("inputValue")
+              }
+            }).then(function() {
+                toastr.success("Tune saved", "Success!");
+            });
+        }
     });
 
     if (parameters.tuneid) {
-        $.getJSON("/api/tunes/" + parameters.tuneid, function(res) {
-            //ractive.set("inputValue", res.data);
+        $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
             editor.setValue(res.data);
         });
     }
 
     if (parameters.tune) {
-        //ractive.set("inputValue", parameters.tune);
         editor.setValue(parameters.tune);
     }
 
+    var combokeys = new Combokeys(document.getElementById("view-editor"));
+
+    combokeys.bind("ctrl+s", function() {
+        dispatcher.send("save_tune");
+        return false;
+    });
+
+    editor.setValue("X: 1\nT: " + emptyTuneName);
     initializeUI();
 };

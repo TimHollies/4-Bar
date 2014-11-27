@@ -1,11 +1,26 @@
+<section class="page-view" id="view-home">
     <div class="header row coloured" intro='fade'>
         <div class="central-menu">
-            <h1>WebABC</h1><small>Version 0.0.1</small>
+            <div class="app-name">
+                <h1>WebABC</h1><small>Version 0.0.1</small>
+            </div>
         </div>
         {{>userbox}}
     </div>
     <div class="row editor">
-        <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>
+        <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>            
+            <div class="tile-button-container">
+                <h3>Welcome to WebABC</h3>
+                <p>Choose a tune from the right or one of the options below!</p>
+                <div class="tile-button" on-click="new_tune">
+                    <h4>+ New Tune</h4>
+                </div> 
+                <div class="tile-button" on-click="view_tutorial">
+                    <h4><i class="fa fa-book"></i>  Tutorial</h4>
+                </div> 
+            </div>
+        </div>
+        <div class="column three-quarters" intro='fade:{ delay: 200 }' id='task-pane'>
             <div class="text-area-padding">
                 <h3>Recent Tunes</h3>
                 <div id="search-box">
@@ -18,12 +33,7 @@
                     {{/each}}
                 </ul>
             </div>
-        </div>
-        <div class="column three-quarters" intro='fade:{ delay: 200 }' id='task-pane'>
-            <div class="tile-button-container">
-                <div class="tile-button" on-click="new_tune">
-                    <h4>+ New Tune</h4>
-                </div> 
-            </div>
+            
         </div>
     </div>
+</section>

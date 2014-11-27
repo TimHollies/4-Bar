@@ -1,35 +1,34 @@
-<div class="header row" intro='fade' on-mouseup="app_mouseup">
+<section class="page-view" id="view-editor">
+    <div class="header row" intro='fade' on-mouseup="app_mouseup">
 
-    <div class="back-button" on-click="navigate_back">
-        <p><i class="fa fa-arrow-left"></i></p>
+        <div class="back-button" on-click="navigate_back">
+            <p><i class="fa fa-arrow-left"></i></p>
+        </div>
+        <div class="central-menu">
+            <h3 class="tune-title">{{title}}</h3>
+            <br />
+            <div id="menuButtons"></div>
+        </div>
+        {{>userbox}}
+        {{#if !loggedIn}}
+        <p>Your tune cannot be saved unless you are logged in</p>
+        {{/if}}
     </div>
-    <div class="central-menu">
-        <h3 class="tune-title">{{title}}</h3>
-        <br />
-        <div id="menuButtons"></div>
+    <div class="row toolbar" intro='fade'>
+        {{errors}}
+        <div id="t1"></div>
     </div>
-    {{>userbox}}
-</div>
-<div class="row toolbar" on-mouseup="app_mouseup">
-    {{errors}}
-    <!--
-    <div class="toolbar-button-group">
-        <a title="Download tune as ABC" download="tune.abc" on-click="generate_abc_blob"><i class="fa fa-download"></i> ABC</a>
-        <a title="Download tune as PDF"><i class="fa fa-file-pdf-o"></i> PDF</a>
-        <a title="Get a quick link to this tune" on-click="share_url"><i class="fa fa-link"></i> Quick URL</a>
-    </div>-->
-    <div id="t1"></div>
-</div>
-<div class="row editor" intro='fade' on-mouseup="app_mouseup">
-    <dialog id="window">
-        <h3>URL</h3>
-        <p style="width: 480px;word-break: break-all;">{{quick_url}}</p>
-        <button on-click="share_url_modal_close">Done</button>
-    </dialog>
-    <div class="column" id="abc-container">
-        <!--<textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" on-mouseup="editor_mouseup" on-paste="editor_paste" placeholder="Start typing a tune.."  spellcheck='false'/>-->
-        <textarea id="abc"></textarea>
+    <div class="row editor" intro='fade'>
+        <dialog id="window">
+            <h3>URL</h3>
+            <p style="width: 480px;word-break: break-all;">{{quick_url}}</p>
+            <button on-click="share_url_modal_close">Done</button>
+        </dialog>
+        <div class="column" id="abc-container">
+            <!--<textarea id="abc" value="{{inputValue}}" on-keyup="editor_keyup" on-mouseup="editor_mouseup" on-paste="editor_paste" placeholder="Start typing a tune.."  spellcheck='false'/>-->
+            <textarea id="abc"></textarea>
+        </div>
+        <div class="column" id="canvas">        
+        </div>
     </div>
-    <div class="column" id="canvas">        
-    </div>
-</div>
+</section>

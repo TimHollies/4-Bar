@@ -15,3 +15,9 @@
     border-right: rgb(190, 190, 190) solid 1px;
     color: $color_text;
 }
+
+#view-viewer {
+	#canvas {
+		background-color: white;
+	}
+}

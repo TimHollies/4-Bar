@@ -1,0 +1,30 @@
+<section class="page-view" id="view-viewer"> 
+    <div class="header row coloured" intro='fade'>
+        <div class="back-button" on-click="navigate_back">
+            <p><i class="fa fa-arrow-left"></i></p>
+        </div>
+        <div class="central-menu">
+            <div class="app-name">
+                <h1>WebABC</h1><small>Version 0.0.1</small>
+            </div>
+        </div>
+        <div class="user-box">
+            {{#if loggedIn === false }}
+                <button class="google-button" on-click="log_in"><div class="left"><i class="fa fa-google-plus"></i></div><div class="right">Sign in with Google+</div></button>
+            {{else}}
+                <span>Hi {{user.name.givenName}}</span>
+                <a href="/logout">Log out</a>
+            {{/if}}
+        </div>
+    </div>
+    <div class="row toolbar" intro='fade:{ delay: 100 }'>
+        {{errors}}
+        <div id="t1"></div>
+    </div>
+    <div class="row editor viewer" intro='fade' id="fullscreenZone">
+        <div class="tune-info header">
+            <h2>{{tune.name}}</h2>
+        </div>
+        <div id="canvas"> 
+    </div>
+</section>

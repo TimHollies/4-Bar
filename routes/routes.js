@@ -20,6 +20,14 @@ module.exports = function(root) {
         res.sendfile(root + '/public/index.html');
     });
 
+    router.get('/viewer', function(req, res) {
+        res.sendfile(root + '/public/index.html');
+    });
+
+    router.get('/tutorial', function(req, res) {
+        res.sendfile(root + '/public/index.html');
+    });
+
     router.get('/pdf', function(req, res) {
         wkhtmltopdf('<h1>Test</h1><p>Hello world</p>', { pageSize: 'letter' }).pipe(res);
     });

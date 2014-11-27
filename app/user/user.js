@@ -9,9 +9,14 @@ var
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {
-   
-    ractive.on('new_tune', function(event) {
-        page("/editor");
+
+    ractive.on({
+        'new_tune': function(event) {
+            page("/editor");
+        },
+        "navigate_back": function(event) {
+            page.show("/");
+        }
     });
 
     ractive.on('view_tune', function(event) {

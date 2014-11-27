@@ -10,5 +10,7 @@ module.exports = {
     page: require('page'),
     jsDiff: require('diff'),
     codeMirror: require('codemirror'),
-    filesaver: require('filesaver.js')
+    filesaver: require('filesaver.js'),
+    combokeys: require('combokeys'),
+    screenfull: require('screenfull')
 };

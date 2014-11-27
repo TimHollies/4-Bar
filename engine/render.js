@@ -26,6 +26,12 @@ var selectionRects = [];
 
 var handler = [];
 
+var alignScoreLines = function() {
+    for (var i = 0; i < score_lines.length; i++) {
+        score_lines[i].move(0, i * lineHeight);
+    }
+}
+
 var drawDrawableLine = function(groupDraw, a, lineNumber) {
 
     if (a.parsed.length === 0) return;
@@ -108,6 +114,12 @@ var drawDrawableLine = function(groupDraw, a, lineNumber) {
     return groupDraw;
 };
 
+function handleDataLine(line) {
+    if (line.parsed[0].type === "title") {
+        dispatcher.send("change_tune_title", line.parsed[0].data);
+    }
+}
+
 handler[(enums.line_actions.add << 2) + enums.line_types.data] = function(a) {
 
     scoreLines[a.i] = 0;
@@ -153,7 +165,7 @@ handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
 module.exports = {
 
     initialize: function(canvasSelector) {
-        draw = svg('canvas');
+        draw = svg('canvas').size(1000, "100%");
 
         score_lines_group = draw.group();
 
@@ -167,11 +179,17 @@ module.exports = {
             selectedLine_start = a.start;
             selectedLine_end = a.stop;
 
-            for (var i = selectedLine_start; i <= selectedLine_end; i++) {
+            _(score_lines).filter(function(line) {
+                return (line.id-1) >= a.start && (line.id-1) <=a.stop;
+            }).each(function(line) {
+                line.select();
+            });
+
+            /*for (var i = selectedLine_start; i <= selectedLine_end; i++) {
                 if (score_lines[i]) {
                     score_lines[i].select();
                 }
-            }
+            }*/
         });
     },
 
@@ -179,38 +197,57 @@ module.exports = {
 
         if (lines.action === "ADD") {
 
+            //draw tune lines
             var renderedLines = _(lines.split).filter(function(line) {
                 return !line.error && line.type_class === enums.line_types.drawable;
             }).map(function(line, i) {
                 var svgline = score_lines_group.group();
                 drawDrawableLine(svgline, line, i + lines.lineno);
 
-                svgline.move(0, (i + lines.lineno) * 80);
+                svgline.move(0, ( /*i + lines.lineno*/ line.di) * 80);
+                svgline.di = line.di;
+                svgline.id = i + lines.lineno;
 
                 return svgline;
             }).value();
 
-            var args = [lines.lineno, 0].concat(renderedLines);
-            Array.prototype.splice.apply(score_lines, args);
 
-            for (var i = lines.lineno + lines.lineLength; i < score_lines.length; i++) {
-                score_lines[i].move(0, i * 80);
+            //renderedLines[0].di IS UNDEFINED!!!!
+            if (renderedLines.length > 0) {
+
+                var args = [renderedLines[0].di, 0].concat(renderedLines);
+                Array.prototype.splice.apply(score_lines, args);
+
+                for (var i = renderedLines[0].di; i < score_lines.length; i++) {
+                    score_lines[i].move(0, i * 80);
+                    score_lines[i].id += renderedLines.length;
+                }
             }
 
+            //draw or handle data lines
+            _(lines.split).filter(function(line) {
+                return !line.error && line.type_class === enums.line_types.data;
+            }).each(handleDataLine);
         }
 
         if (lines.action === "DEL") {
 
-            var removed_lines = score_lines.splice(lines.lineno, lines.lineLength);
+            var dl = _(lines.split).filter(function(line) {
+                return !line.error && line.type_class === enums.line_types.drawable;
+            }).value();
 
-            _.each(removed_lines, function(removed_line) {
-                removed_line.remove();
-            });
+            if (dl.length > 0) {
+                var removed_lines = score_lines.splice(dl[0].di, dl.length);
 
-            for (var i = lines.lineno; i < score_lines.length; i++) {
-                score_lines[i].move(0, i * 80);
+                _.each(removed_lines, function(removed_line) {
+                    removed_line.remove();
+                });
+
+                for (var i = dl[0].di; i < score_lines.length; i++) {
+                    score_lines[i].move(0, i * 80);
+                    score_lines[i].id -= dl.length;
+                }
             }
-
         }
 
         return lines;

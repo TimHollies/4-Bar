@@ -7,6 +7,7 @@ var
     enums = require('./types'),
 
     typecache = new Map(),
+    dicache = new Map(),
     drawableIndex = 0,
     decorationstack = [];
 
@@ -207,6 +208,13 @@ function processLine(action, i, raw) {
     var data = {};
 
     try {
+        if(raw.length === 0) {
+            data.type_class = enums.line_types.drawable;
+            data.di = drawableIndex++;
+            data.parsed = [];
+            data.weight = 0;
+        }
+
         var lexed = lexer(raw);
         if (lexed.length > 0) {
             var parseOutput = parse(lexed);
@@ -215,6 +223,7 @@ function processLine(action, i, raw) {
 
             if (!(data.parsed.length === 1 && data.parsed[0].type_class === "data")) {
                 data.type_class = enums.line_types.drawable;
+                data.di = drawableIndex++;
             } else {
                 data.type_class = enums.line_types.data;
             }
@@ -233,6 +242,8 @@ function processLine(action, i, raw) {
 
 module.exports = function(line) {
 
+    if(line.lineno === 0)drawableIndex = 0;
+
     if (line.action === "ADD") {
         for (var i = 0; i < line.lineLength; i++) {
             var data = processLine(line.action, i + line.lineno, line.split[i].raw);    
@@ -245,12 +256,23 @@ module.exports = function(line) {
             line.split[i].type_class = data.type_class;
             line.split[i].parsed = data.parsed;
             line.split[i].weight = data.weight;
+            line.split[i].di = data.di;
+            dicache.set(i + line.lineno, data.di);
         }
     }
 
     if (line.action === "DEL") {
         for (var i = 0; i < line.lineLength; i++) {
             line.split[i].type_class = typecache.get(i + line.lineno);
+            if(typecache.get(i + line.lineno) === enums.line_types.drawable) {
+                line.split[i].di = dicache.get(i + line.lineno);
+            }
+        }
+    }
+
+    if (line.action === "NONE") {
+        for (var i = 0; i < line.lineLength; i++) {
+            if(typecache.get(i + line.lineno) === enums.line_types.drawable)drawableIndex++;
         }
     }
 
