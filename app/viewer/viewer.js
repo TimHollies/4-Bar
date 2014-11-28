@@ -41,6 +41,18 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             if (screenfull.enabled) {
                 screenfull.request(elem);
             }
+        },
+        "publish_tune": function() {
+            $.ajax({
+              type: "POST",
+              url: "/api/tunes/publish",
+              data: {
+                tuneId: ractive.get("tune")._id
+              }
+            }).then(function() {
+                dispatcher.send("tune_publish_success");
+                toastr.success("Tune published", "Success!");
+            });
         }
     });
 
@@ -66,6 +78,8 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
             ractive.set("tune", res);
 
+            initializeUI(!res.public);
+
             diff({
                 newValue: res.data,
                 oldValue: ""
@@ -76,8 +90,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
                 });
         });
-    }
-
-    initializeUI();
+    }    
     // toastr.success("YAY");
 };

@@ -165,7 +165,7 @@ handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
 module.exports = {
 
     initialize: function(canvasSelector) {
-        draw = svg('canvas').size(1000, "100%");
+        draw = svg('canvas').size("100%", "100%").viewbox(0, 0, 1000, 800);
 
         score_lines_group = draw.group();
 

@@ -8,11 +8,13 @@ var
     session = require('express-session'),
     passport = require('passport'),
     compress = require('compression'),
-    GoogleStrategy = require('passport-google').Strategy,
+    //GoogleStrategy = require('passport-google').Strategy,
+    GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
 
     routes = require('./routes/routes')(__dirname),
     apiroutes = require('./routes/api'),
-    databaseSetup = require('./data/database'),
+    monk = require('monk'),
+    db = monk('localhost/webabc'),
 
     app = express();
 
@@ -29,43 +31,45 @@ app.use(session({
 //Authentication
 
 passport.serializeUser(function(user, done) {
-    done(null, user.identifier);
+    done(null, user.googleId);
 });
 
 passport.deserializeUser(function(obj, done) {
-    databaseSetup.getUser(obj)
-        .then(function(user) {
-            done(null, user);
-        });
-
+    var usersDb = db.get("users");
+    usersDb.findOne({
+        googleId: obj
+    }, function(e, docs) {
+        done(e, docs);
+    });
 });
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new GoogleStrategy({
-        returnURL: 'http://localhost:3000/auth/google/return',
-        realm: 'http://localhost:3000/'
+        clientID: "438333756179-uurf1parlk4nfu57dalcct5potg4kq2i.apps.googleusercontent.com",
+        clientSecret: "f58fMfasIVmWpYTJRoFgPawL",
+        callbackURL: "http://localhost:3000/auth/google/callback"
     },
-    function(identifier, profile, done) {
-        //process.nextTick(function () {
-
-        // To keep the example simple, the user's Google profile is returned to
-        // represent the logged-in user.  In a typical application, you would
-        // want to associate the Google account with a user record in your
-        //  database, and return that user instead.
-        profile.identifier = identifier;
-        console.log(profile);
-
-        databaseSetup.getUser(identifier)
-            .then(function(user) {
-                console.log('USER', user);
-                if (!user) databaseSetup.addUser(profile);
-                return done(null, profile);
+    function(accessToken, refreshToken, profile, done) {
+        var usersDb = db.get("users");
+        usersDb.findOne({
+                googleId: profile.id
+            },
+            function(e, docs) {
+                var user = docs;
+                if (user === null) {
+                    user = {
+                        googleId: profile.id,
+                        name: profile.name.givenName,
+                        picture: profile._json.picture
+                    };
+                    usersDb.insert(user);
+                }
+                return done(e, user);
             });
     }
 ));
-
 
 app.use('/', routes);
 
@@ -76,16 +80,20 @@ app.use('/experiments', express.static(path.join(__dirname, 'experiments')));
 app.use('/vendor', express.static(path.join(__dirname, 'node_modules')));
 
 app.get('/auth/google',
-    passport.authenticate('google'),
+    passport.authenticate('google', {
+        scope: ['https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/userinfo.email'
+        ]
+    }),
     function(req, res) {
         res.redirect('/');
         // The request will be redirected to Google for authentication, so
         // this function will not be called.
     });
 
-app.get('/auth/google/return',
+app.get('/auth/google/callback',
     passport.authenticate('google', {
-        failureRedirect: '/login'
+        failureRedirect: '/'
     }),
     function(req, res) {
         // Successful authentication, redirect home.

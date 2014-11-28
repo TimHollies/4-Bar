@@ -148,8 +148,7 @@ h1, h2, h3, h4 {
 
 .user-box {
     float: right;
-    padding: 10px;
-    padding-right: 50px;
+    padding: 10px 0px 10px 0px;
 }
 
 .tune-title {
@@ -209,4 +208,11 @@ h1, h2, h3, h4 {
         -webkit-transform: scaleY(1.0);
       }
     }
+}
+
+.user-picture {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
 }

@@ -27,7 +27,12 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     $.getJSON("/api/tunes")
         .then(function(data) {
-            ractive.set("tuneNames", data);
+            ractive.set("publicTuneNames", data);
+        });
+
+    $.getJSON("/api/user/tunes")
+        .then(function(data) {
+            ractive.set("myTuneNames", data);
         });
 
     ractive.set("filterTuneNames", function(tuneNames, filter) {

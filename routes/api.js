@@ -9,15 +9,15 @@ router.get('/tunes', function(req, res) {
 
     var collection = db.get("tunes");
 
-    collection.find({}, {
+    collection.find({
+        public: true
+    }, {
         limit: 20
     }, function(e, docs) {
         res.json(docs);
     })
 
 });
-
-
 
 router.get('/tune/:id', function(req, res) {
     var collection = db.get("tunes");
@@ -31,6 +31,14 @@ router.post('/tunes/add', function(req, res) {
    res.send(req.body.tune);
 });
 
+router.post('/tunes/publish', function(req, res) {
+    //only the owner can publish a tune
+   res.send(req.body.tuneId);
+   db.get("tunes").updateById(req.body.tuneId, {
+        $set: {public: true}
+   });
+});
+
 router.get('/user', function(req, res) {
     if (req.user === undefined) res.send("");
     res.type('json');
@@ -40,7 +48,14 @@ router.get('/user', function(req, res) {
 router.get('/user/tunes', function(req, res) {
     if (req.user === undefined) res.send("");
     res.type('json');
-    res.send(req.user);
+    var collection = db.get("tunes");
+
+    collection.find({
+        owner: req.user.googleId
+    },
+    function(e, docs) {
+        res.json(docs);
+    });
 });
 
 

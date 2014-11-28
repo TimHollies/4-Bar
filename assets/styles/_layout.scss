@@ -37,7 +37,17 @@ html, body, .container, .page-view {
             }
         }
         .user-box {
-            flex: 0 0 128px;
+            flex: 0 0 180px;            
+            .logged-in-user-box {
+                display: flex;
+                flex-direction: row;
+                .left {
+                    flex: 1;
+                }
+                .right {
+                    flex: 1;
+                }
+            }
         }
         .central-menu {
             flex: 1;
