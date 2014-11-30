@@ -53,7 +53,7 @@ function parseNote(lexer, parsed) {
 
     newNote.beamDepth = Math.floor(Math.log2(newNote.notelength)) - 1;
 
-    parsed.weight += newNote.notelength;
+    parsed.weight += data_tables.symbol_width.note(newNote);
     parsed.symbols.push(newNote);
 }
 
@@ -249,7 +249,7 @@ module.exports = function(line) {
             var data = processLine(line.action, i + line.lineno, line.split[i].raw);    
 
             if(data.error) {
-                console.log("SHIT");
+                console.log("ERROR");
             }
 
             typecache.set(i + line.lineno, data.type_class);

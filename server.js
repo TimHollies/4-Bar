@@ -13,8 +13,10 @@ var
 
     routes = require('./routes/routes')(__dirname),
     apiroutes = require('./routes/api'),
+    config = require('./config/app.config'),
     monk = require('monk'),
     db = monk('localhost/webabc'),
+    debug = require('debug')('ABC'),
 
     app = express();
 
@@ -49,7 +51,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
         clientID: "438333756179-uurf1parlk4nfu57dalcct5potg4kq2i.apps.googleusercontent.com",
         clientSecret: "f58fMfasIVmWpYTJRoFgPawL",
-        callbackURL: "http://localhost:3000/auth/google/callback"
+        callbackURL: "http://" + config.url + ":" + config.port + "/auth/google/callback"
     },
     function(accessToken, refreshToken, profile, done) {
         var usersDb = db.get("users");
@@ -136,7 +138,10 @@ app.use(function(err, req, res, next) {
     });
 });
 
-/**
- * Exports the express app
- */
-module.exports = app;
+//start the server
+
+app.set('port', config.port);
+
+var server = app.listen(app.get('port'), function() {
+    debug('Express server listening on port ' + server.address().port);
+});

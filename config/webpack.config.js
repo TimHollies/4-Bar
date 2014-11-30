@@ -1,5 +1,5 @@
 var webpack = require('webpack'),
-    root = __dirname+'/..';
+    root = __dirname+'\\..';
 
 module.exports = {
     entry: {
@@ -7,11 +7,10 @@ module.exports = {
     },
     resolve: {
         alias: {
-            "snapsvg": root + "/node_modules/snapsvg/dist/snap.svg.js",
-            "scripts": root + "/engine/scripts",
-            "engine": root + "/engine",
-            "app": root + "/app",
-            "vendor": root + "/engine/vendor.js"
+            "scripts": root + "\\engine\\scripts",
+            "engine": root + "\\engine",
+            "app": root + "\\app",
+            "vendor": root + "\\engine\\vendor.js"
         }
     },
     module: {

@@ -7,7 +7,7 @@ var drawing_functions = {},
     SVG = require('vendor').svgjs,
     data_tables = require("../data_tables");
 
-var 
+var
     POS_SWITCH = 5,
     MAX_GRAD = 0.05;
 
@@ -48,26 +48,28 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
         stem_tail = null,
         stem = null;
 
+    var truepos = currentNote.pos + (7 * (currentNote.octave - 4));
+
     //invalid note length?
-    if(data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
+    if (data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
         console.log("INVALID NOTE LENGTH");
-        for(var i=0; i<data_tables.allowed_note_lengths.length; i++) {
-            if(currentNote.notelength > data_tables.allowed_note_lengths[i]) {
-                currentNote.notelength = data_tables.allowed_note_lengths[i-1];
+        for (var i = 0; i < data_tables.allowed_note_lengths.length; i++) {
+            if (currentNote.notelength > data_tables.allowed_note_lengths[i]) {
+                currentNote.notelength = data_tables.allowed_note_lengths[i - 1];
                 break;
             }
         }
     }
 
     //dotted note?
-    if((2*currentNote.notelength)%3 === 0) {
-        noteGroup.circle(4,4).fill('black').move(3,6);
+    if ((2 * currentNote.notelength) % 3 === 0) {
+        noteGroup.circle(4, 4).fill('black').move(3, 6);
     }
 
     //double dotted note?
-    if((4*currentNote.notelength)%7 === 0) {
-        noteGroup.circle(4,4).fill('black').move(3,6);
-        noteGroup.circle(4,4).fill('black').move(8,6);
+    if ((4 * currentNote.notelength) % 7 === 0) {
+        noteGroup.circle(4, 4).fill('black').move(3, 6);
+        noteGroup.circle(4, 4).fill('black').move(8, 6);
     }
 
     //dot type
@@ -86,7 +88,7 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
     }
 
     if (currentNote.notelength < 8) {
-        if (currentNote.pos > POS_SWITCH || force_down_stem === 1) {
+        if (truepos > POS_SWITCH || force_down_stem === 1) {
 
             //basic stem
             stem = noteGroup.line(0, 8, 0, 34).stroke({
@@ -162,8 +164,9 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
     noteGroup.stem_tail = stem_tail;
     noteGroup.stem = stem;
     noteGroup.dot = notedot;
+    noteGroup.truepos = truepos;
 
-    noteGroup.move(totalOffset, 32 - (currentNote.pos * 4));
+    noteGroup.move(totalOffset, 32 - (truepos * 4));
 
     return noteGroup;
 };
@@ -300,6 +303,9 @@ drawing_functions.treble_clef = function(line) {
  * @return {[type]}        [description]
  */
 drawing_functions.timesig = function(line, top, bottom) {
+
+    var xoffset = line.bbox().x2 + 6;
+
     var timeSig = line.group(),
         top_group = timeSig.group(),
         bottom_group = timeSig.group();
@@ -308,13 +314,13 @@ drawing_functions.timesig = function(line, top, bottom) {
     top.toString().split('').forEach(function(num, i) {
         top_group.path(glyphs[num].d).attr({
             fill: 'black'
-        }).move(38 + (i * 10), 1);
+        }).move(xoffset + (i * 10), 1);
     });
 
     bottom.toString().split('').forEach(function(num, i) {
         bottom_group.path(glyphs[num].d).attr({
             fill: 'black'
-        }).move(38 + (i * 10), 17);
+        }).move(xoffset + (i * 10), 17);
     });
 
     var top_width = top_group.bbox().width,
@@ -337,16 +343,16 @@ drawing_functions.timesig = function(line, top, bottom) {
  */
 drawing_functions.beam = function(line, beamed_notes) {
     var average_pitch = _.reduce(beamed_notes, function(total, note) {
-        return total + note.pos;
+        return total + note.truepos;
     }, 0);
 
     var upstem = (average_pitch < (beamed_notes.length * POS_SWITCH));
 
     var
         startX = beamed_notes[0].svg.x(),
-        startY = beamed_notes[0].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)),//+ beamed_notes[0].svg.stem_end.y,
+        startY = beamed_notes[0].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)), //+ beamed_notes[0].svg.stem_end.y,
         endX = beamed_notes[beamed_notes.length - 1].svg.x(),
-        endY = beamed_notes[beamed_notes.length - 1].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)),// + !upstem ? beamed_notes[beamed_notes.length - 1].svg.stem_end.y : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y),
+        endY = beamed_notes[beamed_notes.length - 1].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)), // + !upstem ? beamed_notes[beamed_notes.length - 1].svg.stem_end.y : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y),
         grad = (startY - endY) / (endX - startX);
 
     //if(grad > MAX_GRAD) grad = MAX_GRAD;
@@ -375,12 +381,25 @@ drawing_functions.beam = function(line, beamed_notes) {
             width: 1,
             color: 'black'
         });
-        if(upstem) {
+        if (upstem) {
             note.svg.dot.move(-10, 4);
         } else {
             note.svg.dot.move(0, 4);
-        }        
+        }
     });
-} 
+}
+
+drawing_functions.keysig = function(draw, keysig) {
+    var accidentals = data_tables.keySig[keysig.note][keysig.mode];
+    var xoffset = draw.bbox().x2 + 6;
+    if (accidentals === 0) return;
+    var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
+    var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;
+    for (var i = 0; i < Math.abs(accidentals); i++) {
+        draw.path(symbol).attr({
+            fill: 'black'
+        }).move(xoffset + i * 8, 32 - ((dataset[i] + 1) * 4));
+    }
+}
 
 module.exports = drawing_functions;

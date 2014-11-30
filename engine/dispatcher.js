@@ -8,7 +8,7 @@ var subscribers = new Map();
 function send(eventName, data) {
 
     if (!subscribers.has(eventName)) {
-    	console.log("No subscribers for " + eventName);
+    	console.log("No subscribers for " + eventName, data);
     }
 
     _(subscribers.get(eventName)).forEach(function(sub) {

@@ -1,6 +1,8 @@
+var tquire = require('../test_require');
+
 var should = require('chai').should() ;
 
-var lex = require("../../engine/lexer");
+var lex = tquire("../engine/lexer");
 
 describe('Lexer', function(){
   describe('notes', function(){

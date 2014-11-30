@@ -20,7 +20,15 @@ var
 
 var
     score_lines = [],
-    score_lines_group;
+    score_lines_group,
+    currentKey = {
+        note: "C",
+        mode: "Major"
+    },
+    currentTimeSig = {
+        top: 4,
+        bottom: 4
+    };
 
 var selectionRects = [];
 
@@ -32,37 +40,80 @@ var alignScoreLines = function() {
     }
 }
 
-var drawDrawableLine = function(groupDraw, a, lineNumber) {
+var drawDrawableLine = function(line, a, lineNumber) {
 
     if (a.parsed.length === 0) return;
 
-    var leadin = 0;
+    line.weight = a.weight;
+    line.symbols = [];
 
-    //draw stave
-    stave_symbols.stave(groupDraw, lineWidth);
-
-    //draw selected box if this line is selected
-    if (lineNumber >= selectedLine_start && lineNumber <= selectedLine_end) {
-        selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({
-            fill: '#223378'
-        }))
-    }
-
-    groupDraw.select = function() {
-        selectionRects.push(groupDraw.rect(4, 34).move(-8, 0).attr({
+    line.select = function() {
+        selectionRects.push(line.svg.rect(4, 34).move(-8, 0).attr({
             fill: '#223378'
         }));
     }
 
-    //draw clef
-    stave_symbols.treble_clef(groupDraw);
-    leadin += 30;
+    line.realign = function() {
+        var leadin = line.leadInGroup.bbox().x2;
+        var pos_mod = (lineWidth - leadin) / (line.weight + 1);
+        for (var i = 0, totalOffset = 1; i < line.symbols.length; i++) {
+            line.symbols[i].svg.move(pos_mod * totalOffset, line.symbols[i].svg.y());
 
-    //if this is line 1 then draw time sig
-    if (a.i === 0) {
-        stave_symbols.timesig(groupDraw, 6, 8);
-        leadin += 30;
+            if (_.isFunction(data_tables.symbol_width[line.symbols[i].type])) {
+                totalOffset += data_tables.symbol_width[line.symbols[i].type](line.symbols[i]);
+            } else {
+                totalOffset += data_tables.symbol_width[line.symbols[i].type];
+            }
+        }
     }
+
+    line.redrawLeadIn = function() {
+        line.leadInGroup.remove();
+        var leadInGroup = line.leadInGroup = line.svg.group();
+
+        //draw clef
+        stave_symbols.treble_clef(leadInGroup);
+
+        //draw keysig
+        stave_symbols.keysig(leadInGroup, currentKey);
+
+        //if this is line 1 then draw time sig
+        if (a.di === 0) {
+            stave_symbols.timesig(leadInGroup, currentTimeSig.top, currentTimeSig.bottom);
+        }
+
+        line.realign();
+    }
+
+    //draw stave
+    stave_symbols.stave(line.svg, lineWidth);
+
+    //draw selected box if this line is selected
+    if (lineNumber >= selectedLine_start && lineNumber <= selectedLine_end) {
+        selectionRects.push(line.svg.rect(4, 34).move(-8, 0).attr({
+            fill: '#223378'
+        }))
+    }
+
+    //line sections
+    var
+        symbolsGroup = line.symbolsGroup = line.svg.group();
+
+    var leadInGroup = line.leadInGroup = line.svg.group();
+
+        //draw clef
+        stave_symbols.treble_clef(leadInGroup);
+
+        //draw keysig
+        stave_symbols.keysig(leadInGroup, currentKey);
+
+        //if this is line 1 then draw time sig
+        if (a.di === 0) {
+            stave_symbols.timesig(leadInGroup, currentTimeSig.top, currentTimeSig.bottom);
+        }
+
+    var leadin = leadInGroup.bbox().x2;
+    symbolsGroup.move(leadin, 0);
 
     //draw symbols
     var
@@ -85,7 +136,7 @@ var drawDrawableLine = function(groupDraw, a, lineNumber) {
             }
         } else {
             //draw beam
-            if (beam_list.length > 1) stave_symbols.beam(groupDraw, beam_list);
+            if (beam_list.length > 1) stave_symbols.beam(symbolsGroup, beam_list);
             beam_list = [];
             beam_depth = 0;
         }
@@ -95,70 +146,40 @@ var drawDrawableLine = function(groupDraw, a, lineNumber) {
             continue;
         }
 
-        currentSymbol.svg = stave_symbols[currentSymbol.type](groupDraw, currentSymbol, (pos_mod * totalOffset) + leadin);
+        currentSymbol.svg = stave_symbols[currentSymbol.type](symbolsGroup, currentSymbol, pos_mod * totalOffset);
 
         if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
             totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol);
         } else {
             totalOffset += data_tables.symbol_width[currentSymbol.type];
         }
+
+        line.symbols.push(currentSymbol);
     }
 
     if (beam_list.length > 0) {
         //draw beam
-        if (beam_list.length > 1) stave_symbols.beam(groupDraw, beam_list);
+        if (beam_list.length > 1) stave_symbols.beam(symbolsGroup, beam_list);
         beam_list = [];
         beam_depth = 0;
     }
 
-    return groupDraw;
+    return line;
 };
 
 function handleDataLine(line) {
     if (line.parsed[0].type === "title") {
         dispatcher.send("change_tune_title", line.parsed[0].data);
     }
-}
-
-handler[(enums.line_actions.add << 2) + enums.line_types.data] = function(a) {
-
-    scoreLines[a.i] = 0;
-
-    if (add_data_fields[a.parsed[0].type] === undefined) {
-        console.log("NOT YET IMPLEMENTED");
-        return;
+    if (line.parsed[0].type === "rhythm") {
+        dispatcher.send("change_rhythm", line.parsed[0].data);
     }
-
-    add_data_fields[a.parsed[0].type](a, draw);
-};
-
-handler[(enums.line_actions.delete << 2) + enums.line_types.data] = function(a) {
-
-    scoreLines[a.i] = undefined;
-    if (remove_data_fields[a.parsed[0].type] === undefined) {
-        console.log("NOT YET IMPLEMENTED");
-        return;
+    if (line.parsed[0].type === "key") {
+        dispatcher.send("change_key", line.parsed[0].data);
     }
-
-    remove_data_fields[a.parsed[0].type](a);
-};
-
-handler[(enums.line_actions.add << 2) + enums.line_types.hidden] = function(a) {
-    scoreLines[a.i] = 0;
-};
-
-handler[(enums.line_actions.delete << 2) + enums.line_types.hidden] = function(a) {
-    scoreLines[a.i] = undefined;
-}
-
-handler[(enums.line_actions.move << 2) + enums.line_types.drawable] =
-    handler[(enums.line_actions.move << 2) + enums.line_types.data] =
-    handler[(enums.line_actions.move << 2) + enums.line_types.hidden] = function(a) {
-        if (a.i < a.j) {
-            scoreLines[a.i] = scoreLines[a.j];
-            scoreLines[a.j] = undefined;
-        }
-        console.log("MOV", scoreLines);
+    if (line.parsed[0].type === "timesig") {
+        dispatcher.send("change_timesig", line.parsed[0].data);
+    }
 }
 
 //exported functions
@@ -171,25 +192,33 @@ module.exports = {
 
         score_lines_group.move(100, 80);
 
-        dispatcher.on("selection-changed", function(a) {
-            _(selectionRects).forEach(function(sr) {
-                sr.remove();
-            });
+        dispatcher.on({
+            "selection-changed": function(a) {
+                _(selectionRects).forEach(function(sr) {
+                    sr.remove();
+                });
 
-            selectedLine_start = a.start;
-            selectedLine_end = a.stop;
+                selectedLine_start = a.start;
+                selectedLine_end = a.stop;
 
-            _(score_lines).filter(function(line) {
-                return (line.id-1) >= a.start && (line.id-1) <=a.stop;
-            }).each(function(line) {
-                line.select();
-            });
-
-            /*for (var i = selectedLine_start; i <= selectedLine_end; i++) {
-                if (score_lines[i]) {
-                    score_lines[i].select();
+                _(score_lines).filter(function(line) {
+                    return (line.id - 1) >= a.start && (line.id - 1) <= a.stop;
+                }).each(function(line) {
+                    line.select();
+                });
+            },
+            "change_key": function(key) {
+                currentKey = key;
+                for(var i=0; i<score_lines.length; i++){
+                    score_lines[i].redrawLeadIn();
                 }
-            }*/
+            },
+            "change_timesig": function(timesig) {
+                currentTimeSig = timesig;
+                for(var i=0; i<score_lines.length; i++){
+                    score_lines[i].redrawLeadIn();
+                }
+            }
         });
     },
 
@@ -200,15 +229,18 @@ module.exports = {
             //draw tune lines
             var renderedLines = _(lines.split).filter(function(line) {
                 return !line.error && line.type_class === enums.line_types.drawable;
-            }).map(function(line, i) {
-                var svgline = score_lines_group.group();
-                drawDrawableLine(svgline, line, i + lines.lineno);
+            }).map(function(lineData, i) {
 
-                svgline.move(0, ( /*i + lines.lineno*/ line.di) * 80);
-                svgline.di = line.di;
-                svgline.id = i + lines.lineno;
+                var line = {};
 
-                return svgline;
+                line.svg = score_lines_group.group();
+                drawDrawableLine(line, lineData, i + lines.lineno);
+
+                line.svg.move(0, ( /*i + lines.lineno*/ lineData.di) * 80);
+                line.di = lineData.di;
+                line.id = i + lines.lineno;
+
+                return line;
             }).value();
 
 
@@ -219,7 +251,7 @@ module.exports = {
                 Array.prototype.splice.apply(score_lines, args);
 
                 for (var i = renderedLines[0].di; i < score_lines.length; i++) {
-                    score_lines[i].move(0, i * 80);
+                    score_lines[i].svg.move(0, i * 80);
                     score_lines[i].id += renderedLines.length;
                 }
             }
@@ -240,16 +272,17 @@ module.exports = {
                 var removed_lines = score_lines.splice(dl[0].di, dl.length);
 
                 _.each(removed_lines, function(removed_line) {
-                    removed_line.remove();
+                    removed_line.svg.remove();
                 });
 
                 for (var i = dl[0].di; i < score_lines.length; i++) {
-                    score_lines[i].move(0, i * 80);
+                    score_lines[i].svg.move(0, i * 80);
                     score_lines[i].id -= dl.length;
                 }
             }
         }
 
+        console.log(score_lines);
         return lines;
     }
 

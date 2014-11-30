@@ -212,7 +212,7 @@ lexer.addRule(/R: *([\w ]+)(?:\n|$)/, function(match, rhythm) {
     }
 });
 
-lexer.addRule(/M: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
+lexer.addRule(/M: *([0-9]+)\/([0-9]+)(?:\n|$)/, function(match, top, bottom) {
     return {
         type: "data",
         subtype: "timesig",
@@ -231,11 +231,14 @@ lexer.addRule(/L: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
     }
 });
 
-lexer.addRule(/K: *([\w ]+)(?:\n|$)/, function(match, key) {
+lexer.addRule(/K: *([A-G][#|b]?) ?([\w]*)(?:\n|$)/, function(match, note, mode) {
     return {
         type: "data",
         subtype: "key",
-        data: key
+        data: {
+            note: note,
+            mode: mode
+        }
     }
 });
 
