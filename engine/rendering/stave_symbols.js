@@ -8,8 +8,9 @@ var drawing_functions = {},
     data_tables = require("../data_tables");
 
 var
-    POS_SWITCH = 5,
-    MAX_GRAD = 0.05;
+    POS_SWITCH = 6,
+    MAX_GRAD = 0.05,
+    STEM_LENGTH = 28;
 
 /**
  * Draws a stave of width 'width'
@@ -17,12 +18,22 @@ var
  * @param  {Number} width [width of line]
  * @return {Undefined}
  */
-drawing_functions.stave = function(line, width) {
-    for (var i = 0; i < 5; i++) {
-        line.rect(width, 1).move(0, i * 8).attr({
-            fill: 'black'
-        });
-    }
+drawing_functions.stave = function() {
+    line.path(new SVG.PathArray([
+        ['M', 0, 0],
+        ['L', 800, 0],
+        ['M', 0, 8],
+        ['L', 800, 8],
+        ['M', 0, 16],
+        ['L', 800, 16],
+        ['M', 0, 24],
+        ['L', 800, 24],
+        ['M', 0, 32],
+        ['L', 800, 32],
+        ['z']
+    ])).stroke({
+        color: 'black'
+    });
 
     // line.rect(1, 32).move(0, 0).attr({
     //     fill: 'black'
@@ -34,11 +45,15 @@ drawing_functions.stave = function(line, width) {
 }
 
 
-drawing_functions.note = function(line, currentNote, totalOffset, force_down_stem) {
+function ledgerLineCount(a) {
+    return ((a / 2) >> 0) + 1;
+}
 
-    var notedot = null;
+drawing_functions.note = function(line, currentNote, totalOffset) {
 
     var noteGroup = line.group();
+
+    var noteDot = noteGroup.group();
 
     var color = '#000',
         stem_end = {
@@ -61,34 +76,47 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
         }
     }
 
+    //ledger line
+    if (truepos < 1) {
+        for (var i = 0, tar = ledgerLineCount(truepos); i < tar; i++) {
+            line.line(totalOffset - 13, 32 + 8 * (i + 1), totalOffset + 3, 32 + 8 * (i + 1)).stroke({
+                width: 1
+            });
+        }
+    }
+
+    if (truepos > 10) {
+
+    }
+
     //dotted note?
     if ((2 * currentNote.notelength) % 3 === 0) {
-        noteGroup.circle(4, 4).fill('black').move(3, 6);
+        noteDot.circle(4, 4).fill('black').move(3, 6);
     }
 
     //double dotted note?
     if ((4 * currentNote.notelength) % 7 === 0) {
-        noteGroup.circle(4, 4).fill('black').move(3, 6);
-        noteGroup.circle(4, 4).fill('black').move(8, 6);
+        noteDot.circle(4, 4).fill('black').move(3, 6);
+        noteDot.circle(4, 4).fill('black').move(8, 6);
     }
 
     //dot type
     if (currentNote.notelength < 4) {
-        notedot = noteGroup.path(glyphs["noteheads.quarter"].d).attr({
+        noteDot.path(glyphs["noteheads.quarter"].d).attr({
             fill: 'black'
         }).move(0, 4);
     } else if (currentNote.notelength < 8) {
-        notedot = noteGroup.path(glyphs["noteheads.half"].d).attr({
+        noteDot.path(glyphs["noteheads.half"].d).attr({
             fill: 'black'
         }).move(0, 4);
     } else {
-        notedot = noteGroup.path(glyphs["noteheads.whole"].d).attr({
+        noteDot.path(glyphs["noteheads.whole"].d).attr({
             fill: 'black'
         }).move(0, 4);
     }
 
     if (currentNote.notelength < 8) {
-        if (truepos > POS_SWITCH || force_down_stem === 1) {
+        if (truepos >= POS_SWITCH) {
 
             //basic stem
             stem = noteGroup.line(0, 8, 0, 34).stroke({
@@ -114,7 +142,7 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
                 color: color
             });
 
-            notedot.move(-10, 4);
+            noteDot.move(-10, 4);
 
             //curly bit for quavers            
             if (currentNote.notelength == 1) {
@@ -159,14 +187,19 @@ drawing_functions.note = function(line, currentNote, totalOffset, force_down_ste
         default:
     }
 
-    noteGroup.stem_end = stem_end;
+    currentNote.stem_end = stem_end;
 
     noteGroup.stem_tail = stem_tail;
     noteGroup.stem = stem;
-    noteGroup.dot = notedot;
-    noteGroup.truepos = truepos;
+    noteGroup.dot = noteDot;
+    currentNote.truepos = truepos;
 
-    noteGroup.move(totalOffset, 32 - (truepos * 4));
+
+    currentNote.x = totalOffset;
+    currentNote.y = 28 - (truepos * 4);
+
+    noteGroup.move(currentNote.x, currentNote.y);
+
 
     return noteGroup;
 };
@@ -335,6 +368,10 @@ drawing_functions.timesig = function(line, top, bottom) {
     return timeSig;
 }
 
+function sigmoid(a) {
+    return (1 / (Math.exp(0.05 * (14 - a)) + 1) * 96) - 32;
+}
+
 /**
  * [beam description]
  * @param  {[type]} line         [description]
@@ -342,18 +379,49 @@ drawing_functions.timesig = function(line, top, bottom) {
  * @return {[type]}              [description]
  */
 drawing_functions.beam = function(line, beamed_notes) {
-    var average_pitch = _.reduce(beamed_notes, function(total, note) {
-        return total + note.truepos;
-    }, 0);
 
-    var upstem = (average_pitch < (beamed_notes.length * POS_SWITCH));
+    var highestnote = null,
+        smallestnote = null;
+
+    var average_pitch = _.reduce(beamed_notes, function(total, note) {
+        if (highestnote === null || note.truepos > highestnote.truepos) highestnote = note;
+        if (smallestnote === null || note.truepos < smallestnote.truepos) smallestnote = note;
+        return total + note.truepos;
+    }, 0) / beamed_notes.length;
+
+    var upstem = (average_pitch < POS_SWITCH);
+
+    var importantNote = upstem ? highestnote : smallestnote;
+    var mult = upstem ? -STEM_LENGTH : STEM_LENGTH;
+
+    var averageYs = beamed_notes.map(function(a) {
+        return a.truepos - average_pitch;
+    });
+
+    var xSpan = (beamed_notes[beamed_notes.length - 1].x - beamed_notes[0].x);
+    var xMid = beamed_notes[0].x + (xSpan / 2);
+    var averageXs = beamed_notes.map(function(a, i) {
+        return a.x - xMid;
+    });
+
+    var topM = 0,
+        bottomM = 0;
+
+    for (var i = 0; i < beamed_notes.length; i++) {
+        topM += (averageXs[i] * averageYs[i]);
+        bottomM += (averageXs[i] * averageXs[i]);
+    }
+
+    var m = upstem ? -(topM / bottomM) : (topM / bottomM);
 
     var
-        startX = beamed_notes[0].svg.x(),
-        startY = beamed_notes[0].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)), //+ beamed_notes[0].svg.stem_end.y,
-        endX = beamed_notes[beamed_notes.length - 1].svg.x(),
-        endY = beamed_notes[beamed_notes.length - 1].svg.y() - (upstem ? Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y) : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y)), // + !upstem ? beamed_notes[beamed_notes.length - 1].svg.stem_end.y : -Math.abs(beamed_notes[beamed_notes.length - 1].svg.stem_end.y),
-        grad = (startY - endY) / (endX - startX);
+        startX = beamed_notes[0].x,
+        startXDist = importantNote.x - startX,
+        startY = sigmoid(importantNote.y + (startXDist * m) + mult),
+        endX = beamed_notes[beamed_notes.length - 1].x,
+        endXDist = endX - importantNote.x,
+        endY = sigmoid(importantNote.y + (endXDist * m) + mult),
+        grad = (endY - startY) / (endX - startX);
 
     //if(grad > MAX_GRAD) grad = MAX_GRAD;
     //if(grad < -MAX_GRAD) grad = -MAX_GRAD;
@@ -377,7 +445,7 @@ drawing_functions.beam = function(line, beamed_notes) {
         //if(i === 0 || i === beamed_notes.length - 1)return;
         note.svg.stem.remove();
 
-        note.svg.stem = note.svg.line(0, 8, 0, -((note.svg.y() - startY) + ((note.svg.x() - startX) * grad))).stroke({
+        note.svg.stem = note.svg.line(0, 8, 0, -((note.y - startY) + ((note.x - startX) * grad))).stroke({
             width: 1,
             color: 'black'
         });
@@ -389,6 +457,12 @@ drawing_functions.beam = function(line, beamed_notes) {
     });
 }
 
+/**
+ * [keysig description]
+ * @param  {[type]} draw   [description]
+ * @param  {[type]} keysig [description]
+ * @return {[type]}        [description]
+ */
 drawing_functions.keysig = function(draw, keysig) {
     var accidentals = data_tables.keySig[keysig.note][keysig.mode];
     var xoffset = draw.bbox().x2 + 6;

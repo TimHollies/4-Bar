@@ -40,12 +40,9 @@ var alignScoreLines = function() {
     }
 }
 
-var drawDrawableLine = function(line, a, lineNumber) {
+var drawDrawableLine = function(line) {
 
-    if (a.parsed.length === 0) return;
-
-    line.weight = a.weight;
-    line.symbols = [];
+    if (line.weight === 0) return;
 
     line.select = function() {
         selectionRects.push(line.svg.rect(4, 34).move(-8, 0).attr({
@@ -55,21 +52,14 @@ var drawDrawableLine = function(line, a, lineNumber) {
 
     line.realign = function() {
         var leadin = line.leadInGroup.bbox().x2;
-        var pos_mod = (lineWidth - leadin) / (line.weight + 1);
-        for (var i = 0, totalOffset = 1; i < line.symbols.length; i++) {
-            line.symbols[i].svg.move(pos_mod * totalOffset, line.symbols[i].svg.y());
-
-            if (_.isFunction(data_tables.symbol_width[line.symbols[i].type])) {
-                totalOffset += data_tables.symbol_width[line.symbols[i].type](line.symbols[i]);
-            } else {
-                totalOffset += data_tables.symbol_width[line.symbols[i].type];
-            }
+        var noteAreaWidth = lineWidth - leadin;
+        for (var j = 0; j < a.parsed.length; j++) {
+            a.parsed[j].svg.x(currentSymbol.getX(leadin, lineWidth));
         }
     }
 
-    line.redrawLeadIn = function() {
-        line.leadInGroup.remove();
-        var leadInGroup = line.leadInGroup = line.svg.group();
+    line.drawLeadIn = function() {
+        var leadInGroup = this.leadInGroup = this.svg.group();
 
         //draw clef
         stave_symbols.treble_clef(leadInGroup);
@@ -78,9 +68,15 @@ var drawDrawableLine = function(line, a, lineNumber) {
         stave_symbols.keysig(leadInGroup, currentKey);
 
         //if this is line 1 then draw time sig
-        if (a.di === 0) {
+        if (this.di === 0) {
             stave_symbols.timesig(leadInGroup, currentTimeSig.top, currentTimeSig.bottom);
         }
+    }
+
+    line.redrawLeadIn = function() {
+        this.leadInGroup.remove();
+        
+        this.drawLeadIn();
 
         line.realign();
     }
@@ -89,98 +85,39 @@ var drawDrawableLine = function(line, a, lineNumber) {
     stave_symbols.stave(line.svg, lineWidth);
 
     //draw selected box if this line is selected
-    if (lineNumber >= selectedLine_start && lineNumber <= selectedLine_end) {
+    if (line.id >= selectedLine_start && line.id <= selectedLine_end) {
         selectionRects.push(line.svg.rect(4, 34).move(-8, 0).attr({
             fill: '#223378'
         }))
     }
 
-    //line sections
-    var
+    line.drawLeadIn();
+
+    var 
+        leadin = line.leadInGroup.bbox().x2,   
+        noteAreaWidth = lineWidth - leadin,
         symbolsGroup = line.symbolsGroup = line.svg.group();
 
-    var leadInGroup = line.leadInGroup = line.svg.group();
+    for (var i = 0; i < line.parsed.length; i++) {
 
-        //draw clef
-        stave_symbols.treble_clef(leadInGroup);
-
-        //draw keysig
-        stave_symbols.keysig(leadInGroup, currentKey);
-
-        //if this is line 1 then draw time sig
-        if (a.di === 0) {
-            stave_symbols.timesig(leadInGroup, currentTimeSig.top, currentTimeSig.bottom);
-        }
-
-    var leadin = leadInGroup.bbox().x2;
-    symbolsGroup.move(leadin, 0);
-
-    //draw symbols
-    var
-        pos_mod = (lineWidth - leadin) / (a.weight + 1),
-        beam_list = [],
-        beam_depth = 0;
-
-    if (a.parsed[a.parsed.length - 1].type == "barline") {
-        pos_mod = (lineWidth - leadin) / (a.weight);
-    }
-
-    for (var j = 0, totalOffset = 1; j < a.parsed.length; j++) {
-
-        var currentSymbol = a.parsed[j];
-
-        if (currentSymbol.beamDepth != undefined && currentSymbol.beamDepth < 0) {
-            if (currentSymbol.beamDepth <= beam_depth) {
-                beam_list.push(currentSymbol);
-                beam_depth = currentSymbol.beamDepth;
-            }
-        } else {
-            //draw beam
-            if (beam_list.length > 1) stave_symbols.beam(symbolsGroup, beam_list);
-            beam_list = [];
-            beam_depth = 0;
-        }
+        var currentSymbol = line.parsed[i];
 
         if (!_(Object.keys(stave_symbols)).contains(currentSymbol.type)) {
             console.log("Wanted to draw a " + currentSymbol.type + " don't know how");
             continue;
         }
 
-        currentSymbol.svg = stave_symbols[currentSymbol.type](symbolsGroup, currentSymbol, pos_mod * totalOffset);
+        currentSymbol.svg = stave_symbols[currentSymbol.type](symbolsGroup, currentSymbol, currentSymbol.getX(leadin, lineWidth));
 
-        if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
-            totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol);
-        } else {
-            totalOffset += data_tables.symbol_width[currentSymbol.type];
+        if(currentSymbol.beams && currentSymbol.beams.length > 0) {
+            stave_symbols.beam(symbolsGroup, currentSymbol.beams[0]);
         }
-
-        line.symbols.push(currentSymbol);
     }
 
-    if (beam_list.length > 0) {
-        //draw beam
-        if (beam_list.length > 1) stave_symbols.beam(symbolsGroup, beam_list);
-        beam_list = [];
-        beam_depth = 0;
-    }
+    symbolsGroup.move(leadin, 0);
 
     return line;
 };
-
-function handleDataLine(line) {
-    if (line.parsed[0].type === "title") {
-        dispatcher.send("change_tune_title", line.parsed[0].data);
-    }
-    if (line.parsed[0].type === "rhythm") {
-        dispatcher.send("change_rhythm", line.parsed[0].data);
-    }
-    if (line.parsed[0].type === "key") {
-        dispatcher.send("change_key", line.parsed[0].data);
-    }
-    if (line.parsed[0].type === "timesig") {
-        dispatcher.send("change_timesig", line.parsed[0].data);
-    }
-}
 
 //exported functions
 module.exports = {
@@ -209,13 +146,13 @@ module.exports = {
             },
             "change_key": function(key) {
                 currentKey = key;
-                for(var i=0; i<score_lines.length; i++){
+                for (var i = 0; i < score_lines.length; i++) {
                     score_lines[i].redrawLeadIn();
                 }
             },
             "change_timesig": function(timesig) {
                 currentTimeSig = timesig;
-                for(var i=0; i<score_lines.length; i++){
+                for (var i = 0; i < score_lines.length; i++) {
                     score_lines[i].redrawLeadIn();
                 }
             }
@@ -229,40 +166,13 @@ module.exports = {
             //draw tune lines
             var renderedLines = _(lines.split).filter(function(line) {
                 return !line.error && line.type_class === enums.line_types.drawable;
-            }).map(function(lineData, i) {
-
-                var line = {};
-
+            }).map(function(line) {
                 line.svg = score_lines_group.group();
-                drawDrawableLine(line, lineData, i + lines.lineno);
-
-                line.svg.move(0, ( /*i + lines.lineno*/ lineData.di) * 80);
-                line.di = lineData.di;
-                line.id = i + lines.lineno;
-
                 return line;
-            }).value();
-
-
-            //renderedLines[0].di IS UNDEFINED!!!!
-            if (renderedLines.length > 0) {
-
-                var args = [renderedLines[0].di, 0].concat(renderedLines);
-                Array.prototype.splice.apply(score_lines, args);
-
-                for (var i = renderedLines[0].di; i < score_lines.length; i++) {
-                    score_lines[i].svg.move(0, i * 80);
-                    score_lines[i].id += renderedLines.length;
-                }
-            }
-
-            //draw or handle data lines
-            _(lines.split).filter(function(line) {
-                return !line.error && line.type_class === enums.line_types.data;
-            }).each(handleDataLine);
+            }).map(drawDrawableLine).value();
         }
 
-        if (lines.action === "DEL") {
+        /*if (lines.action === "DEL") {
 
             var dl = _(lines.split).filter(function(line) {
                 return !line.error && line.type_class === enums.line_types.drawable;
@@ -280,9 +190,7 @@ module.exports = {
                     score_lines[i].id -= dl.length;
                 }
             }
-        }
-
-        console.log(score_lines);
+        }*/
         return lines;
     }
 

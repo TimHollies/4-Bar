@@ -1,12 +1,15 @@
- //select many:
- var 
+ var
      enums = require('./types'),
-     JsDiff = require('vendor').jsDiff;
+     JsDiff = require('vendor').jsDiff,
+     LineCollection = require('./types/LineCollection');
 
- module.exports = function(change) {
+
+var Diff = function(change) {
+    console.log(change.newValue);
 
      var diff = JsDiff.diffLines(change.oldValue, change.newValue);
 
+     //ensure deletions are before additions in changes
      for (var i = 0; i < diff.length; i++) {
 
          if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
@@ -16,9 +19,8 @@
          }
      }
 
-     var line_count = 0;
+     var lineCount = 0;
      var output = [];
-
 
      for (var i = 0; i < diff.length; i++) {
          var item = diff[i],
@@ -27,32 +29,25 @@
 
          split = item.value.split('\n');
 
-         if (split[split.length - 1] === "") {
+         if (split[split.length - 1] === '') {
              split = split.slice(0, split.length - 1);
          }
 
          newlines = split.length;
 
-         item.lineno = line_count;
+         item.lineno = lineCount;
+
+         var newLineCollection = new LineCollection(item.lineno, item.value,
+            item.added ? 'ADD' : item.removed ? 'DEL' : 'NONE');
 
          if (!item.removed) {
-             line_count += newlines;
+             lineCount += newlines;
          }
 
-         var splitLines = _.map(split, function(val) {
-             return {
-                 raw: val
-             };
-         });
-
-         output.push({
-             lineno: item.lineno,
-             raw: item.value,
-             action: item.added ? "ADD" : item.removed ? "DEL" : "NONE",
-             lineLength: newlines,
-             split: splitLines
-         });
+         output.push(newLineCollection);
      }
-     
+
      return output;
- }
+ };
+
+module.exports = Diff;

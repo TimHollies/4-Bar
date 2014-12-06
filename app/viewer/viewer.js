@@ -8,11 +8,13 @@ var
     toastr = require('vendor').toastr,
     screenfull = require('vendor').screenfull,
     engine = require('engine/engine'),
+    vRender = require('engine/vRender'),
     initializeUI = require("./ui"),
     parser = engine.parser,
     renderer = engine.render,
     diff = engine.diff,
-    dispatcher = engine.dispatcher;
+    dispatcher = engine.dispatcher,
+    layout = engine.layout;
 
 function parseQuery(qstr) {
     var query = {};
@@ -30,7 +32,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     var parameters = parseQuery(urlcontext.querystring);
 
-    renderer.initialize();
+    //renderer.initialize();
 
     dispatcher.on({
         "edit_tune": function() {
@@ -44,11 +46,11 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         "publish_tune": function() {
             $.ajax({
-              type: "POST",
-              url: "/api/tunes/publish",
-              data: {
-                tuneId: ractive.get("tune")._id
-              }
+                type: "POST",
+                url: "/api/tunes/publish",
+                data: {
+                    tuneId: ractive.get("tune")._id
+                }
             }).then(function() {
                 dispatcher.send("tune_publish_success");
                 toastr.success("Tune published", "Success!");
@@ -80,16 +82,17 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
             initializeUI(!res.public);
 
-            diff({
-                newValue: res.data,
-                oldValue: ""
-            })
-                .map(parser)
-                .map(renderer.onNext)
-                .forEach(function(a) {
+            layout.init();
 
-                });
+            var done = diff({
+                    newValue: res.data,
+                    oldValue: ""
+                })
+                .map(parser)
+                .reduce(layout.onNext, 0);
+
+            vRender(done);
         });
-    }    
+    }
     // toastr.success("YAY");
 };

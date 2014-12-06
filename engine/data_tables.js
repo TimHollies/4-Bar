@@ -77,7 +77,7 @@ data_tables["notes"] = {
 
 data_tables.symbol_width = {
     "note": function(note) {
-        return note.notelength * 1.618;
+        return note.noteLength * 1.618;
     },
     "rest": 1,
     "beat_rest": 1,
@@ -280,10 +280,6 @@ data_tables.keySig = {
 
 data_tables.flats = [6, 9, 5, 8, 4, 7, 3];
 data_tables.sharps = [10, 7, 11, 8, 5, 9, 6];
-
-data_tables.modes = [
-    "min", "mixolydian", "dorian", "phrygian", "lydian", "locrian"
-];
 
 //not all note lengths can be represented with a single note
 data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];

@@ -22,7 +22,7 @@ require.ensure('vendor', function() {
                 var partials = [];
                 var partialviews = {};
 
-                if(currentRouteConfig.partials !== undefined) {
+                if (currentRouteConfig.partials !== undefined) {
                     partials = currentRouteConfig.partials;
                     partialviews = partials.reduce(function(a, b) {
                         a[b.name] = b.view;

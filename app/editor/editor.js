@@ -7,6 +7,7 @@ var
     renderer = engine.render,
     diff = engine.diff,
     dispatcher = engine.dispatcher,
+    layout = engine.layout,
     $ = require('vendor').jquery,    
     enums = require('engine/types'),
     CodeMirror = require('vendor').codeMirror,
@@ -87,18 +88,11 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     }
 
     function rerenderScore(change) {
-        diff(change)
+        var done = diff(change)
             .map(parser)
-            .map(renderer.onNext)
-            .forEach(function(a) {
-                if (a.type_class === enums.line_types.data && a.parsed[0].type === "title") {
-                    if (!(a.action === enums.line_actions.delete) && a.parsed[0].data.length > 0) {
-                        ractive.set("title", a.parsed[0].data);
-                    } else {
-                        ractive.set("title", emptyTuneName);
-                    }
-                }
-            });
+            .reduce(layout.onNext, 0);
+            
+        console.log("done", done);
     }
 
     var debouncedRerenderScore = _.debounce(rerenderScore, 50);

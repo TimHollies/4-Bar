@@ -6,6 +6,9 @@ var
     _ = require('vendor').lodash,
     enums = require('./types'),
 
+    AbcNote = require("./types/AbcSymbol").AbcNote,
+    AbcSymbol = require("./types/AbcSymbol").AbcSymbol,
+
     typecache = new Map(),
     dicache = new Map(),
     drawableIndex = 0,
@@ -17,11 +20,7 @@ function ParserException(message) {
 }
 
 function parseNote(lexer, parsed) {
-    var newNote = {
-        type: "note",
-        type_class: "drawable",
-        notelength: 1
-    };
+    var newNote = new AbcNote();
 
     while (lexer[0] && lexer[0].subType === "decoration") {
         lexer.shift();
@@ -48,25 +47,26 @@ function parseNote(lexer, parsed) {
     }
 
     if (lexer[0] && lexer[0].subType == "length") {
-        newNote.notelength = lexer.shift().data;
+        newNote.noteLength = lexer.shift().data;
     }
 
-    newNote.beamDepth = Math.floor(Math.log2(newNote.notelength)) - 1;
+    newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
+    newNote.weight = data_tables.symbol_width.note(newNote);
 
-    parsed.weight += data_tables.symbol_width.note(newNote);
+    parsed.weight += newNote.weight;
     parsed.symbols.push(newNote);
 }
 
 function parseRest(lexer) {
-    var newRest = {};
+    var newRest = new AbcRest();
 
-    newRest.type_class = lexer[0].subType === "visible" ? "drawable" : "hidden";
-    newRest.type = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
+    newRest.visible = lexer[0].subType === "visible";
+    newRest.subType = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
 
     lexer.shift();
 
     if (lexer[0] && lexer[0].subType == "length") {
-        newRest.notelength = lexer.shift().data;
+        newRest.restLength = lexer.shift().data;
     }
 
     return newRest;
@@ -176,10 +176,7 @@ function parse(lexed) {
         }
 
         if (lexed[0].type === "space") {
-            parsed.symbols.push({
-                type: "space",
-                type_class: "hidden"
-            });
+            parsed.symbols.push(new AbcSymbol("space", 0));
             lexed.shift();
             continue;
         }
@@ -190,12 +187,13 @@ function parse(lexed) {
 
         if (lexed[0].type === "barline") {
             var symbol = lexed.shift();
-            parsed.symbols.push({
-                type: "barline",
-                type_class: "drawable",
-                subtype: symbol.subtype
-            });
+
+            var newBarline = new AbcSymbol('barline', 1);
+            newBarline.subType = symbol.subtype;
+
+            parsed.symbols.push(newBarline);
             parsed.weight += 1;
+
             continue;
         }
     }
@@ -203,78 +201,73 @@ function parse(lexed) {
     return parsed;
 }
 
-function processLine(action, i, raw) {
-    //console.log(action, i, raw);
-    var data = {};
+function processAddedLine(line, id) {
 
     try {
-        if(raw.length === 0) {
-            data.type_class = enums.line_types.drawable;
-            data.di = drawableIndex++;
-            data.parsed = [];
-            data.weight = 0;
+
+        if (line.raw.length === 0) {
+            line.type = "drawable";
+            line.di = drawableIndex++;
+            line.parsed = [];
+            line.weight = 0;
         }
 
-        var lexed = lexer(raw);
-        if (lexed.length > 0) {
-            var parseOutput = parse(lexed);
-            data.parsed = parseOutput.symbols;
-            data.weight = parseOutput.weight;
+        var lexed = lexer(line.raw);
 
-            if (!(data.parsed.length === 1 && data.parsed[0].type_class === "data")) {
-                data.type_class = enums.line_types.drawable;
-                data.di = drawableIndex++;
+        if (lexed.length > 0) {
+
+            var parseOutput = parse(lexed);
+
+            line.symbols = parseOutput.symbols;
+            line.weight = parseOutput.weight;
+
+            if (!(parseOutput.symbols.length === 1 && parseOutput.symbols[0].type_class === "data")) {
+                line.type = "drawable";
+                line.di = drawableIndex++;
             } else {
-                data.type_class = enums.line_types.data;
+                line.type = "data";
             }
         } else {
-            data.type_class = enums.line_types.drawable;
-            data.parsed = [];
+            line.type = "drawable";
+            line.parsed = [];
         }
 
     } catch (err) {
         console.log("ERR", err);
-        data.error_details = err;
-        data.error = true;
+        line.error = true;
     }
-    return data;
+
+    typecache.set(line.id, line.type);
+    dicache.set(line.id, line.di);
 }
 
-module.exports = function(line) {
+var processDeletedLine = function(line) {
+    line.type_class = typecache.get(line.id);
+    if (typecache.get(line.id) === "drawable") {
+        line.di = dicache.get(line.id);
+    }
+}
 
-    if(line.lineno === 0)drawableIndex = 0;
+var processUnmodifiedLine = function(line) {
+    if (typecache.get(line.id) === "drawable")
+        drawableIndex++;
+}
 
-    if (line.action === "ADD") {
-        for (var i = 0; i < line.lineLength; i++) {
-            var data = processLine(line.action, i + line.lineno, line.split[i].raw);    
+module.exports = function(lineCollection) {
 
-            if(data.error) {
-                console.log("ERROR");
-            }
+    if (lineCollection.startId === 0) drawableIndex = 0;
 
-            typecache.set(i + line.lineno, data.type_class);
-            line.split[i].type_class = data.type_class;
-            line.split[i].parsed = data.parsed;
-            line.split[i].weight = data.weight;
-            line.split[i].di = data.di;
-            dicache.set(i + line.lineno, data.di);
-        }
+    if (lineCollection.action === "ADD") {
+        lineCollection.lines.forEach(processAddedLine);
     }
 
-    if (line.action === "DEL") {
-        for (var i = 0; i < line.lineLength; i++) {
-            line.split[i].type_class = typecache.get(i + line.lineno);
-            if(typecache.get(i + line.lineno) === enums.line_types.drawable) {
-                line.split[i].di = dicache.get(i + line.lineno);
-            }
-        }
+    if (lineCollection.action === "DEL") {
+        lineCollection.lines.forEach(processDeletedLine);
     }
 
-    if (line.action === "NONE") {
-        for (var i = 0; i < line.lineLength; i++) {
-            if(typecache.get(i + line.lineno) === enums.line_types.drawable)drawableIndex++;
-        }
+    if (lineCollection.action === "NONE") {
+        lineCollection.lines.forEach(processUnmodifiedLine);
     }
 
-    return line;
+    return lineCollection;
 }
