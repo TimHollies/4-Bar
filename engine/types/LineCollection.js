@@ -19,7 +19,14 @@ AbcLine.prototype.changed = false;
 ///////////////////
 
 LineCollection = function(id, raw, action) {
-    this.lines = raw.split("\n").map(function(line, i) {
+    
+    var split = raw.split('\n');
+
+    if (split[split.length - 1] === '') {
+        split = split.slice(0, split.length - 1);
+    }
+
+    this.lines = split.map(function(line, i) {
         return new AbcLine(line, i + id);
     });
 

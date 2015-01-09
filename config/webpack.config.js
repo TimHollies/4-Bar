@@ -1,5 +1,5 @@
 var webpack = require('webpack'),
-    root = __dirname+'\\..';
+    root = __dirname + '\\..';
 
 module.exports = {
     entry: {
@@ -20,6 +20,9 @@ module.exports = {
         }, {
             test: /\.html$/,
             loader: "ractive"
+        }, {
+            test: /\.js6$/,
+            loader: 'esnext'
         }]
     },
     output: {

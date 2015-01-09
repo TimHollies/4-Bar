@@ -208,7 +208,7 @@ function processAddedLine(line, id) {
         if (line.raw.length === 0) {
             line.type = "drawable";
             line.di = drawableIndex++;
-            line.parsed = [];
+            line.symbols = [];
             line.weight = 0;
         }
 
@@ -242,7 +242,7 @@ function processAddedLine(line, id) {
 }
 
 var processDeletedLine = function(line) {
-    line.type_class = typecache.get(line.id);
+    line.type = typecache.get(line.id);
     if (typecache.get(line.id) === "drawable") {
         line.di = dicache.get(line.id);
     }

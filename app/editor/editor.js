@@ -8,12 +8,13 @@ var
     diff = engine.diff,
     dispatcher = engine.dispatcher,
     layout = engine.layout,
-    $ = require('vendor').jquery,    
+    $ = require('vendor').jquery,
     enums = require('engine/types'),
     CodeMirror = require('vendor').codeMirror,
     initializeUI = require("./ui"),
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
+    vRender = require('engine/vRender.js6'),
     Combokeys = require('vendor').combokeys;
 
 require('scripts/transitions/ractive.transitions.fade');
@@ -51,12 +52,12 @@ function parseQuery(qstr) {
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
+    vRender.init();
+
     var editor = CodeMirror.fromTextArea(document.getElementById("abc"), {
         lineNumbers: true,
         mode: "htmlmixed"
     });
-
-    renderer.initialize();
 
     editor.on("change", function(instance) {
         ractive.set("inputValue", instance.getValue());
@@ -88,10 +89,15 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     }
 
     function rerenderScore(change) {
+
+        layout.init();
+
         var done = diff(change)
             .map(parser)
             .reduce(layout.onNext, 0);
-            
+
+
+        vRender.render(done);
         console.log("done", done);
     }
 
@@ -136,11 +142,11 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         "save_tune": function() {
             $.ajax({
-              type: "POST",
-              url: "/api/tunes/add",
-              data: {
-                tune: ractive.get("inputValue")
-              }
+                type: "POST",
+                url: "/api/tunes/add",
+                data: {
+                    tune: ractive.get("inputValue")
+                }
             }).then(function() {
                 toastr.success("Tune saved", "Success!");
             });

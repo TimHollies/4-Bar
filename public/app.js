@@ -9,7 +9,7 @@ webpackJsonp([0,2],[
 	    var
 	        Ractive = __webpack_require__(1).Ractive,
 	        toastr = __webpack_require__(1).toastr,
-	        routingConfig = __webpack_require__(3),
+	        routingConfig = __webpack_require__(2),
 	        page = __webpack_require__(1).page,
 	        $ = __webpack_require__(1).jquery,
 	        _ = __webpack_require__(1).lodash;

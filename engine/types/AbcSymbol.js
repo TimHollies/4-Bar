@@ -32,6 +32,9 @@ AbcNote.prototype.letter = "";
 AbcNote.prototype.accidentals = "";
 AbcNote.prototype.noteLength = 1;
 AbcNote.prototype.beams = [];
+AbcNote.prototype.forceStem = 0;
+AbcNote.prototype.beamOffsetFactor = 0;
+AbcNote.prototype.y = null;
 
 AbcRest = function() {
     AbcSymbol.call(this, "rest", 1);

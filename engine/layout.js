@@ -6,9 +6,12 @@ var
     enums = require('./types'),
     data_tables = require('./data_tables'),
     _ = require('vendor').lodash,
-    dispatcher = require('./dispatcher');
+    dispatcher = require('./dispatcher'),
+    AbcBeam = require('./types/AbcBeam');
 
 Layout.init = function() {
+    //reset ALL the things
+    scoreLines = [];
     tuneSettings = {
         key: {
             note: "C",
@@ -45,6 +48,7 @@ var layoutDrawableLine = function(line) {
 
         if (currentSymbol.type === "note") {
             currentSymbol.truepos = currentSymbol.pos + (7 * (currentSymbol.octave - 4));
+            currentSymbol.y = 40 - (currentSymbol.truepos * 4);
             currentSymbol.beams = [];
 
             lastNote = currentSymbol;
@@ -52,13 +56,13 @@ var layoutDrawableLine = function(line) {
 
         if (currentSymbol.beamDepth && currentSymbol.beamDepth < 0) {
             if (currentSymbol.beamDepth <= beamDepth) {
-                beamList.push(currentSymbol);
+                if(currentSymbol.type === "note")beamList.push(currentSymbol);
                 beamDepth = currentSymbol.beamDepth;
             }
         } else {
             //draw beam
-            beamList.push(currentSymbol);
-            if (beamList.length > 1) lastNote.beams.push(beamList);
+            if(currentSymbol.type === "note")beamList.push(currentSymbol);
+            if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
             beamList = [];
             beamDepth = 0;
         }
@@ -66,7 +70,7 @@ var layoutDrawableLine = function(line) {
 
     if (beamList.length > 0) {
         //draw beam
-        if (beamList.length > 1) lastNote.beams.push(beamList);
+        if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
         beam_list = [];
         beam_depth = 0;
     }
@@ -113,7 +117,7 @@ var handleAction = {
     },
     "DEL": function(lineCollection) {
         var dl = lineCollection.lines.filter(function(line) {
-            return !line.error && line.type_class === enums.line_types.drawable;
+            return !line.error && line.type === "drawable";
         });
 
         if (dl.length > 0) {

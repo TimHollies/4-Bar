@@ -8,7 +8,7 @@ var
     toastr = require('vendor').toastr,
     screenfull = require('vendor').screenfull,
     engine = require('engine/engine'),
-    vRender = require('engine/vRender'),
+    vRender = require('engine/vRender.js6'),
     initializeUI = require("./ui"),
     parser = engine.parser,
     renderer = engine.render,
@@ -33,6 +33,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     var parameters = parseQuery(urlcontext.querystring);
 
     //renderer.initialize();
+    vRender.init();
 
     dispatcher.on({
         "edit_tune": function() {
@@ -91,7 +92,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                 .map(parser)
                 .reduce(layout.onNext, 0);
 
-            vRender(done);
+            vRender.render(done);
         });
     }
     // toastr.success("YAY");
