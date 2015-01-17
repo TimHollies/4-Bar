@@ -14,8 +14,9 @@ var
     initializeUI = require("./ui"),
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
-    vRender = require('engine/vRender.js6'),
-    Combokeys = require('vendor').combokeys;
+    vRender = require('engine/vRender.js'),
+    Combokeys = require('vendor').combokeys,
+    Divvy = require('engine/scripts/divvy/divvy.js');
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
@@ -53,6 +54,15 @@ function parseQuery(qstr) {
 module.exports = function(ractive, context, page, urlcontext, user) {
 
     vRender.init();
+    layout.init();
+
+   /*var divvy = new Divvy({
+        el: document.getElementById("editor-section"), // this is a reference to the container DOM element
+        columns: [     // or you can have rows instead
+            'left',
+            'right'
+        ]
+    });*/
 
     var editor = CodeMirror.fromTextArea(document.getElementById("abc"), {
         lineNumbers: true,
@@ -89,8 +99,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     }
 
     function rerenderScore(change) {
-
-        layout.init();
 
         var done = diff(change)
             .map(parser)

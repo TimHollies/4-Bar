@@ -5,7 +5,11 @@ var $ = require("vendor").jquery;
 var
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('vendor').toastr;
+    toastr = require('vendor').toastr,
+
+    //well these work... but are they useful?
+    tut01 = require('app/tutorial/tut/tut01.htm'),
+    tut02 = require('app/tutorial/tut/tut02.htm');
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {
@@ -16,6 +20,12 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         "navigate_back": function(event) {
             page.show("/");
+        },
+        "goto_p1": (event) => {
+            console.log("p1");
+        },
+        "goto_p2": (event) => {
+            console.log("p2");
         }
     });
 

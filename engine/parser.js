@@ -14,6 +14,8 @@ var
     drawableIndex = 0,
     decorationstack = [];
 
+window.lex = lexer;
+
 function ParserException(message) {
     this.message = message;
     this.name = "ParserException";
@@ -21,6 +23,11 @@ function ParserException(message) {
 
 function parseNote(lexer, parsed) {
     var newNote = new AbcNote();
+
+    while (lexer[0] && lexer[0].subType === "chord_annotation") {
+        newNote.chord = lexer[0].data;
+        lexer.shift();
+    }
 
     while (lexer[0] && lexer[0].subType === "decoration") {
         lexer.shift();
@@ -52,6 +59,10 @@ function parseNote(lexer, parsed) {
 
     newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
     newNote.weight = data_tables.symbol_width.note(newNote);
+
+    if(parsed === undefined || newNote.weight === undefined) {
+        console.log("DAMN");
+    }
 
     parsed.weight += newNote.weight;
     parsed.symbols.push(newNote);
@@ -116,19 +127,34 @@ function noteGroup(parsed, lexed, name, start, stop) {
     }
 
     return false;
-}
+};
+
+var parseBarline = (lexed, parsed) => {
+
+    var symbol = lexed.shift();
+
+    var newBarline = new AbcSymbol('barline', 1);
+    newBarline.subType = symbol.subtype;
+
+    parsed.symbols.push(newBarline);
+    parsed.weight += 1;
+
+    return symbol.v;
+};
 
 /**
  * A recursive decent parser that combines lexed tokens into a meaningful data structure
  * @param  {Array} An array of lexed tokens
  * @return {Array} An array of parsed symbols
  */
-function parse(lexed) {
+function parse(lexed, line) {
 
     var parsed = {
         symbols: [],
         weight: 0
     };
+
+    var currentVarientEnding = null;
 
     while (lexed.length > 0) {
         if (lexed[0].type === "err") {
@@ -154,18 +180,23 @@ function parse(lexed) {
             continue;
         }
 
-        if (lexed[0].type === "chord_annotation") {
-            parsed.symbols.push({
-                type_class: "drawable",
-                type: "chord_annotation",
-                text: lexed[0].data
-            });
-            lexed.shift();
-            continue;
-        }
+        // if (lexed[0].type === "chord_annotation") {
+        //     parsed.symbols.push({
+        //         type_class: "drawable",
+        //         type: "chord_annotation",
+        //         text: lexed[0].data
+        //     });
+        //     lexed.shift();
+        //     continue;
+        // }
 
         if (lexed[0].type === "note") {
             parseNote(lexed, parsed);
+
+            if(currentVarientEnding !== null && currentVarientEnding.start === null) {
+                currentVarientEnding.start = _.last(parsed.symbols);
+            }
+
             continue;
         }
 
@@ -181,29 +212,82 @@ function parse(lexed) {
             continue;
         }
 
+        if(lexed[0].type === "varient_section") {
+            var symbol = lexed.shift();
+
+            currentVarientEnding = {
+                start: null,
+                name: symbol.data,
+                end: null
+            };
+
+            continue;
+        }
+
         if (noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop")) continue;
         if (noteGroup(parsed, lexed, "slur", "slur_start", "slur_stop")) continue;
         if (noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop")) continue;
 
         if (lexed[0].type === "barline") {
-            var symbol = lexed.shift();
 
-            var newBarline = new AbcSymbol('barline', 1);
-            newBarline.subType = symbol.subtype;
-
-            parsed.symbols.push(newBarline);
-            parsed.weight += 1;
+            if(parseBarline(lexed, parsed) === 1 && currentVarientEnding !== null) {
+                currentVarientEnding.end = _.last(parsed.symbols);
+                line.endings.push(currentVarientEnding);
+                currentVarientEnding = null;
+            }
 
             continue;
         }
+
+        if(lexed[0].type === "tie") {
+
+            lexed.shift();
+
+            //the last parsed symbol must be a note
+            if(_.last(parsed.symbols).type === "note") {
+                
+                var tie = {
+                    type: "tie",
+                    start: _.last(parsed.symbols)
+                };
+
+                //eat the barline if required
+                if (lexed[0].type === "barline")parseBarline(lexed, parsed);
+
+                if (lexed[0].type === "note") {
+                    parseNote(lexed, parsed);
+                } else {
+                    //THROW ERROR
+                    continue;
+                }
+
+                tie.end = _.last(parsed.symbols);
+
+                parsed.symbols.push(tie);
+            } else {
+                //THROW ERROR
+                continue;
+            }
+
+            continue;
+        }
+
+        console.log(`PARSER ERROR: UNKNOWN ${lexed[0]}`);
+        lexed.shift();
     }
 
+    if(currentVarientEnding !== null) {
+        line.endings.push(currentVarientEnding);
+        line.endWithEndingBar = true;
+    }
+
+    console.log("PARSED", parsed);
     return parsed;
 }
 
 function processAddedLine(line, id) {
 
-    try {
+   // try {
 
         if (line.raw.length === 0) {
             line.type = "drawable";
@@ -216,7 +300,7 @@ function processAddedLine(line, id) {
 
         if (lexed.length > 0) {
 
-            var parseOutput = parse(lexed);
+            var parseOutput = parse(lexed, line);
 
             line.symbols = parseOutput.symbols;
             line.weight = parseOutput.weight;
@@ -232,10 +316,10 @@ function processAddedLine(line, id) {
             line.parsed = [];
         }
 
-    } catch (err) {
-        console.log("ERR", err);
-        line.error = true;
-    }
+    // } catch (err) {
+    //     console.log("ERR", err);
+    //     line.error = true;
+    // }
 
     typecache.set(line.id, line.type);
     dicache.set(line.id, line.di);

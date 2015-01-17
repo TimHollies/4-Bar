@@ -49,13 +49,11 @@ AbcBeam = function(notes) {
 
     var m = ((count*sum_xy - sum_x*sum_y) / (count*sum_xx - sum_x*sum_x))*2;
 
-    console.log("BEAM GRAD", m);
-
     notes.forEach(function(note) {
         var xpDist = note.xp - baseNote.xp;
         var heightDiff = Math.abs(note.y - baseNote.y);
         note.beamOffsetFactor = (xpDist * -m) + baseNote.y + (downBeam ? 28 : -28);
-        //note.beamDepth = 1;
+        note.beamed = true;
     });
 
     this.gradient = m;

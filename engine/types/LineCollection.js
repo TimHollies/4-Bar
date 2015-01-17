@@ -5,6 +5,7 @@
 AbcLine = function(raw, id) {
     this.raw = raw;
     this.id = id;
+    this.endings = [];
 }
 
 AbcLine.prototype.type = "hidden";
@@ -13,6 +14,8 @@ AbcLine.prototype.parsed = [];
 AbcLine.prototype.weight = 0;
 AbcLine.prototype.error = false;
 AbcLine.prototype.changed = false;
+AbcLine.prototype.startWithEndingBar = false;
+AbcLine.prototype.endWithEndingBar = false;
 
 ///////////////////
 //LineCollection //

@@ -18,10 +18,10 @@ module.exports = {
             test: /\.css$/,
             loader: "style!css"
         }, {
-            test: /\.html$/,
+            test: /\.html?$/,
             loader: "ractive"
         }, {
-            test: /\.js6$/,
+            test: /(engine|app)\\.*\.js$/,
             loader: 'esnext'
         }]
     },

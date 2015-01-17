@@ -11,12 +11,8 @@ var drawing_functions = {},
 
 var
     POS_SWITCH = 6,
-    MAX_GRAD = 0.05,
+    MAX_GRAD = 0.05, 
     STEM_LENGTH = 28;
-
-var translate = function(x, y) {
-    return "translate(" + x + "," + y + ")";
-};
 
 /**
  * Draws a stave of width 'width'
@@ -35,21 +31,41 @@ drawing_functions.stave = function() {
 }
 
 function ledgerLineCount(a) {
-    return ((a / 2) >> 0) + 1;
+    return ((Math.abs(a) / 2) >> 0) + 1;
 }
 
-drawing_functions.note = function(currentNote, offset) {
+function drawLedgerLines(currentNote, offset, colGroup) {
+    if (currentNote.truepos < 1) {
+        for (var i = 0, tar = ledgerLineCount(currentNote.truepos); i < tar; i++) {
+            colGroup.children.push(s("path", {
+                stroke: 'black',
+                d: "M0 0L14 0",
+                transform: `translate(-2, ${32 + 8 * (i + 1)})`
+            }));
+        }
+    }
 
-    return;
+    if (currentNote.truepos > 11) {
+        for (var i = 0, tar = ledgerLineCount(currentNote.truepos-12); i < tar; i++) {
+            colGroup.children.push(s("path", {
+                stroke: 'black',
+                d: "M0 0L14 0",
+                //transform: `translate(6, ${0 - (8 * (i + 1))})`
+                transform: `translate(-2, ${0 - (8 * (i + 1))})`
+            }));
+        }
+    }
+}
 
-    var noteGroup = s("g");
+drawing_functions.note = (currentNote, offset, noteAreaWidth) => {
 
-    var noteDot = s("g");
+    //return;   
 
-    noteGroup.children.push(noteDot);
+    var colGroup = s("g", {
+        transform: `translate(${offset},0)`
+    });
 
-
-/*
+    /*
     var color = '#000',
         stem_end = {
             x: 0,
@@ -67,81 +83,130 @@ drawing_functions.note = function(currentNote, offset) {
                 break;
             }
         }
+    }*/
+
+    if(currentNote.chord !== "") {
+        colGroup.children.push(s("text", {
+           x: 0,
+           y: -20,
+           fill: "black",
+           transform: "scale(0.8, 0.8)"
+        }, [currentNote.chord]));
     }
 
     //ledger line
-    if (truepos < 1) {
-        for (var i = 0, tar = ledgerLineCount(truepos); i < tar; i++) {
-            line.line(totalOffset - 13, 32 + 8 * (i + 1), totalOffset + 3, 32 + 8 * (i + 1)).stroke({
-                width: 1
-            });
-        }
-    }
+    drawLedgerLines(currentNote, offset, colGroup);
 
-    if (truepos > 10) {
+    var downstem = (currentNote.truepos >= POS_SWITCH || currentNote.forceStem === 1) && !(currentNote.forceStem === -1);
 
-    }
+
+    var noteDot, stem, accidental;
+
+    //noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(10,0)"}) : s("g", { class: "noteHead"});
+     noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(0,0)"}) : s("g", { class: "noteHead"});
 
     //dotted note?
-    if ((2 * currentNote.notelength) % 3 === 0) {
-        noteDot.circle(4, 4).fill('black').move(3, 6);
+    if ((2 * currentNote.noteLength) % 3 === 0) {
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 14,
+            cy: currentNote.truepos % 2 === 0 ? -4 : 0,
+            fill: 'black'
+        }));
     }
 
     //double dotted note?
-    if ((4 * currentNote.notelength) % 7 === 0) {
-        noteDot.circle(4, 4).fill('black').move(3, 6);
-        noteDot.circle(4, 4).fill('black').move(8, 6);
-    }*/
-
-    //dot type
-    if (currentNote.notelength < 4) {
-        noteDot.children.push(s("path", {
-
+    if ((4 * currentNote.noteLength) % 7 === 0) {
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 14,
+            cy: 0,
+            fill: 'black'
         }));
-        
-        noteDot.path(glyphs["noteheads.quarter"].d).attr({
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 18,
+            cy: 0,
             fill: 'black'
-        }).move(0, 4);
-    } else if (currentNote.notelength < 8) {
-        noteDot.path(glyphs["noteheads.half"].d).attr({
-            fill: 'black'
-        }).move(0, 4);
+        }));
+    }    
+
+    var dotType;
+    //dot type
+    if (currentNote.noteLength < 4) {
+        dotType = glyphs["noteheads.quarter"].d;
     } else {
-        noteDot.path(glyphs["noteheads.whole"].d).attr({
-            fill: 'black'
-        }).move(0, 4);
+        if (currentNote.noteLength < 8) {
+            dotType = glyphs["noteheads.half"].d;
+        } else {
+            dotType = glyphs["noteheads.whole"].d;
+        }
     }
 
-/*
-    if (currentNote.notelength < 8) {
-        if (truepos >= POS_SWITCH) {
+    noteDot.children.push(s("path", {
+        d: dotType,
+        fill: "black"
+    }));
+
+    
+    if (currentNote.noteLength < 8) {
+        if (downstem) {
 
             //basic stem
-            stem = noteGroup.line(0, 8, 0, 34).stroke({
-                width: 1,
-                color: color
-            });
+            stem = s("g", {
+                transform: "translate(0, 0)"
+            });       
+ 
+            if(!currentNote.beamed) {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y+2}L0 ${currentNote.y + 28}`
+                }));
 
-            //curly bit for quavers
-            if (currentNote.notelength == 1) {
-                stem_tail = noteGroup.path(glyphs["flags.u8th"].d).attr({
-                    fill: 'black'
-                }).scale(1.2, -0.9).move(0, -38);
+                if(currentNote.noteLength === 1) {
+                    stem.children.push(s("path", {
+                        d: glyphs["flags.d8th"].d,
+                        fill: 'black',
+                        transform: `translate(0,${currentNote.y + 28})`
+                    }));
+                }
+            } else {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y}L0 ${currentNote.beamOffsetFactor}`
+                }));
             }
-
-            //store point
-            stem_end.y = 34;
 
         } else {
 
-            //basic stem
-            stem = noteGroup.line(0, 4.5, 0, -24).stroke({
-                width: 1,
-                color: color
+            stem = s("g", {
+                transform: "translate(10, 0)"
             });
+        
+            if(!currentNote.beamed) {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y-3}L0 ${currentNote.y - 32}`
+                }));
 
-            noteDot.move(-10, 4);
+                if(currentNote.noteLength === 1) {
+                    stem.children.push(s("path", {
+                        d: glyphs["flags.u8th"].d,
+                        fill: 'black',
+                        transform: `translate(0,${currentNote.y - 34})`
+                    }));
+                }
+            } else {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y-3}L0 ${currentNote.beamOffsetFactor}`
+                }));
+            }
 
+            /*
             //curly bit for quavers            
             if (currentNote.notelength == 1) {
                 stem_tail = noteGroup.path(glyphs["flags.u8th"].d).attr({
@@ -150,7 +215,7 @@ drawing_functions.note = function(currentNote, offset) {
             }
 
             //store point
-            stem_end.y = -24;
+            stem_end.y = -24;*/
         }
     }
 
@@ -158,32 +223,42 @@ drawing_functions.note = function(currentNote, offset) {
 
     switch (currentNote.accidental) {
         case "_":
-            noteGroup.path(glyphs["accidentals.flat"].d).attr({
-                fill: 'black'
-            }).scale(1, 1).move(-20, -12);
+            accidental = s("path", {
+                d: glyphs["accidentals.flat"].d,
+                fill: "black",
+                transform: "translate(-8, 0)"
+            });
             break;
         case "^":
-            noteGroup.path(glyphs["accidentals.sharp"].d).attr({
-                fill: 'black'
-            }).scale(1, 1).move(-20, -12);
+            accidental = s("path", {
+                d: glyphs["accidentals.sharp"].d,
+                fill: "black",
+                transform: "translate(-10, 0)"
+            });           
             break;
         case "=":
-            noteGroup.path(glyphs["accidentals.nat"].d).attr({
-                fill: 'black'
-            }).scale(1, 1).move(-20, -12);
+            accidental = s("path", {
+                d: glyphs["accidentals.nat"].d,
+                fill: "black",
+                transform: "translate(-7, 0)"
+            });
             break;
         case "__":
-            noteGroup.path(glyphs["accidentals.dblflat"].d).attr({
-                fill: 'black'
-            }).scale(1, 1).move(-20, -12);
+            accidental = s("path", {
+                d: glyphs["accidentals.dblflat"].d,
+                fill: "black",
+                transform: "translate(-6,-12)"
+            });
             break;
         case "^^":
-            noteGroup.path(glyphs["accidentals.dblsharp"].d).attr({
-                fill: 'black'
-            }).scale(1, 1).move(-20, -12);
+            accidental = s("path", {
+                d: glyphs["accidentals.dblsharp"].d,
+                fill: "black",
+                transform: "translate(-6,-12)"
+            });
             break;
         default:
-    }
+    }/*
 
     currentNote.stem_end = stem_end;
 
@@ -198,12 +273,24 @@ drawing_functions.note = function(currentNote, offset) {
 
     noteGroup.move(currentNote.x, currentNote.y);*/
 
+    var noteGroup = s("g", {
+        transform: `translate(0,${currentNote.y})`
+    }, [noteDot, accidental]);    
 
-    return noteGroup;
+    colGroup.children.push(noteGroup, stem);
+
+    if(currentNote.beams.length > 0) {
+        for(var i=0; i<currentNote.beams.length; i++) {
+            drawing_functions.beam(currentNote.beams[i], colGroup, noteAreaWidth);
+        }
+    }
+
+    return colGroup;
 };
 
 drawing_functions.barline = function(currentSymbol, offset) {
-    var barlineGroup = s("g");
+    var 
+        barlineGroup = s("g");
 
     switch (currentSymbol.subType) {
         case "normal":
@@ -215,58 +302,92 @@ drawing_functions.barline = function(currentSymbol, offset) {
             }));
             break;
         case "double":
+            var alignment = currentSymbol.align === 2 ? -2 : 0;
             barlineGroup.children.push(s("rect", {
-                x: offset-2,
+                x: offset - 2 + alignment,
                 width: 1,
                 height: 32,
                 fill: 'black'
             }));
             barlineGroup.children.push(s("rect", {
-                x: offset+2,
+                x: offset + 2 + alignment,
                 width: 1,
                 height: 32,
                 fill: 'black'
-            }));           
-            break;/*
+            }));
+            break;
 
         case "repeat_start":
-            barline_group.circle(4).move(totalOffset + 12, 10).attr({
+            /*barline_group.circle(4).move(totalOffset + 12, 10).attr({
                 fill: 'black'
             });
 
             barline_group.circle(4).move(totalOffset + 12, 19).attr({
                 fill: 'black'
-            });
+            });*/
         case "heavy_start":
-            barline_group.rect(4, 32).move(totalOffset, 0).attr({
+            /*barline_group.rect(4, 32).move(totalOffset, 0).attr({
                 fill: 'black'
             });
 
             barline_group.rect(1, 32).move(totalOffset + 8, 0).attr({
                 fill: 'black'
-            });
+            });*/
+
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2,
+                width: 4,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset + 2,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
             break;
 
         case "repeat_end":
-            barline_group.circle(4).move(totalOffset - 12, 10).attr({
-                fill: 'black'
-            });
 
-            barline_group.circle(4).move(totalOffset - 12, 19).attr({
+            var alignment = currentSymbol.align === 2 ? -6 : 0;
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 12,
                 fill: 'black'
-            });
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 20,
+                fill: 'black'
+            }));
+
         case "heavy_end":
-            barline_group.rect(4, 32).move(totalOffset, 0).attr({
-                fill: 'black'
-            });
 
-            barline_group.rect(1, 32).move(totalOffset - 4, 0).attr({
+            var alignment = currentSymbol.align === 2 ? -6 : 0;
+
+            barlineGroup.children.push(s("rect", {
+                x: offset + 2 + alignment,
+                width: 4,
+                height: 32,
                 fill: 'black'
-            });
-            break;
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2  + alignment,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            break; 
 
         case "double_repeat":
-            barline_group.rect(4, 32).move(totalOffset, 0).attr({
+           /* barline_group.rect(4, 32).move(totalOffset, 0).attr({
                 fill: 'black'
             });
 
@@ -299,13 +420,29 @@ drawing_functions.barline = function(currentSymbol, offset) {
 };
 
 drawing_functions.chord_annotation = function(line, currentSymbol, totalOffset) {
-    return line.text(currentSymbol.text).font({
+   /* return line.text(currentSymbol.text).font({
         family: 'Helvetica',
         size: 16,
         anchor: 'middle',
         leading: '1.5em'
     }).move(totalOffset, -30).attr({
         fill: 'black'
+    });*/
+};
+
+drawing_functions.tie = function(currentSymbol, ignore, noteAreaWidth) {
+
+    var 
+        startX = currentSymbol.start.xp * noteAreaWidth+4,
+        startY = currentSymbol.start.y + 8,
+        endX = currentSymbol.end.xp * noteAreaWidth+4,
+        endY = currentSymbol.end.y + 8;
+ 
+    var path = `M${startX} ${startY}C${startX+4} ${startY+14}, ${endX - 4} ${endY + 14}, ${endX} ${endY}C${endX+4} ${endY+12}, ${startX - 4} ${startY + 12}, ${startX} ${startY}`;
+
+    return s("path", {
+        d: path,
+        stroke: 'black'
     });
 };
 
@@ -339,7 +476,7 @@ var trebleClefObject = s("path", {
 drawing_functions.treble_clef = function(line) {
     return {
         node: trebleClefObject,
-        width: 32
+        width: 40
     };
 }
 
@@ -382,7 +519,10 @@ drawing_functions.timesig = function(top, bottom, xoffset) {
         top_group.move((bottom_width - top_width) / 2, 0);
     }
 */
-    return timeSig;
+    return {
+        node: timeSig,
+        width: 24
+    };
 }
 
 function sigmoid(a) {
@@ -395,83 +535,23 @@ function sigmoid(a) {
  * @param  {[type]} beamed_notes [description]
  * @return {[type]}              [description]
  */
-drawing_functions.beam = function(line, beamed_notes) {
+drawing_functions.beam = function(beam, group, noteAreaWidth) {
 
-    var highestnote = null,
-        smallestnote = null;
+    var startX = -((beam.notes[beam.count - 1].xp - beam.notes[0].xp) * noteAreaWidth) + (beam.downBeam ? 0 : 10);
+    var endY = beam.notes[beam.count - 1].beamOffsetFactor;
+    var startY = beam.notes[0].beamOffsetFactor;
 
-    var average_pitch = _.reduce(beamed_notes, function(total, note) {
-        if (highestnote === null || note.truepos > highestnote.truepos) highestnote = note;
-        if (smallestnote === null || note.truepos < smallestnote.truepos) smallestnote = note;
-        return total + note.truepos;
-    }, 0) / beamed_notes.length;
-
-    var upstem = (average_pitch < POS_SWITCH);
-
-    var importantNote = upstem ? highestnote : smallestnote;
-    var mult = upstem ? -STEM_LENGTH : STEM_LENGTH;
-
-    var averageYs = beamed_notes.map(function(a) {
-        return a.truepos - average_pitch;
-    });
-
-    var xSpan = (beamed_notes[beamed_notes.length - 1].x - beamed_notes[0].x);
-    var xMid = beamed_notes[0].x + (xSpan / 2);
-    var averageXs = beamed_notes.map(function(a, i) {
-        return a.x - xMid;
-    });
-
-    var topM = 0,
-        bottomM = 0;
-
-    for (var i = 0; i < beamed_notes.length; i++) {
-        topM += (averageXs[i] * averageYs[i]);
-        bottomM += (averageXs[i] * averageXs[i]);
+    if(beam.downBeam) {
+        group.children.push(s("path", {
+            //d: `M${startX} ${startY}L10 ${endY}L10 ${endY-4}L${startX} ${startY-4}L${startX} ${startY}Z`
+            d: `M${startX} ${startY}L0 ${endY}L0 ${endY-4}L${startX} ${startY-4}L${startX} ${startY}Z`
+        }));
+    } else {
+        group.children.push(s("path", {
+            d: `M${startX} ${startY}L10 ${endY}L10 ${endY+4}L${startX} ${startY+4}L${startX} ${startY}Z`
+        }));
     }
 
-    var m = upstem ? -(topM / bottomM) : (topM / bottomM);
-
-    var
-        startX = beamed_notes[0].x,
-        startXDist = importantNote.x - startX,
-        startY = sigmoid(importantNote.y + (startXDist * m) + mult),
-        endX = beamed_notes[beamed_notes.length - 1].x,
-        endXDist = endX - importantNote.x,
-        endY = sigmoid(importantNote.y + (endXDist * m) + mult),
-        grad = (endY - startY) / (endX - startX);
-
-    //if(grad > MAX_GRAD) grad = MAX_GRAD;
-    //if(grad < -MAX_GRAD) grad = -MAX_GRAD;
-
-    //console.log(grad);
-
-    line.polygon(new SVG.PointArray([
-        [startX, startY],
-        [startX, startY + 3],
-        [endX, endY + 3],
-        [endX, endY]
-    ])).fill('black').stroke({
-        width: 1
-    });
-
-    //console.log("UP", upstem);
-
-    beamed_notes.forEach(function(note, i) {
-        note.svg.stem_tail.remove();
-
-        //if(i === 0 || i === beamed_notes.length - 1)return;
-        note.svg.stem.remove();
-
-        note.svg.stem = note.svg.line(0, 8, 0, -((note.y - startY) + ((note.x - startX) * grad))).stroke({
-            width: 1,
-            color: 'black'
-        });
-        if (upstem) {
-            note.svg.dot.move(-10, 4);
-        } else {
-            note.svg.dot.move(0, 4);
-        }
-    });
 }
 
 /**
@@ -493,14 +573,39 @@ drawing_functions.keysig = function(keysig, xoffset) {
         keySigGroup.children.push(s("path", {
             d: symbol,
             fill: "black",
-            transform: translate(xoffset + i * 8, 44 - ((dataset[i] + 1) * 4))
+            transform: `translate(${xoffset + i * 8}, ${44 - ((dataset[i] + 1) * 4)})`
         }));
     }
 
     return {
         node: keySigGroup,
-        width: Math.abs(accidentals) * 10
+        width: (Math.abs(accidentals) * 10) + 12
     };
-}
+};
+
+drawing_functions.varientEndings = (currentEnding, noteAreaWidth) => {
+    var
+        startX = (currentEnding.start.xp * noteAreaWidth) - 8,
+        endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.xp * noteAreaWidth,
+
+        path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
+
+    var endingGroup = s("g");
+
+    endingGroup.children.push(s("path", {
+        d: path,
+        stroke: 'black',
+        fill: 'none'
+    }));
+
+    endingGroup.children.push(s("text", {
+       x: startX + 4,
+       y: -60,
+       fill: "black",
+       transform: "scale(0.5, 0.5)"
+    }, [currentEnding.name]));
+
+    return endingGroup;
+};
 
 module.exports = drawing_functions;

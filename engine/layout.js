@@ -1,13 +1,14 @@
-var Layout = {};
-
-var
-    scoreLines = [],
-    tuneSettings = {},
+var 
     enums = require('./types'),
     data_tables = require('./data_tables'),
     _ = require('vendor').lodash,
     dispatcher = require('./dispatcher'),
-    AbcBeam = require('./types/AbcBeam');
+    AbcBeam = require('./types/AbcBeam'),
+
+    Layout = {},
+
+    scoreLines = [],
+    tuneSettings = {};
 
 Layout.init = function() {
     //reset ALL the things
@@ -34,11 +35,21 @@ var layoutDrawableLine = function(line) {
         beamDepth = 0,
         lastNote = null;
 
+    if(_.last(line.symbols).type === "barline") {
+        posMod = 1 / (line.weight);
+    }
+
     for (var i = 0; i < line.symbols.length; i++) {
+
+        if(line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section") continue;
 
         var currentSymbol = line.symbols[i];
 
-        currentSymbol.xp = totalOffset;        
+        currentSymbol.xp = totalOffset;
+        if(i === line.symbols.length - 1 && currentSymbol.type === "barline") {
+            currentSymbol.xp = 1;
+            currentSymbol.align = 2;
+        }     
 
         if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
             totalOffset += (data_tables.symbol_width[currentSymbol.type](currentSymbol)) * posMod;

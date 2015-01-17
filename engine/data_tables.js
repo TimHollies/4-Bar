@@ -77,7 +77,8 @@ data_tables["notes"] = {
 
 data_tables.symbol_width = {
     "note": function(note) {
-        return note.noteLength * 1.618;
+        return Math.log(note.noteLength + 1);
+        //return note.noteLength * 1;//* 1.618;
     },
     "rest": 1,
     "beat_rest": 1,

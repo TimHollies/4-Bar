@@ -11,6 +11,7 @@ AbcSymbol.prototype.subType = "";
 AbcSymbol.prototype.weight = 0;
 AbcSymbol.prototype.visible = true;
 AbcSymbol.prototype.xp = 0;
+AbcSymbol.prototype.align = 0;
 
 
 AbcSymbol.prototype.getX = function(leadInWidth, lineWidth) {
@@ -35,6 +36,8 @@ AbcNote.prototype.beams = [];
 AbcNote.prototype.forceStem = 0;
 AbcNote.prototype.beamOffsetFactor = 0;
 AbcNote.prototype.y = null;
+AbcNote.prototype.beamed = false;
+AbcNote.prototype.chord = "";
 
 AbcRest = function() {
     AbcSymbol.call(this, "rest", 1);

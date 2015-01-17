@@ -99,17 +99,20 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
     }
 }).addRule(/"([^"]+)"/, function(match, data) {
     return {
-        type: "chord_annotation",
+        type: "note",
+        subType: "chord_annotation",
         data: data
     }
 }).addRule(/!([^!]+)!/, function(data) {
     return {
-        type: "decoration",
+        type: "note",
+        subType: "decoration",
         data: data
     }
 }).addRule(/~/, function(data) {
     return {
-        type: "decoration",
+        type: "note",
+        subType: "decoration",
         data: data
     }
 });
@@ -117,41 +120,68 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
 ///////////////
 // BAR LINES //
 ///////////////
+///
+/// v indicates how the type of barline effects varient endings
+/// #0 -> No effect
+/// #1 -> Ends a varient ending
+/// #2 -> Starts a varient ending
+///
 lexer.addRule(/\|/, function() {
     return {
         type: "barline",
-        subtype: "normal"
+        subtype: "normal",
+        v: 0
     }
 }).addRule(/\|\]/, function() {
     return {
         type: "barline",
-        subtype: "heavy_end"
+        subtype: "heavy_end",
+        v: 1
     }
 }).addRule(/\|\|/, function() {
     return {
         type: "barline",
-        subtype: "double"
+        subtype: "double",
+        v: 1
     }
 }).addRule(/\[\|/, function() {
     return {
         type: "barline",
-        subtype: "heavy_start"
+        subtype: "heavy_start",
+        v: 1
     }
 }).addRule(/:\|/, function() {
     return {
         type: "barline",
-        subtype: "repeat_end"
+        subtype: "repeat_end",
+        v: 1
     }
 }).addRule(/\|:/, function() {
     return {
         type: "barline",
-        subtype: "repeat_start"
+        subtype: "repeat_start",
+        v: 0
     }
 }).addRule(/::/, function() {
     return {
         type: "barline",
-        subtype: "double_repeat"
+        subtype: "double_repeat",
+        v: 1
     }
+}).addRule(/\[([0-9]+)/, (all, sectionNumber) => {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionNumber,
+        v: 2
+    };
+}).addRule(/\["([a-z A-Z0-9]+)"/, (all, sectionName) => {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionName,
+        v: 2
+    };
 });
 
 /////////////////
@@ -181,6 +211,10 @@ lexer.addRule(/\[/, function() {
 }).addRule(/\)/, function() {
     return {
         type: "slur_stop"
+    }
+}).addRule(/-/, () => {
+    return {
+        type: "tie"
     }
 });
 
