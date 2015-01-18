@@ -66,6 +66,8 @@ function parseNote(lexer, parsed) {
 
     parsed.weight += newNote.weight;
     parsed.symbols.push(newNote);
+
+    return newNote;
 }
 
 function parseRest(lexer) {
@@ -122,6 +124,44 @@ function noteGroup(parsed, lexed, name, start, stop) {
 
     if (lexed[0].type === stop) {
         parsed.push(new ParserException("Closing " + name + " found before starting it"));
+        lexed.shift();
+        return true;
+    }
+
+    return false;
+};
+
+function parseSlur(parsed, lexed) {
+    if (lexed[0].type === "slur_start") {
+        lexed.shift();
+
+        var groupNotes = [];
+
+        while (lexed.length > 0 && lexed[0].type != "slur_stop") {
+            if (lexed[0].type === "note") {
+                var parsedNote = parseNote(lexed, parsed);
+                groupNotes.push(parsedNote);
+                 continue;
+            } else {
+                /*throw new*/
+                groupNotes.push(new ParserException("Only notes are allowed in slurs"));
+                lexed.shift();
+                continue;
+            }
+        }
+
+        parsed.symbols.push({
+            type: "slur",
+            type_class: "drawable",
+            notes: groupNotes
+        });
+
+        lexed.shift();
+        return true;
+    }
+
+    if (lexed[0].type === "slur_stop") {
+        parsed.push(new ParserException("Closing slur found before starting it"));
         lexed.shift();
         return true;
     }
@@ -225,17 +265,23 @@ function parse(lexed, line) {
         }
 
         if (noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop")) continue;
-        if (noteGroup(parsed, lexed, "slur", "slur_start", "slur_stop")) continue;
+        if (parseSlur(parsed, lexed)) continue;
         if (noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop")) continue;
 
         if (lexed[0].type === "barline") {
 
-            if(parseBarline(lexed, parsed) === 1 && currentVarientEnding !== null) {
-                currentVarientEnding.end = _.last(parsed.symbols);
-                line.endings.push(currentVarientEnding);
-                currentVarientEnding = null;
+            if(parseBarline(lexed, parsed) === 1) {
+
+                if(line.firstEndingEnder === null) line.firstEndingEnder = _.last(parsed.symbols);
+
+                if(currentVarientEnding !== null) {
+                    currentVarientEnding.end = _.last(parsed.symbols);
+                    line.endings.push(currentVarientEnding);
+                    currentVarientEnding = null;
+                }
             }
 
+            
             continue;
         }
 

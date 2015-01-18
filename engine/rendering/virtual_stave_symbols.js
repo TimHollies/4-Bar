@@ -318,21 +318,24 @@ drawing_functions.barline = function(currentSymbol, offset) {
             break;
 
         case "repeat_start":
-            /*barline_group.circle(4).move(totalOffset + 12, 10).attr({
-                fill: 'black'
-            });
 
-            barline_group.circle(4).move(totalOffset + 12, 19).attr({
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 12,
                 fill: 'black'
-            });*/
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 20,
+                fill: 'black'
+            }));
+
         case "heavy_start":
-            /*barline_group.rect(4, 32).move(totalOffset, 0).attr({
-                fill: 'black'
-            });
-
-            barline_group.rect(1, 32).move(totalOffset + 8, 0).attr({
-                fill: 'black'
-            });*/
 
             barlineGroup.children.push(s("rect", {
                 x: offset - 2,
@@ -341,7 +344,7 @@ drawing_functions.barline = function(currentSymbol, offset) {
                 fill: 'black'
             }));
             barlineGroup.children.push(s("rect", {
-                x: offset + 2,
+                x: offset + 6,
                 width: 1,
                 height: 32,
                 fill: 'black'
@@ -583,12 +586,16 @@ drawing_functions.keysig = function(keysig, xoffset) {
     };
 };
 
-drawing_functions.varientEndings = (currentEnding, noteAreaWidth) => {
+drawing_functions.varientEndings = (currentEnding, noteAreaWidth, continuation) => {
     var
         startX = (currentEnding.start.xp * noteAreaWidth) - 8,
         endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.xp * noteAreaWidth,
+        path = "";
+        //path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
 
-        path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
+    path = continuation ? `M${startX} -40` : `M${startX} -25L${startX} -40`;
+    path = path + `L${endX} -40`;
+    path = currentEnding.end === null ? path : path + `L${endX} -25`;
 
     var endingGroup = s("g");
 
@@ -606,6 +613,22 @@ drawing_functions.varientEndings = (currentEnding, noteAreaWidth) => {
     }, [currentEnding.name]));
 
     return endingGroup;
+};
+
+drawing_functions.slur = function(currentSymbol, ignore, noteAreaWidth) {
+
+    var 
+        startX = currentSymbol.notes[0].xp * noteAreaWidth+4,
+        startY = currentSymbol.notes[0].y + 8,
+        endX = currentSymbol.notes[currentSymbol.notes.length - 1].xp * noteAreaWidth+4,
+        endY = currentSymbol.notes[currentSymbol.notes.length - 1].y + 8;
+ 
+    var path = `M${startX} ${startY}C${startX+4} ${startY+14}, ${endX - 4} ${endY + 14}, ${endX} ${endY}C${endX+4} ${endY+12}, ${startX - 4} ${startY + 12}, ${startX} ${startY}`;
+
+    return s("path", {
+        d: path,
+        stroke: 'black'
+    });
 };
 
 module.exports = drawing_functions;

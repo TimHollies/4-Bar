@@ -222,7 +222,7 @@ lexer.addRule(/\[/, function() {
 // DATA FIELDS  //
 //////////////////
 
-lexer.addRule(/T: *([\w ]+)(?:\n|$)/, function(match, title) {
+lexer.addRule(/T: *([\w ']+)(?:\n|$)/, function(match, title) {
     return {
         type: "data",
         subtype: "title",

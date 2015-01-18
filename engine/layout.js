@@ -41,7 +41,7 @@ var layoutDrawableLine = function(line) {
 
     for (var i = 0; i < line.symbols.length; i++) {
 
-        if(line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section") continue;
+        if(line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section" || line.symbols[i].type == "slur") continue;
 
         var currentSymbol = line.symbols[i];
 

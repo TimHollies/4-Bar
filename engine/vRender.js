@@ -6,7 +6,8 @@ var s = require('virtual-dom/virtual-hyperscript/svg'),
     patch = require('virtual-dom/patch'),
 
     previousNodeTree,
-    settings;
+    settings,
+    nextLineStartsWithEnding;
 
 function SVG() {
     this.root = s("svg", {
@@ -23,6 +24,7 @@ SVG.prototype.render = (node) => {
 var init = () => {
     previousNodeTree = undefined;
     settings = undefined;
+    nextLineStartsWithEnding = false;
 };
 
 var renderLine = (line, lineIndex) => {
@@ -50,7 +52,8 @@ var renderLine = (line, lineIndex) => {
     var symbolsGroup = s("g", { transform: `translate(${leadInWidth},0)`});
     
 
-    var noteAreaWidth = 800 - leadInWidth;
+    var 
+        noteAreaWidth = 800 - leadInWidth;
 
     for (var i = 0; i < line.symbols.length; i++) {
         if(line.symbols[i].type === "tie")console.log("WAY");
@@ -58,8 +61,20 @@ var renderLine = (line, lineIndex) => {
     }
 
     for(var i = 0; i < line.endings.length; i++) {
-        symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth));
+        symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
     }
+
+    if(nextLineStartsWithEnding) {
+        symbolsGroup.children.push(draw.varientEndings({
+            name: "",
+            start: {
+                xp: 0
+            },
+            end: line.firstEndingEnder
+        }, noteAreaWidth, true));
+    }
+
+    nextLineStartsWithEnding = line.endWithEndingBar;
 
     lineGroup.children.push(symbolsGroup);
 
@@ -76,7 +91,9 @@ var renderTune = (tuneData) => {
     };
     settings.rhythm = "Reel";
 
-    var doc = new SVG();
+    var 
+        doc = new SVG(),
+        nextLineStartsWithEnding = false;
 
     tuneData.scoreLines.map(renderLine).forEach(function(renderedLine) {
         doc.root.children.push(renderedLine);
