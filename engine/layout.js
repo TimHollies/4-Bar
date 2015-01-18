@@ -102,6 +102,7 @@ function handleDataLine(line) {
         dispatcher.send("change_key", line.symbols[0].data);
     }
     if (line.symbols[0].type === "timesig") {
+        tuneSettings.measure = line.symbols[0].data;
         dispatcher.send("change_timesig", line.symbols[0].data);
     }
 }

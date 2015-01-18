@@ -590,7 +590,7 @@ drawing_functions.beam = function(beam, group, noteAreaWidth) {
  * @return {[type]}        [description]
  */
 drawing_functions.keysig = function(keysig, xoffset) {
-    var accidentals = data_tables.keySig[keysig.note][keysig.mode];
+    var accidentals = data_tables.getKeySig(keysig.note, keysig.mode);
     if (accidentals === 0) return;
     var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
     var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;

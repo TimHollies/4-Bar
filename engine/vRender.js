@@ -84,11 +84,6 @@ var renderLine = (line, lineIndex) => {
 var renderTune = (tuneData) => {
 
     settings = tuneData.tuneSettings;
-    console.log("SETTINGS", settings);
-    settings.key = {  
-        note: "E",
-        mode: "Minor"
-    };
     settings.rhythm = "Reel";
 
     var 

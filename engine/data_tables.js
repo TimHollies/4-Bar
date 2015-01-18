@@ -87,196 +87,220 @@ data_tables.symbol_width = {
     "chord_annotation": 0
 };
 
+data_tables.mode_map = {
+    "": "maj",
+    "ion": "maj",
+    "maj": "maj",
+
+    "m": "min",
+    "min": "min",
+    "aeo": "min",
+
+    "mix": "mix",
+    "dor": "dor",
+    "phr": "phr",
+    "lyd": "lyd",
+    "loc": "loc"
+};
+
 data_tables.keySig = {
     "C": {
-        "Major": "0",
-        "Minor": "-3",
-        "Mix": "-1",
-        "Dor": "-2",
-        "Phr": "-4",
-        "Lyd": "1",
-        "Loc": "-5"
+        "maj": "0",
+        "min": "-3",
+        "mix": "-1",
+        "dor": "-2",
+        "phr": "-4",
+        "lyd": "1",
+        "loc": "-5"
     },
     "C#": {
-        "Major": "7",
-        "Minor": "4",
-        "Mix": "6",
-        "Dor": "5",
-        "Phr": "3",
-        "Lyd": "NOPE",
-        "Loc": "2"
+        "maj": "7",
+        "min": "4",
+        "mix": "6",
+        "dor": "5",
+        "phr": "3",
+        "lyd": "NOPE",
+        "loc": "2"
     },
     "Db": {
-        "Major": "-5",
-        "Minor": "NOPE",
-        "Mix": "-6",
-        "Dor": "-7",
-        "Phr": "NOPE",
-        "Lyd": "-4",
-        "Loc": "NOPE"
+        "maj": "-5",
+        "min": "NOPE",
+        "mix": "-6",
+        "dor": "-7",
+        "phr": "NOPE",
+        "lyd": "-4",
+        "loc": "NOPE"
     },
     "D": {
-        "Major": "2",
-        "Minor": "-1",
-        "Mix": "1",
-        "Dor": "0",
-        "Phr": "-2",
-        "Lyd": "3",
-        "Loc": "-3"
+        "maj": "2",
+        "min": "-1",
+        "mix": "1",
+        "dor": "0",
+        "phr": "-2",
+        "lyd": "3",
+        "loc": "-3"
     },
     "D#": {
-        "Major": "6",
-        "Minor": "NOPE",
-        "Mix": "NOPE",
-        "Dor": "7",
-        "Phr": "5",
-        "Lyd": "",
-        "Loc": "4"
+        "maj": "6",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "7",
+        "phr": "5",
+        "lyd": "",
+        "loc": "4"
     },
     "Eb": {
-        "Major": "-3",
-        "Minor": "-6",
-        "Mix": "-4",
-        "Dor": "-5",
-        "Phr": "-7",
-        "Lyd": "-2",
-        "Loc": "NOPE"
+        "maj": "-3",
+        "min": "-6",
+        "mix": "-4",
+        "dor": "-5",
+        "phr": "-7",
+        "lyd": "-2",
+        "loc": "NOPE"
     },
     "E": {
-        "Major": "4",
-        "Minor": "1",
-        "Mix": "3",
-        "Dor": "2",
-        "Phr": "0",
-        "Lyd": "5",
-        "Loc": "-1"
+        "maj": "4",
+        "min": "1",
+        "mix": "3",
+        "dor": "2",
+        "phr": "0",
+        "lyd": "5",
+        "loc": "-1"
     },
     "E#": {
-        "Major": "NOPE",
-        "Minor": "NOPE",
-        "Mix": "NOPE",
-        "Dor": "NOPE",
-        "Phr": "7",
-        "Lyd": "NOPE",
-        "Loc": "6"
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "7",
+        "lyd": "NOPE",
+        "loc": "6"
     },
     "Fb": {
-        "Major": "NOPE",
-        "Minor": "NOPE",
-        "Mix": "NOPE",
-        "Dor": "NOPE",
-        "Phr": "NOPE",
-        "Lyd": "-7",
-        "Loc": "NOPE"
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-7",
+        "loc": "NOPE"
     },
     "F": {
-        "Major": "-1",
-        "Minor": "-4",
-        "Mix": "-2",
-        "Dor": "-3",
-        "Phr": "-5",
-        "Lyd": "0",
-        "Loc": "-6"
+        "maj": "-1",
+        "min": "-4",
+        "mix": "-2",
+        "dor": "-3",
+        "phr": "-5",
+        "lyd": "0",
+        "loc": "-6"
     },
     "F#": {
-        "Major": "6",
-        "Minor": "3",
-        "Mix": "5",
-        "Dor": "4",
-        "Phr": "2",
-        "Lyd": "7",
-        "Loc": "1"
+        "maj": "6",
+        "min": "3",
+        "mix": "5",
+        "dor": "4",
+        "phr": "2",
+        "lyd": "7",
+        "loc": "1"
     },
     "Gb": {
-        "Major": "-6",
-        "Minor": "NOPE",
-        "Mix": "-7",
-        "Dor": "NOPE",
-        "Phr": "NOPE",
-        "Lyd": "-5",
-        "Loc": "NOPE"
+        "maj": "-6",
+        "min": "NOPE",
+        "mix": "-7",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-5",
+        "loc": "NOPE"
     },
     "G": {
-        "Major": "1",
-        "Minor": "-2",
-        "Mix": "0",
-        "Dor": "-1",
-        "Phr": "-3",
-        "Lyd": "2",
-        "Loc": "-4"
+        "maj": "1",
+        "min": "-2",
+        "mix": "0",
+        "dor": "-1",
+        "phr": "-3",
+        "lyd": "2",
+        "loc": "-4"
     },
     "G#": {
-        "Major": "NOPE",
-        "Minor": "5",
-        "Mix": "7",
-        "Dor": "6",
-        "Phr": "4",
-        "Lyd": "NOPE",
-        "Loc": "3"
+        "maj": "NOPE",
+        "min": "5",
+        "mix": "7",
+        "dor": "6",
+        "phr": "4",
+        "lyd": "NOPE",
+        "loc": "3"
     },
     "Ab": {
-        "Major": "-4",
-        "Minor": "-7",
-        "Mix": "-5",
-        "Dor": "-6",
-        "Phr": "NOPE",
-        "Lyd": "-3",
-        "Loc": "NOPE"
+        "maj": "-4",
+        "min": "-7",
+        "mix": "-5",
+        "dor": "-6",
+        "phr": "NOPE",
+        "lyd": "-3",
+        "loc": "NOPE"
     },
     "A": {
-        "Major": "3",
-        "Minor": "0",
-        "Mix": "2",
-        "Dor": "1",
-        "Phr": "-1",
-        "Lyd": "4",
-        "Loc": "-2"
+        "maj": "3",
+        "min": "0",
+        "mix": "2",
+        "dor": "1",
+        "phr": "-1",
+        "lyd": "4",
+        "loc": "-2"
     },
     "A#": {
-        "Major": "NOPE",
-        "Minor": "7",
-        "Mix": "NOPE",
-        "Dor": "NOPE",
-        "Phr": "6",
-        "Lyd": "NOPE",
-        "Loc": "5"
+        "maj": "NOPE",
+        "min": "7",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "6",
+        "lyd": "NOPE",
+        "loc": "5"
     },
     "Bb": {
-        "Major": "-2",
-        "Minor": "-5",
-        "Mix": "-3",
-        "Dor": "-4",
-        "Phr": "-6",
-        "Lyd": "-1",
-        "Loc": "-7"
+        "maj": "-2",
+        "min": "-5",
+        "mix": "-3",
+        "dor": "-4",
+        "phr": "-6",
+        "lyd": "-1",
+        "loc": "-7"
     },
     "B": {
-        "Major": "5",
-        "Minor": "2",
-        "Mix": "4",
-        "Dor": "3",
-        "Phr": "1",
-        "Lyd": "6",
-        "Loc": "0"
+        "maj": "5",
+        "min": "2",
+        "mix": "4",
+        "dor": "3",
+        "phr": "1",
+        "lyd": "6",
+        "loc": "0"
     },
     "B#": {
-        "Major": "NOPE",
-        "Minor": "NOPE",
-        "Mix": "NOPE",
-        "Dor": "NOPE",
-        "Phr": "NOPE",
-        "Lyd": "NOPE",
-        "Loc": "7"
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "NOPE",
+        "loc": "7"
     },
     "Cb": {
-        "Major": "-7",
-        "Minor": "NOPE",
-        "Mix": "NOPE",
-        "Dor": "NOPE",
-        "Phr": "NOPE",
-        "Lyd": "-6",
-        "Loc": "NOPE"
+        "maj": "-7",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-6",
+        "loc": "NOPE"
     }
+};
+
+data_tables.getKeySig = (note, mode) => {
+    var 
+        lowerMode = mode.toLowerCase().substr(0, 3),
+        normalisedMode = data_tables.mode_map[lowerMode];
+
+    return data_tables.keySig[note][normalisedMode];
 };
 
 data_tables.flats = [6, 9, 5, 8, 4, 7, 3];
