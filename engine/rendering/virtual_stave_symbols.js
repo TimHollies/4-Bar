@@ -390,31 +390,57 @@ drawing_functions.barline = function(currentSymbol, offset) {
             break; 
 
         case "double_repeat":
-           /* barline_group.rect(4, 32).move(totalOffset, 0).attr({
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2,
+                width: 4,
+                height: 32,
                 fill: 'black'
-            });
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset + 5,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset - 6,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
 
-            barline_group.rect(1, 32).move(totalOffset + 5, 0).attr({
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 12,
                 fill: 'black'
-            });
-            barline_group.rect(1, 32).move(totalOffset - 4, 0).attr({
-                fill: 'black'
-            });
-            barline_group.circle(4).move(totalOffset + 10, 10).attr({
-                fill: 'black'
-            });
+            }));
 
-            barline_group.circle(4).move(totalOffset + 10, 19).attr({
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 20,
                 fill: 'black'
-            });
-            barline_group.circle(4).move(totalOffset - 12, 10).attr({
-                fill: 'black'
-            });
+            }));
 
-            barline_group.circle(4).move(totalOffset - 12, 19).attr({
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 12,
                 fill: 'black'
-            });
-            break;*/
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 20,
+                fill: 'black'
+            }));
+            break;
 
         default:
     }
