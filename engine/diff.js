@@ -44,7 +44,7 @@ var Diff = function(change) {
              lineCount += newlines;
          }
 
-         output.push(newLineCollection);
+         if(newLineCollection.action != 'NONE')output.push(newLineCollection);
      }
 
      return output;

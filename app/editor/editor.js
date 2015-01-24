@@ -81,7 +81,46 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     window.ed = editor;
 
-    editor.on("change", function(instance) {
+    editor.on("change", function(instance, changeObj) {
+
+        var endPos = CodeMirror.changeEnd(changeObj);
+
+        console.log("CHANGED", changeObj);
+        console.log("CHANGED", endPos);
+
+        var
+            linesRemoved = changeObj.removed.length,
+            linesAdded = changeObj.text.length;
+
+        var deletions = {
+            startId: changeObj.from.line,
+            count: linesRemoved,
+            action: "DEL",
+            lines: []
+        }; 
+
+        for(var i=0; i<linesRemoved; i++) {
+            deletions.lines[i] = new AbcLine("", changeObj.from.line + i);
+        }
+
+        var count = (endPos.line - changeObj.from.line) + 1;
+
+        var additions = {
+            startId: changeObj.from.line,
+            count: linesAdded,
+            lines: [],
+            action: "ADD"
+        };
+
+        for(var i=0; i<count; i++) {
+            additions.lines[i] = new AbcLine(instance.getLine(additions.startId + i), changeObj.from.line + i);
+        }
+
+        console.log("CHANGE    ADDED: ", additions, "  REMOVED: ", deletions);
+
+        var diffed = [deletions, additions];
+
+        rerenderScore(diffed);
         ractive.set("inputValue", instance.getValue());
     });
 
@@ -130,16 +169,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     var oldInputValue = "";
 
-    function rerenderScore(change) {
-
-        console.log("REDRAW", change);
-
-        change = {
-            newValue: ractive.get('inputValue'),
-            oldValue: oldInputValue
-        };
-
-        var diffed = diff(change);
+    function rerenderScore(diffed) {             
 
         diffed.filter((c) => c.action === "DEL").forEach((item) => {
             errors = errors.filter((err) => {
@@ -162,18 +192,8 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
         renderer(done);
 
-        oldInputValue = change.newValue;
         console.log("done", done);
     }
-
-    var debouncedRerenderScore = _.debounce(rerenderScore, 100);
-
-    ractive.observe('inputValue', function(newValue, oldValue) {
-        debouncedRerenderScore({
-            newValue: newValue,
-            oldValue: oldValue || ""
-        });
-    });
 
     function completelyRerenderScore() {
 

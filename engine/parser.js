@@ -22,6 +22,7 @@ var ABCParser = () => {
     var dicache = new Map();
     var drawableIndex = 0;
     var decorationstack = [];
+    var maxStartId = 0;
 
     var transpose = 0;
 
@@ -387,7 +388,21 @@ var ABCParser = () => {
     }
 
     return (lineCollection) => {
-        if (lineCollection.startId === 0) drawableIndex = 0;
+        //if (lineCollection.startId === 0) drawableIndex = 0;
+        if (lineCollection.startId < maxStartId) {      
+            drawableIndex = 0;
+            for(var i=0; i<lineCollection.startId; i++) {
+                if (typecache.get(i) === "drawable") drawableIndex++;
+            }
+        } 
+
+        if(lineCollection.startId > maxStartId) {
+            for(var i = maxStartId; i<lineCollection.startId; i++) {
+                if (typecache.get(i) === "drawable") drawableIndex++;
+            }
+        }
+
+        maxStartId = lineCollection.startId + lineCollection.count;
 
         if (lineCollection.action === "ADD") {
             lineCollection.lines.forEach(processAddedLine);
@@ -397,9 +412,9 @@ var ABCParser = () => {
             lineCollection.lines.forEach(processDeletedLine);
         }
 
-        if (lineCollection.action === "NONE") {
-            lineCollection.lines.forEach(processUnmodifiedLine);
-        }
+        //if (lineCollection.action === "NONE") {
+        //    lineCollection.lines.forEach(processUnmodifiedLine);
+        //}
 
         return lineCollection;
     };
