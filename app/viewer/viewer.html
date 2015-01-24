@@ -17,11 +17,21 @@
             {{/if}}
         </div>
     </div>
-    <div class="row toolbar" intro='fade:{ delay: 100 }'>
+    <!--<div class="row toolbar" intro='fade:{ delay: 100 }'>
         {{errors}}
         <div id="t1"></div>
-    </div>
-    <div class="row editor viewer" intro='fade' id="fullscreenZone">
-        <div id="canvas"> 
+    </div>-->
+    <div class="viewer-area">
+        <div class="tune-information-card">
+            <div class="card">
+                <h1>{{tune.name}}</h1>
+                <h2>{{tune.settings.type}} {{tune.settings.key}}</h2>
+                <p>Added by <strong>Tim Hollies</strong> on {{tune.metadata.createdOn}}</p>
+                <button on-click="edit_tune">Edit Tune</button>
+            </div>
+        </div>
+        <div class="row editor viewer" intro='fade' id="fullscreenZone">
+            <div id="canvas"> 
+        </div>
     </div>
 </section>

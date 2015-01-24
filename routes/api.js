@@ -10,10 +10,8 @@ router.get('/tunes', function(req, res) {
     var collection = db.get("tunes");
 
     collection.find({
-        public: true
-    }, {
-        limit: 20
-    }, function(e, docs) {
+        'metadata.public': true
+    }, "_id name settings metadata", function(e, docs) {
         res.json(docs);
     })
 
@@ -21,7 +19,7 @@ router.get('/tunes', function(req, res) {
 
 router.get('/tune/:id', function(req, res) {
     var collection = db.get("tunes");
-    collection.findById(req.params.id,
+    collection.findById(req.params.id,        
         function(e, docs) {
             res.json(docs);
         });

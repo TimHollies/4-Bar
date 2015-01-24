@@ -8,18 +8,18 @@ var
     toastr = require('vendor').toastr,
     screenfull = require('vendor').screenfull,
     engine = require('engine/engine'),
-    vRender = require('engine/vRender.js'),
     initializeUI = require("./ui"),
-    parser = engine.parser,
-    renderer = engine.render,
+
+    ABCParser = engine.parser,
+    ABCRenderer = engine.render,
     diff = engine.diff,
     dispatcher = engine.dispatcher,
-    layout = engine.layout;
+    ABCLayout = engine.layout;
 
 function parseQuery(qstr) {
     var query = {};
     var a = qstr.split('&');
-    for (var i in a) {
+    for (var i = 0; i<a.length; i++) {
         var b = a[i].split('=');
         query[decodeURIComponent(b[0])] = decodeURIComponent(b[1]);
     }
@@ -32,8 +32,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     var parameters = parseQuery(urlcontext.querystring);
 
-    //renderer.initialize();
-    vRender.init();
+    var parser = ABCParser(),
+        layout = ABCLayout(),
+        renderer = ABCRenderer();
 
     dispatcher.on({
         "edit_tune": function() {
@@ -61,14 +62,10 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     ractive.on({
         "navigate_back": function() {
-            page("/");
-        }
+            window.history.back();
+        },
+        "edit_tune": () => { page("/editor?tuneid=" + ractive.get('tune')._id); }
     });
-
-    $.getJSON("/api/tunes")
-        .then(function(data) {
-            ractive.set("tuneNames", data);
-        });
 
     ractive.set("filterTuneNames", function(tuneNames, filter) {
         if (filter.length <= 0) return tuneNames;
@@ -81,19 +78,23 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
             ractive.set("tune", res);
 
-            initializeUI(!res.public);
+            //initializeUI(!res.public);
 
-            layout.init();
+            window.testTune = res.raw;
 
             var done = diff({
-                    newValue: res.data,
+                    newValue: res.raw,
                     oldValue: ""
                 })
                 .map(parser)
-                .reduce(layout.onNext, 0);
+                .reduce(layout, 0);
 
-            vRender.render(done);
+            renderer(done);
         });
+    }
+
+    if(parameters.transpose) {
+        dispatcher.send("transpose_change", parseInt(parameters.transpose));
     }
     // toastr.success("YAY");
 };

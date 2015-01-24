@@ -5,6 +5,7 @@
 @import '../../node_modules/font-awesome/scss/font-awesome.scss';
 
 @import 'codemirror/codemirror.scss';
+@import 'codemirror/codemirror_lint.scss';
 
 @import 'layout';
 
@@ -19,21 +20,22 @@ body {
     &.image {
         background-image: url('/styles/images/background.png');
     }    
-}
+} 
 
 dialog {
     z-index: 10000;
 }
 
 #abc-container {
-    //display: flex;
-    //flex-direction: column;
+    display: flex;
+    flex-direction: column;
     //padding: 20px;
     position: absolute;
     top: 98px;
     bottom: 0px;
     left: 0px;
     width: 30%;
+    background-color: rgb(182, 182, 182);
     .CodeMirror {
         height: 100%;
         font-size: 13pt;
@@ -215,4 +217,13 @@ h1, h2, h3, h4 {
     height: 48px;
     border-radius: 50%;
     cursor: pointer;
+}
+
+.styled-background {
+  color: red;
+  font-weight: 700;
+}
+
+.error-markers {
+    width: 16px;
 }

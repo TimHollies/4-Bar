@@ -23,7 +23,7 @@ AbcLine.prototype.endWithEndingBar = false;
 
 LineCollection = function(id, raw, action) {
     
-    var split = raw.split('\n');
+    var split = raw.split(/\r\n|\r|\n/);
 
     if (split[split.length - 1] === '') {
         split = split.slice(0, split.length - 1);

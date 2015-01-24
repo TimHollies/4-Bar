@@ -12,7 +12,26 @@ var dispatcherEvents = {
     },
     "Save": function() {
         dispatcher.send("save_tune");
-    }
+    }, 
+
+
+    "+7" : () => { dispatcher.send("transpose_change", 7); },
+    "+6" : () => { dispatcher.send("transpose_change", 6); },
+    "+5" : () => { dispatcher.send("transpose_change", 5); },
+    "+4" : () => { dispatcher.send("transpose_change", 4); },
+    "+3" : () => { dispatcher.send("transpose_change", 3); },
+    "+2" : () => { dispatcher.send("transpose_change", 2); },
+    "+1" : () => { dispatcher.send("transpose_change", 1); },
+
+    "No Transposition" : () => { dispatcher.send("transpose_change", 0); },
+
+    "-1" : () => { dispatcher.send("transpose_change", -1); },
+    "-2" : () => { dispatcher.send("transpose_change", -2); },
+    "-3" : () => { dispatcher.send("transpose_change", -3); },
+    "-4" : () => { dispatcher.send("transpose_change", -4); },
+    "-5" : () => { dispatcher.send("transpose_change", -5); },
+    "-6" : () => { dispatcher.send("transpose_change", -6); },
+    "-7" : () => { dispatcher.send("transpose_change", -7); }
 };
 
 function logEvent(e) {
@@ -48,9 +67,30 @@ var createToolbar = function() {
 
     var menu1 = new goog.ui.Menu();
     menu1.setId("transposeMenu");
-    menu1.addItem(new goog.ui.MenuItem('No Transposition'));
-    menu1.addItem(new goog.ui.MenuItem('Trumpet/Clarinet Bb'));
-    menu1.addItem(new goog.ui.MenuItem('Sax Eb'));
+
+    [
+        '+7',
+        '+6',
+        '+5',
+        '+4',
+        '+3',
+        '+2',
+        '+1',
+        'No Transposition',
+        '-1',
+        '-2',
+        '-3',
+        '-4',
+        '-5',
+        '-6',
+        '-7',
+    ].forEach((item)=>{
+        menu1.addItem(new goog.ui.MenuItem(item));
+    });
+
+    //menu1.addItem(new goog.ui.MenuItem('No Transposition'));
+    //menu1.addItem(new goog.ui.MenuItem('Trumpet/Clarinet Bb'));
+    //menu1.addItem(new goog.ui.MenuItem('Sax Eb'));
 
     t1.addChild(new goog.ui.ToolbarSelect("No Transposition", menu1), true);
 

@@ -7,12 +7,18 @@ var drawing_functions = {},
     glyphs = require('./glyphs'),
     _ = require('vendor').lodash,
     SVG = require('vendor').svgjs,
-    data_tables = require("../data_tables");
+    data_tables = require("../data_tables"),
+    dispatcher = require("../dispatcher");
 
 var
     POS_SWITCH = 6,
     MAX_GRAD = 0.05, 
     STEM_LENGTH = 28;
+
+var transpose = 0;
+dispatcher.on("transpose_change", function(data) {
+    transpose = data;
+});
 
 /**
  * Draws a stave of width 'width'
@@ -91,7 +97,7 @@ drawing_functions.note = (currentNote, offset, noteAreaWidth) => {
            y: -20,
            fill: "black",
            transform: "scale(0.8, 0.8)"
-        }, [currentNote.chord]));
+        }, [currentNote.chord.getText(transpose)]));
     }
 
     //ledger line
@@ -589,13 +595,38 @@ drawing_functions.beam = function(beam, group, noteAreaWidth) {
  * @param  {[type]} keysig [description]
  * @return {[type]}        [description]
  */
-drawing_functions.keysig = function(keysig, xoffset) {
-    var accidentals = data_tables.getKeySig(keysig.note, keysig.mode);
-    if (accidentals === 0) return;
-    var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
-    var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;
+drawing_functions.keysig = function(keysig, xoffset, lineId) {
 
     var keySigGroup = s("g");
+    var undefined;
+
+    var accidentals = data_tables.getKeySig(keysig.note, keysig.mode) + transpose;
+
+    
+    dispatcher.send("remove_abc_error", "KEYSIG");
+
+    if(_.isNaN(accidentals)) {
+        var error = {
+            line: lineId,
+            message: `Malformed key signature: ${keysig.note + keysig.mode}`,
+            severity: 1,
+            type: "KEYSIG"
+        };
+
+        console.log(error);
+
+        dispatcher.send("abc_error", error);
+
+        return false;
+    }
+
+    if (accidentals === 0) return {
+        node: keySigGroup,
+        width: 0
+    };
+
+    var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
+    var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;    
 
     for (var i = 0; i < Math.abs(accidentals); i++) {
 

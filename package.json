@@ -45,7 +45,8 @@
     "static-favicon": "~1.0.0",
     "svg.js": "~1.0.0",
     "toastr": "~2.0.4",
-    "wkhtmltopdf": "~0.1.5"
+    "wkhtmltopdf": "~0.1.5",
+    "zazate.js": "0.0.0"
   },
   "devDependencies": {
     "aliasify": "~1.4.0",
@@ -66,6 +67,7 @@
     "minifyify": "~4.4.0",
     "mocha": "~2.0.1",
     "nightwatch": "~0.5.32",
+    "request": "^2.51.0",
     "requirejs": "~2.1.14",
     "sass-loader": "~0.3.0",
     "stack-trace": "0.0.9",

@@ -27,7 +27,7 @@ var Diff = function(change) {
              newlines = 0,
              split = [];
 
-         split = item.value.split('\n');
+         split = item.value.split(/\r\n|\r|\n/);
 
          if (split[split.length - 1] === '') {
              split = split.slice(0, split.length - 1);

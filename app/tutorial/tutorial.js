@@ -19,7 +19,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             page("/editor");
         },
         "navigate_back": function(event) {
-            page.show("/");
+            window.history.back();
         },
         "goto_p1": (event) => {
             console.log("p1");

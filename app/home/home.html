@@ -2,7 +2,7 @@
     <div class="header row coloured" intro='fade'>
         <div class="central-menu">
             <div class="app-name">
-                <h1>WebABC</h1><small>Version 0.0.1</small>
+                <h1>4Bar</h1><small>High performance music typesetting</small>
             </div>
         </div>
         {{>userbox}}
@@ -23,21 +23,52 @@
                 <h3>My Tunes</h3>
                 <ul class="item-list">
                     {{#each myTuneNames}}
-                        <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>{{createdOn}} - {{metadata.type}} - {{metadata.key}}</small></li>
+                        <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>{{metadata.createdOn}} - {{settings.type}} - {{settings.key}}</small></li>
                     {{/each}}
                 </ul>
             </div>
         </div>
         <div class="column three-quarters" intro='fade:{ delay: 200 }' id='task-pane'>
-            <div class="text-area-padding">
+            <div class="text-area-padding scroll-list">
                 <h3>Public Tunes</h3>
                 <div id="search-box">
                     <i class="fa fa-search"></i>
-                    <input on-change="updated_search" type="text" value="{{search_filter}}" />                
+                    <input on-change="updated_search" type="text" value="{{search_filter}}" />                               
                 </div>
+                <div class="search-options-bar">
+
+                    <div class="search-option">
+                        <label>Key</label>
+                        <select>
+                            <option>All</option>
+                        </select>
+                    </div>
+
+                    <div class="search-option">
+                        <label>Rhythm</label>
+                        <select>
+                            <option>All</option>
+                        </select>
+                    </div>
+
+                    <div class="search-option">
+                        <label>Type</label>
+                        <select>
+                            <option>All</option>
+                        </select>
+                    </div>
+
+                    <div class="search-option">
+                        <label>Time Signature</label>
+                        <select>
+                            <option>All</option>
+                        </select>
+                    </div>
+                        
+                </div> 
                 <ul class="item-list">
                     {{#each filterTuneNames(publicTuneNames, search_filter)}}
-                        <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>{{createdOn}} - {{metadata.type}} - {{metadata.key}}</small></li>
+                        <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>{{metadata.createdOn}} - {{settings.type}} - {{settings.key}}</small></li>
                     {{/each}}
                 </ul>
             </div>

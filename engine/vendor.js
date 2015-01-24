@@ -10,7 +10,9 @@ module.exports = {
     page: require('page'),
     jsDiff: require('diff'),
     codeMirror: require('codemirror'),
+    codeMirrorLint: require('codemirror/addon/lint/lint'),
     filesaver: require('filesaver.js'),
     combokeys: require('combokeys'),
-    screenfull: require('screenfull')
+    screenfull: require('screenfull'),
+    zazate: require('zazate.js')
 };

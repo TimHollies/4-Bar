@@ -2,7 +2,8 @@
 
 var
     _ = require('vendor').lodash,
-    Lexer = require('vendor').lex;
+    Lexer = require('vendor').lex,
+    dispatcher = require('./dispatcher');
 
 //////////////////////
 // HELPER FUNCTIONS //
@@ -30,11 +31,22 @@ var addSimpleStringInformationField = function(spec, key, type) {
 }
 
 
+
+function LexerException(message, line, char) {
+    this.message = message;
+    this.line = line;
+    this.char = char;
+    this.name = "LexerException";
+}  
+
+
 ////////////////////////////////
 //            LEXER           //
 ////////////////////////////////
 
-var lexer = new Lexer;
+var lexer = new Lexer(function (char) {
+    throw new LexerException(`Unexpected '${char}'`, 0, this.index);
+});
 
 ///////////
 // NOTES //
@@ -222,7 +234,7 @@ lexer.addRule(/\[/, function() {
 // DATA FIELDS  //
 //////////////////
 
-lexer.addRule(/T: *([\w ']+)(?:\n|$)/, function(match, title) {
+lexer.addRule(/T: *([\w ',?]+)\s*$/, function(match, title) {
     return {
         type: "data",
         subtype: "title",
@@ -230,7 +242,7 @@ lexer.addRule(/T: *([\w ']+)(?:\n|$)/, function(match, title) {
     }
 });
 
-lexer.addRule(/X: *([0-9]+)(?:\n|$)/, function(match, num) {
+lexer.addRule(/X: *([0-9]+)\s*$/, function(match, num) {
     return {
         type: "data",
         subtype: "number",
@@ -238,7 +250,7 @@ lexer.addRule(/X: *([0-9]+)(?:\n|$)/, function(match, num) {
     }
 });
 
-lexer.addRule(/R: *([\w ]+)(?:\n|$)/, function(match, rhythm) {
+lexer.addRule(/R: *([\w ]+)\s*$/, function(match, rhythm) {
     return {
         type: "data",
         subtype: "rhythm",
@@ -246,7 +258,23 @@ lexer.addRule(/R: *([\w ]+)(?:\n|$)/, function(match, rhythm) {
     }
 });
 
-lexer.addRule(/M: *([0-9]+)\/([0-9]+)(?:\n|$)/, function(match, top, bottom) {
+lexer.addRule(/S: *([\w \/:\.#]+)\s*$/, function(match, source) {
+    return {
+        type: "data",
+        subtype: "source",
+        data: source
+    }
+});
+
+lexer.addRule(/Z: *([\w \/:\.#]+)\s*$/, function(match, source) {
+    return {
+        type: "data",
+        subtype: "transcriber",
+        data: source
+    }
+});
+
+lexer.addRule(/M: *([0-9]+)\/([0-9]+)\s*$/, function(match, top, bottom) {
     return {
         type: "data",
         subtype: "timesig",
@@ -257,7 +285,7 @@ lexer.addRule(/M: *([0-9]+)\/([0-9]+)(?:\n|$)/, function(match, top, bottom) {
     }
 });
 
-lexer.addRule(/L: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
+lexer.addRule(/L: *([0-9]+)\/([0-9])\s*$/, function(match, top, bottom) {
     return {
         type: "data",
         subtype: "notelength",
@@ -265,7 +293,7 @@ lexer.addRule(/L: *([0-9]+)\/([0-9])(?:\n|$)/, function(match, top, bottom) {
     }
 });
 
-lexer.addRule(/K: *([A-G][#|b]?) ?([\w]*)(?:\n|$)/, function(match, note, mode) {
+lexer.addRule(/K: *([A-G][#|b]?) ?([\w]*)\s*$/, function(match, note, mode) {
     return {
         type: "data",
         subtype: "key",
@@ -289,12 +317,33 @@ lexer.addRule(/ /, function() {
     }
 });
 
-module.exports = function(input) {
+module.exports = function(input, lineId) {
     lexer.setInput(input);
-    var output = [];
-    for(var i=0, data = lexer.lex(); data != undefined; data = lexer.lex()) {
-        output[i] = data;
-        i++;
+    var output = [],
+        data = lexer.lex();
+
+    while(data != undefined) {  
+
+        output.push(data);
+        try {
+            data = lexer.lex();
+        } catch(e) {
+            
+            var error = {
+                line: lineId,
+                message: e.message,
+                severity: 1,
+                char: e.char,
+                type: "LEXERERROR"
+            };
+
+            console.log(error);
+
+            dispatcher.send("abc_error", error);
+
+            break;
+        }           
     }
+
     return output;
 };

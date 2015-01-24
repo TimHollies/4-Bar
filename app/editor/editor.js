@@ -3,18 +3,21 @@
 var
     _ = require('vendor').lodash,
     engine = require('engine/engine'),
-    parser = engine.parser,
-    renderer = engine.render,
+
+    ABCParser = engine.parser,
     diff = engine.diff,
     dispatcher = engine.dispatcher,
-    layout = engine.layout,
+    ABCLayout = engine.layout,
+    ABCRenderer = engine.render,
+
     $ = require('vendor').jquery,
     enums = require('engine/types'),
+    CodeMirrorABCMode = require('engine/abc_mode'),
     CodeMirror = require('vendor').codeMirror,
+    CodeMirrorLint = require('vendor').codeMirrorLint,
     initializeUI = require("./ui"),
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
-    vRender = require('engine/vRender.js'),
     Combokeys = require('vendor').combokeys,
     Divvy = require('engine/scripts/divvy/divvy.js');
 
@@ -43,7 +46,7 @@ var textFile = null,
 function parseQuery(qstr) {
     var query = {};
     var a = qstr.split('&');
-    for (var i in a) {
+    for (var i = 0; i<a.length; i++) {
         var b = a[i].split('=');
         query[decodeURIComponent(b[0])] = decodeURIComponent(b[1]);
     }
@@ -53,8 +56,13 @@ function parseQuery(qstr) {
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
-    vRender.init();
-    layout.init();
+    var parser = ABCParser(),
+        layout = ABCLayout(),
+        renderer = ABCRenderer();
+
+    var errors = [];
+
+    ractive.set("errors", errors);
 
    /*var divvy = new Divvy({
         el: document.getElementById("editor-section"), // this is a reference to the container DOM element
@@ -66,8 +74,12 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     var editor = CodeMirror.fromTextArea(document.getElementById("abc"), {
         lineNumbers: true,
-        mode: "htmlmixed"
+        mode: "abc",
+        gutters: ["error-markers"],
+        //lint: true
     });
+
+    window.ed = editor;
 
     editor.on("change", function(instance) {
         ractive.set("inputValue", instance.getValue());
@@ -78,6 +90,24 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             start: instance.getCursor(true).line,
             stop: instance.getCursor(false).line
         });
+    });
+
+    dispatcher.on({
+        "abc_error": (data) => {
+            
+            data.textMarker = editor.markText({line: data.line, ch: data.char-1}, {line: data.line, ch: data.char}, {className: "styled-background"});
+
+            editor.setGutterMarker(data.line, "error-markers", document.createRange().createContextualFragment('<i class="fa fa-times-circle" style="color:red;padding-left: 4px;"></i>'));
+
+            errors.push(data); 
+
+            //ractive.update( 'errors' );
+            ractive.set("errors", errors);
+        },
+        "remove_abc_error": (data) => {
+            errors = errors.filter((c) => c.type !== data);
+            ractive.set("errors", errors);
+        }
     });
 
 
@@ -98,18 +128,45 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         };
     }
 
+    var oldInputValue = "";
+
     function rerenderScore(change) {
 
-        var done = diff(change)
+        console.log("REDRAW", change);
+
+        change = {
+            newValue: ractive.get('inputValue'),
+            oldValue: oldInputValue
+        };
+
+        var diffed = diff(change);
+
+        diffed.filter((c) => c.action === "DEL").forEach((item) => {
+            errors = errors.filter((err) => {
+                if(err.line < item.startId || err.line >= (item.startId + item.count)) {
+                    return true;
+                }
+                if(err.textMarker)err.textMarker.clear();
+                editor.setGutterMarker(err.line, "error-markers", null);
+                return false;
+            });
+        });
+
+        //ractive.update( 'errors' );
+        ractive.set("errors", errors);
+
+        var done = diffed
             .map(parser)
-            .reduce(layout.onNext, 0);
+            .reduce(layout, 0);
 
 
-        vRender.render(done);
+        renderer(done);
+
+        oldInputValue = change.newValue;
         console.log("done", done);
     }
 
-    var debouncedRerenderScore = _.debounce(rerenderScore, 50);
+    var debouncedRerenderScore = _.debounce(rerenderScore, 100);
 
     ractive.observe('inputValue', function(newValue, oldValue) {
         debouncedRerenderScore({
@@ -118,13 +175,34 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         });
     });
 
+    function completelyRerenderScore() {
+
+        $("#canvas").empty();
+
+        parser = ABCParser();
+        layout = ABCLayout();
+        renderer = ABCRenderer();
+
+        var done = diff({
+            newValue: ractive.get('inputValue'),
+            oldValue: ""
+        })
+        .map(parser)
+        .reduce(layout, 0);
+
+        renderer(done);
+        console.log("done", done);
+    }
+
+    dispatcher.after("transpose_change", completelyRerenderScore);
+
     var oldStart = -1,
         oldStop = -1;
 
     //handle events
     ractive.on({
         "navigate_back": function(event) {
-            page.show("/");
+            window.history.back();
         },
         "share_url_modal_close": function() {
             dialog.close();
@@ -163,12 +241,16 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     if (parameters.tuneid) {
         $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
-            editor.setValue(res.data);
+            editor.setValue(res.raw);
         });
     }
 
     if (parameters.tune) {
         editor.setValue(parameters.tune);
+    }
+
+    if(parameters.transpose) {
+        dispatcher.send("transpose_change", parseInt(parameters.transpose));
     }
 
     var combokeys = new Combokeys(document.getElementById("view-editor"));
@@ -179,5 +261,5 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     });
 
     editor.setValue("X: 1\nT: " + emptyTuneName);
-    initializeUI();
+    //initializeUI();
 };

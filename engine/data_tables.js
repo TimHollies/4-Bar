@@ -1,6 +1,7 @@
 'use strict';
 
-var data_tables = {};
+var data_tables = {},
+    dispatcher = require('./dispatcher');
 
 data_tables["notes"] = {
     "C": {
@@ -300,7 +301,7 @@ data_tables.getKeySig = (note, mode) => {
         lowerMode = mode.toLowerCase().substr(0, 3),
         normalisedMode = data_tables.mode_map[lowerMode];
 
-    return data_tables.keySig[note][normalisedMode];
+    return parseInt(data_tables.keySig[note][normalisedMode]);
 };
 
 data_tables.flats = [6, 9, 5, 8, 4, 7, 3];

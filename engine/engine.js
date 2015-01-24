@@ -2,8 +2,8 @@
 
 module.exports = {
 	parser: require('./parser'),
-	render: require('./render'),
 	diff: require('./diff'),
+	render: require('./render'),
 	layout: require('./layout'),
 	dispatcher: require('./dispatcher')
 };
