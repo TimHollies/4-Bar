@@ -11,7 +11,7 @@ switch (os.hostname()) {
         break;
     case "www":
         module.exports = {
-        	url: "www.bzdbbb.co.uk",
+        	url: "198.91.86.144",
             port: "3000"
         };
         break;
