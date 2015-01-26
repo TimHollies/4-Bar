@@ -8,7 +8,7 @@ var
     toastr = require('vendor').toastr,
     screenfull = require('vendor').screenfull,
     engine = require('engine/engine'),
-    initializeUI = require("./ui"),
+    //initializeUI = require("./ui"),
 
     ABCParser = engine.parser,
     ABCRenderer = engine.render,

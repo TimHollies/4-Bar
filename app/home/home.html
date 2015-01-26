@@ -7,10 +7,10 @@
         </div>
         {{>userbox}}
     </div>
-    <div class="row editor">
+    <div class="row">
         <div class="column quarter right-divide" intro='fade:{ delay: 100 }'>            
             <div class="tile-button-container">
-                <h3>Welcome to WebABC</h3>
+                <h3>Welcome to 4|Bar</h3>
                 <p>Choose a tune from the right or one of the options below!</p>
                 <div class="tile-button" on-click="new_tune">
                     <h4>+ New Tune</h4>
@@ -21,6 +21,7 @@
             </div>
             <div class="text-area-padding">
                 <h3>My Tunes</h3>
+                <p>Login to use these features!</p>
                 <ul class="item-list">
                     {{#each myTuneNames}}
                         <li on-click="view_tune" tune-id="{{_id}}">{{name}}<br><small>{{metadata.createdOn}} - {{settings.type}} - {{settings.key}}</small></li>

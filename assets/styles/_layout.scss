@@ -179,8 +179,9 @@ html, body, .container, .page-view {
     flex: 3;
     display: flex;
     flex-direction: column;
+      height: 100%;
     .CodeMirror {
-        flex: 1;
+        font-size: larger;
     }
 }
 
@@ -233,6 +234,8 @@ html, body, .container, .page-view {
           h1 {
               font-size:2rem;
               font-weight:200;
+              margin-top: 0;
+              margin-bottom: 0;
             }
               strong {
                 font-weight:300;
@@ -240,6 +243,7 @@ html, body, .container, .page-view {
               }
 
             h2 {
+                margin-top: 0;
               font-size:.9rem;
               line-height:2.5;
               color:gray;
@@ -261,6 +265,10 @@ html, body, .container, .page-view {
 .chord-suggest-box {
     flex: 1;
     background-color: rgb(219, 219, 219);
+    h2 {
+        font-size: larger;
+    }
+    padding: 10px;
 }
 
 .cm-barline {
@@ -277,4 +285,17 @@ html, body, .container, .page-view {
 
 .cm-header-text {
     color: rgb(187, 136, 24);
+}
+
+#view-home {
+    .row {
+        display: flex;
+        .column.quarter {
+            flex: 1;
+              background-color: rgb(229, 252, 255);
+        }
+        .column.three-quarters {
+            flex: 3;
+        }
+    }
 }

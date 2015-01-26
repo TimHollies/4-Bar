@@ -71,7 +71,6 @@ var ABCRenderer = () => {
     return (tuneData) => {
 
         settings = tuneData.tuneSettings;
-        settings.rhythm = "Reel";
 
         var 
             doc = s("svg", {
@@ -88,7 +87,7 @@ var ABCRenderer = () => {
         var topDiv = h("div.render-div", [
             h("div.tune-header", [
                 h("h2", [settings.title]),
-                h("p", [settings.rhythm])
+                h("p.abc-tune-rhythm", [settings.rhythm])
             ]),
             h("div.tune-body", [doc])
         ]);

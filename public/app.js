@@ -7,12 +7,12 @@ webpackJsonp([0,2],[
 	__webpack_require__.e/*nsure*/(1, function() {
 	
 	    var
-	        Ractive = __webpack_require__(2).Ractive,
-	        toastr = __webpack_require__(2).toastr,
-	        routingConfig = __webpack_require__(1),
-	        page = __webpack_require__(2).page,
-	        $ = __webpack_require__(2).jquery,
-	        _ = __webpack_require__(2).lodash;
+	        Ractive = __webpack_require__(1).Ractive,
+	        toastr = __webpack_require__(1).toastr,
+	        routingConfig = __webpack_require__(2),
+	        page = __webpack_require__(1).page,
+	        $ = __webpack_require__(1).jquery,
+	        _ = __webpack_require__(1).lodash;
 	
 	    $(document).ready(function() {
 	        //audio = require("./engine/audio/audio");

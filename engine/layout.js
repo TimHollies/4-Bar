@@ -91,6 +91,7 @@ var ABCLayout = () => {
             dispatcher.send("change_tune_title", line.symbols[0].data);
         }
         if (line.symbols[0].type === "rhythm") {
+            tuneSettings.rhythm = line.symbols[0].data;
             dispatcher.send("change_rhythm", line.symbols[0].data);
         }
         if (line.symbols[0].type === "key") {

@@ -15,7 +15,7 @@ var
     CodeMirrorABCMode = require('engine/abc_mode'),
     CodeMirror = require('vendor').codeMirror,
     CodeMirrorLint = require('vendor').codeMirrorLint,
-    initializeUI = require("./ui"),
+    //initializeUI = require("./ui"),
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
     Combokeys = require('vendor').combokeys,
@@ -78,6 +78,8 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         gutters: ["error-markers"],
         //lint: true
     });
+
+    editor.setSize("100%", "100%");
 
     window.ed = editor;
 
