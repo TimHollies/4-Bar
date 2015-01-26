@@ -16,5 +16,9 @@ switch (os.hostname()) {
         };
         break;
     default:
-        throw new Error("Unknown host");
+        module.exports = {
+            url: "198.91.86.144",
+            port: "3000"
+        };
+        //throw new Error("Unknown host");
 }
