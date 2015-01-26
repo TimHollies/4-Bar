@@ -16,5 +16,5 @@ switch (os.hostname()) {
         };
         break;
     default:
-        throw new Exception("Unknown host");
+        throw new Error("Unknown host");
 }
