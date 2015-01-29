@@ -95,7 +95,19 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
     return {
         type: "note",
         subType: "length",
-        data: notedenom && notedenom.length > 0 ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength),
+        data: (notedenom && notedenom.length > 0) ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength),
+    }
+}).addRule(/\/([0-9]+)/, function(all, notedenom) {
+    return {
+        type: "note",
+        subType: "length",
+        data: 1 / parseFloat(notedenom),
+    }
+}).addRule(/\/+/, function(all) {
+    return {
+        type: "note",
+        subType: "length",
+        data: 1/all.length,
     }
 }).addRule(/([',]+)/, function(pitchModifier) {
     return {
@@ -126,6 +138,18 @@ lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
         type: "note",
         subType: "decoration",
         data: data
+    }
+}).addRule(/>{1,3}/, function(data) {
+    return {
+        type: "broken-rhythm",
+        subType: "right",
+        data: data.length
+    }
+}).addRule(/<{1,3}/, function(data) {
+    return {
+        type: "broken-rhythm",
+        subType: "left",
+        data: data.length
     }
 });
 
@@ -215,6 +239,10 @@ lexer.addRule(/\[/, function() {
 }).addRule(/}/, function() {
     return {
         type: "grace_stop"
+    }
+}).addRule(/\([2-9]/, function() {
+    return {
+        type: "tuplet_start"
     }
 }).addRule(/\(/, function() {
     return {

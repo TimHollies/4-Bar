@@ -22,9 +22,20 @@
         <div class="tune-information-card">
             <div class="card">
                 <h1>{{tune.name}}</h1>
+                <div style=" float: right; position: static; margin-top: -42px;">
+                    {{#if playing}}
+                        <i on-click="toggle-stop-tune" class="fa fa-stop" style="cursor: pointer"></i>
+                    {{else}}
+                        <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
+                    {{/if}}                    
+                </div>
                 <h2>{{tune.settings.type}} {{tune.settings.key}}</h2>
                 <p>Added by <strong>Tim Hollies</strong> on {{tune.metadata.createdOn}}</p>
-                <button on-click="edit_tune">Edit Tune</button>
+                <div class="icon-button-panel">
+                    <i on-click="edit_tune" class="fa fa-pencil-square-o"></i>
+                    <i class="fa fa-floppy-o"></i>
+                    <i class="fa fa-download"></i>
+                </div>
             </div>
         </div>
         <div class="row editor viewer" intro='fade' id="fullscreenZone">

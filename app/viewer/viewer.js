@@ -1,40 +1,32 @@
 'use strict';
 
-var $ = require("vendor").jquery;
-
 var
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('vendor').toastr,
+
     screenfull = require('vendor').screenfull,
+    queryString = require('vendor').queryString,
+
     engine = require('engine/engine'),
-    //initializeUI = require("./ui"),
 
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
     dispatcher = engine.dispatcher,
-    ABCLayout = engine.layout;
+    ABCLayout = engine.layout,
 
-function parseQuery(qstr) {
-    var query = {};
-    var a = qstr.split('&');
-    for (var i = 0; i<a.length; i++) {
-        var b = a[i].split('=');
-        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1]);
-    }
-
-    return query;
-}
+    AudioEngine = engine.audio;
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
-    var parameters = parseQuery(urlcontext.querystring);
+    var parameters = queryString.parse(urlcontext.querystring);
 
     var parser = ABCParser(),
         layout = ABCLayout(),
         renderer = ABCRenderer();
+
+    ractive.set("playing", false);
 
     dispatcher.on({
         "edit_tune": function() {
@@ -57,6 +49,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                 dispatcher.send("tune_publish_success");
                 toastr.success("Tune published", "Success!");
             });
+        },
+        "end-of-tune": function() {            
+            ractive.set("playing", false);
         }
     });
 
@@ -64,7 +59,32 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         "navigate_back": function() {
             window.history.back();
         },
-        "edit_tune": () => { page("/editor?tuneid=" + ractive.get('tune')._id); }
+        "edit_tune": () => { 
+            page("/editor?tuneid=" + ractive.get('tune')._id);
+        },
+        "toggle-stop-tune": () => {
+            AudioEngine.stop();
+            ractive.set("playing", false);
+        },
+        "toggle-play-tune": () => {
+
+            var tune = doneThing;
+
+            var outTune = [];
+
+            tune.scoreLines.forEach((line) => {
+
+                line.symbols
+                .filter((symbol) => symbol.type === "note")
+                .forEach((note) => {
+                    outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
+                });
+            });
+
+            AudioEngine.play(outTune);
+
+            ractive.set("playing", true);
+        }
     });
 
     ractive.set("filterTuneNames", function(tuneNames, filter) {
@@ -74,13 +94,16 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         });
     });
 
+    var doneThing = null;
+
     if (parameters.tuneid) {
-        $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
+
+        fetch("/api/tune/" + parameters.tuneid)
+        .then(function(response) {
+            return response.json()
+        }).then(function(res) {
+
             ractive.set("tune", res);
-
-            //initializeUI(!res.public);
-
-            window.testTune = res.raw;
 
             var done = diff({
                     newValue: res.raw,
@@ -89,12 +112,36 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                 .map(parser)
                 .reduce(layout, 0);
 
+            doneThing = done;
+
             renderer(done);
+
+
+
+        }).catch(function(ex) {
+            console.log('parsing failed', ex)
         });
     }
 
     if(parameters.transpose) {
         dispatcher.send("transpose_change", parseInt(parameters.transpose));
     }
-    // toastr.success("YAY");
+
+    window.getTune = () => {
+        var tune = doneThing;
+
+        var outTune = [];
+
+        tune.scoreLines.forEach((line) => {
+
+            line.symbols
+            .filter((symbol) => symbol.type === "note")
+            .forEach((note) => {
+                outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
+            });
+        });
+
+        return outTune;
+    }
+
 };

@@ -1,7 +1,5 @@
 'use strict';
 
-var $ = require("vendor").jquery;
-
 var
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
@@ -16,6 +14,21 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         'view_tutorial': function(event) {
             page("/tutorial");
+        },
+        'updated_search': (event, data) => {
+            console.log("EVENT", event.context.search_filter);
+
+            fetch("/api/tunes?name=" + event.context.search_filter)
+            .then(function(response) {
+                return response.json()
+            })
+            .then(function(data) {
+                console.log("DONE", data);
+                ractive.set("publicTuneNames", data);
+                ractive.update("publicTuneNames");
+            }).catch(function(ex) {
+                console.log('parsing failed', ex)
+            });
         }
     });
 
@@ -25,22 +38,25 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         page("/viewer?tuneid=" + tuneId);
     });
 
-    $.getJSON("/api/tunes")
-        .then(function(data) {
-            ractive.set("publicTuneNames", data);
-        });
-
-    $.getJSON("/api/user/tunes")
-        .then(function(data) {
-            ractive.set("myTuneNames", data);
-        });
-
-    ractive.set("filterTuneNames", function(tuneNames, filter) {
-        if (filter.length <= 0) return tuneNames;
-        return tuneNames.filter(function(a) {
-            return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
-        });
+    fetch("/api/tunes")
+    .then(function(response) {
+        return response.json()
+    }).then(function(data) {
+        ractive.set("publicTuneNames", data);
+    }).catch(function(ex) {
+        console.log('parsing failed', ex)
     });
 
-    // toastr.success("YAY");
+    fetch("/api/user/tunes")
+    .then(function(response) {
+        return response.json()
+    }).then(function(data) {
+        ractive.set("myTuneNames", data);
+    }).catch(function(ex) {
+        console.log('parsing failed', ex)
+    });
+
+    ractive.set("keynote", ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+    ractive.set("rhythm", ["Jig", "Reel"]);
+
 };

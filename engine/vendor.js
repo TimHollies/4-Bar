@@ -1,12 +1,13 @@
 'use strict';
 
+//polyfill 
+require('isomorphic-fetch');
+
 module.exports = {
 	lodash: require('lodash'),
-	svgjs: require('svg.js'),
 	lex: require('lex'),
 	Ractive: require('ractive'),
-    toastr: require('toastr'),
-    jquery: require('jquery'),
+
     page: require('page'),
     jsDiff: require('diff'),
     codeMirror: require('codemirror'),
@@ -14,5 +15,9 @@ module.exports = {
     filesaver: require('filesaver.js'),
     combokeys: require('combokeys'),
     screenfull: require('screenfull'),
-    zazate: require('zazate.js')
+    zazate: require('zazate.js'),
+
+    queryString: require('query-string'),
+    sizzle: require('sizzle'),
+    domready: require('domready')
 };

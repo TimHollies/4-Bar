@@ -68,7 +68,7 @@ var ABCLayout = () => {
                 }
             } else {
                 //draw beam
-                if(currentSymbol.type === "note")beamList.push(currentSymbol);
+                //if(currentSymbol.type === "note")beamList.push(currentSymbol);
                 if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
                 beamList = [];
                 beamDepth = 0;

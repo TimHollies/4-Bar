@@ -10,12 +10,13 @@ var
     ABCLayout = engine.layout,
     ABCRenderer = engine.render,
 
-    $ = require('vendor').jquery,
     enums = require('engine/types'),
     CodeMirrorABCMode = require('engine/abc_mode'),
     CodeMirror = require('vendor').codeMirror,
     CodeMirrorLint = require('vendor').codeMirrorLint,
-    //initializeUI = require("./ui"),
+    siz = require('vendor').sizzle,
+    queryString = require('vendor').queryString,
+
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
     Combokeys = require('vendor').combokeys,
@@ -43,17 +44,6 @@ var textFile = null,
         return textFile;
     };
 
-function parseQuery(qstr) {
-    var query = {};
-    var a = qstr.split('&');
-    for (var i = 0; i<a.length; i++) {
-        var b = a[i].split('=');
-        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1]);
-    }
-
-    return query;
-}
-
 module.exports = function(ractive, context, page, urlcontext, user) {
 
     var parser = ABCParser(),
@@ -61,6 +51,8 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         renderer = ABCRenderer();
 
     var errors = [];
+
+    var parameters = queryString.parse(urlcontext.querystring);
 
     ractive.set("errors", errors);
 
@@ -151,11 +143,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         }
     });
 
-
-    var parameters = parseQuery(urlcontext.querystring);
     console.log("CTX", parameters);
-
-    var lines = [];
 
     var dialog = document.getElementById('window');
 
@@ -168,8 +156,6 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             i: index
         };
     }
-
-    var oldInputValue = "";
 
     function rerenderScore(diffed) {             
 
@@ -199,7 +185,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     function completelyRerenderScore() {
 
-        $("#canvas").empty();
+        siz("#canvas")[0].innerHTML = ""
 
         parser = ABCParser();
         layout = ABCLayout();
@@ -262,8 +248,13 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     });
 
     if (parameters.tuneid) {
-        $.getJSON("/api/tune/" + parameters.tuneid, function(res) {
+        fetch("/api/tune/" + parameters.tuneid)
+        .then(function(response) {
+            return response.json()
+        }).then(function(res) {
             editor.setValue(res.raw);
+        }).catch(function(ex) {
+            console.log('parsing failed', ex)
         });
     }
 
@@ -283,5 +274,4 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     });
 
     editor.setValue("X: 1\nT: " + emptyTuneName);
-    //initializeUI();
 };

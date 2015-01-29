@@ -230,7 +230,7 @@ h1, h2, h3, h4 {
 
 .abc-tune-rhythm {
     font-style: italic;
-}
+}☻
 
 h1, h2, h3, h4 {
     font-family: "futura-pt";
@@ -238,4 +238,16 @@ h1, h2, h3, h4 {
 
 p {
     font-family: "ff-basic-gothic-web-pro";
+}
+
+.icon-button-panel {
+    i {
+        cursor: pointer;
+        color: gray;
+        font-size: 18pt;
+        margin:8px;
+        &:hover {
+            color: rgb(33, 73, 200);
+        }
+    }
 }

@@ -1,20 +1,38 @@
 var
     express = require('express'),
-    router = express.Router(),
+    router = express.Router();
     monk = require('monk'),
     db = monk('localhost/webabc');
+
+var PAGING_SIZE = 20;
 
 /* GET home page. */
 router.get('/tunes', function(req, res) {
 
     var collection = db.get("tunes");
 
-    collection.find({
-        'metadata.public': true
-    }, "_id name settings metadata", function(e, docs) {
-        res.json(docs);
-    })
+    var toSkip = req.query.skip === undefined ? 0 : req.query.skip * 20;
 
+    var conditions = {
+        'metadata.public': true,
+    };
+
+    if(req.query.name !== undefined)conditions['name'] = { "$regex": new RegExp("^" + req.query.name) };
+
+    collection.find(conditions, 
+    {
+        fields: {
+            "_id": 1,
+            "name": 1,
+            "settings": 1,
+            "metadata": 1
+        },
+        limit: PAGING_SIZE,
+        skip: toSkip
+    })
+    .then(function(docs) {
+        res.json(docs);
+    });
 });
 
 router.get('/tune/:id', function(req, res) {

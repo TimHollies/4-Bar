@@ -1,5 +1,4 @@
-var $ = require('vendor').jquery,
-page = require('vendor').page;
+var page = require('vendor').page;
 
 var loggedIn = false,
     userData = {};
@@ -19,8 +18,12 @@ module.exports = {
 
             ractive.set("loggedIn", false);
 
-            $.getJSON("/api/user")
-            .then(function(data) {
+
+            fetch("/api/user")
+            .then(function(response) {
+                return response.json()
+            }).then(function(data) {
+
                 console.log("CURRENT USER", data);
 
                 ractive.set("loggedIn", true);
@@ -28,6 +31,9 @@ module.exports = {
 
                 ractive.set("user", data);
                 userData = data;
+
+            }).catch(function(ex) {
+                console.log('parsing failed', ex)
             });
         }   
         

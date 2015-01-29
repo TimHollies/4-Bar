@@ -4,14 +4,12 @@ require.ensure('vendor', function() {
 
     var
         Ractive = require('vendor').Ractive,
-        toastr = require('vendor').toastr,
         routingConfig = require("../routes/config.route"),
         page = require('vendor').page,
-        $ = require('vendor').jquery,
-        _ = require('vendor').lodash;
+        _ = require('vendor').lodash,
+        domready = require('vendor').domready;
 
-    $(document).ready(function() {
-        //audio = require("./engine/audio/audio");
+    domready(() => {
 
         function route(currentRoute, context) {
 
@@ -45,7 +43,7 @@ require.ensure('vendor', function() {
                 });
 
             } else {
-                toastr.error("No route found in lookup");
+
             }
         }
 
@@ -88,7 +86,7 @@ require.ensure('vendor', function() {
         page.serverMap("/logout");
 
         page('*', function(context) {
-            toastr.error("No route found");
+            console.log("BAD");
         });
 
         //route();
@@ -96,8 +94,6 @@ require.ensure('vendor', function() {
         //window.onhashchange = route;
 
         page.start();
-
-        toastr.options.positionClass = "toast-bottom-right";
 
     });
 

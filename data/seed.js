@@ -7,7 +7,7 @@ var
 db.get("tunes").drop();
 
 var p = true,
-  tunesToAdd = 20;
+  tunesToAdd = 200;
 
 var request = require('request');
 

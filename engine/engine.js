@@ -5,5 +5,6 @@ module.exports = {
 	diff: require('./diff'),
 	render: require('./render'),
 	layout: require('./layout'),
-	dispatcher: require('./dispatcher')
+	dispatcher: require('./dispatcher'),
+	audio: require('./audio/audio')
 };
