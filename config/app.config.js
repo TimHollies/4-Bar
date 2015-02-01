@@ -9,10 +9,10 @@ switch (os.hostname()) {
             port: "3000"
         };
         break;
-    case "www":
+    case "bzdbbb":
         module.exports = {
-        	url: "198.91.86.144",
-            port: "3000"
+        	url: "www.bzdbbb.co.uk",
+            port: "80"
         };
         break;
     default:
