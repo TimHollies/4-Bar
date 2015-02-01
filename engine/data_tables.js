@@ -1,7 +1,9 @@
 'use strict';
 
 var data_tables = {},
-    dispatcher = require('./dispatcher');
+    dispatcher = require('./dispatcher'),
+    zazate = require('vendor').zazate,
+    _ = require('vendor').lodash;
 
 data_tables["notes"] = {
     "C": {
@@ -296,10 +298,84 @@ data_tables.keySig = {
     }
 };
 
+var majorMode = {
+    "-7": "Cb",
+    "-6": "Gb",
+    "-5": "Db",
+    "-4": "Ab",
+    "-3": "Eb",
+    "-2": "Bb",
+    "-1": "F",
+    "0": "C",
+    "1": "G", 
+    "2": "D",
+    "3": "A",
+    "4": "E",
+    "5": "B",
+    "6": "F#",
+    "7": "C#"
+};
+
+data_tables.normaliseMode = (mode) => mode.toLowerCase().substr(0, 3);
+
+window.toMajorMode = (note, mode) => {
+    var norm = data_tables.normaliseMode(mode);
+    var middle = data_tables.mode_map[norm];
+    var key = majorMode[data_tables.keySig[note][middle]];
+
+    var chords = [];
+
+    chords.push(zazate.chords.I(key));
+    chords.push(zazate.chords.II(key));
+    chords.push(zazate.chords.III(key));
+    chords.push(zazate.chords.IV(key));
+    chords.push(zazate.chords.V(key));
+    chords.push(zazate.chords.VI(key));
+    chords.push(zazate.chords.VII(key));
+
+    var indexOfRootNote = _.findIndex(chords, (c) => c[0] === note);
+
+    while(indexOfRootNote > 0) {
+        indexOfRootNote--;
+        chords.push(chords.shift());
+    }
+
+    return chords.map((c) => zazate.chords.determine(c, true)[0]);
+};
+
+window.gkm = data_tables.getKeyModifiers = (key) => {
+    var norm = data_tables.normaliseMode(key.mode);
+    var middle = data_tables.mode_map[norm];
+    var meh = parseInt(data_tables.keySig[key.note][middle]);
+
+    console.log(meh);
+
+    if(meh > 0) {
+        var range = _.range(-1, meh-1);
+        return {
+            mod: 1,
+            notes: range.map((r) => majorMode[r])
+        };
+    }
+
+    if(meh < 0) {
+        var range = _.range(5, meh+5, -1);
+        return {
+            mod: -1,
+            notes: range.map((r) => majorMode[r])
+        }
+    }
+
+    return {
+        mod: 0,
+        notes: []
+    };
+};
+
+
 data_tables.getKeySig = (note, mode) => {
     var 
-        lowerMode = mode.toLowerCase().substr(0, 3),
-        normalisedMode = data_tables.mode_map[lowerMode];
+        normalisedMode = data_tables.mode_map[data_tables.normaliseMode(mode)];
 
     return parseInt(data_tables.keySig[note][normalisedMode]);
 };

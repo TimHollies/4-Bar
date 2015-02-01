@@ -57,11 +57,9 @@ var ABCLayout = () => {
                 currentSymbol.truepos = currentSymbol.pos + (7 * (currentSymbol.octave - 4));
                 currentSymbol.y = 40 - (currentSymbol.truepos * 4);
                 currentSymbol.beams = [];
-
-                lastNote = currentSymbol;
             }
 
-            if (currentSymbol.beamDepth && currentSymbol.beamDepth < 0) {
+            if (currentSymbol.beamDepth !== undefined && currentSymbol.beamDepth < 0) {
                 if (currentSymbol.beamDepth <= beamDepth) {
                     if(currentSymbol.type === "note")beamList.push(currentSymbol);
                     beamDepth = currentSymbol.beamDepth;
@@ -73,6 +71,8 @@ var ABCLayout = () => {
                 beamList = [];
                 beamDepth = 0;
             }
+
+            if(currentSymbol.type === "note") lastNote = currentSymbol;
         }
 
         if (beamList.length > 0) {

@@ -8,12 +8,17 @@ var
 
 module.exports = function(ractive, context, page, urlcontext, user) {
 
+    window.ractive = ractive;
+
     ractive.on({
         'new_tune': function(event) {
             page("/editor");
         },
         'view_tutorial': function(event) {
             page("/tutorial");
+        },
+        'view_new_tunebook': () => {
+            page("/tunebook");
         },
         'updated_search': (event, data) => {
             console.log("EVENT", event.context.search_filter);
@@ -47,12 +52,13 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         console.log('parsing failed', ex)
     });
 
-    fetch("/api/user/tunes")
+
+    fetch("/api/tunebooks")
     .then(function(response) {
         return response.json()
     }).then(function(data) {
-        ractive.set("myTuneNames", data);
-    }).catch(function(ex) {
+        ractive.set("myTunebookNames", data);
+     }).catch(function(ex) {
         console.log('parsing failed', ex)
     });
 

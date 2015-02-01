@@ -1,15 +1,26 @@
 'use strict';
+console.log("NOT READY");
+
+var consoleKeeper = console;
 
 require.ensure('vendor', function() {
 
-    var
+    console.log("ALMOST");
+
+   var
         Ractive = require('vendor').Ractive,
         routingConfig = require("../routes/config.route"),
         page = require('vendor').page,
         _ = require('vendor').lodash,
         domready = require('vendor').domready;
 
+    console = consoleKeeper;
+
+    console.log("ALMOST");
+
     domready(() => {
+
+        console.log("READY");
 
         function route(currentRoute, context) {
 
@@ -76,6 +87,10 @@ require.ensure('vendor', function() {
 
         page('/tutorial', function(context) {
             route("tutorial", context);
+        });
+
+        page('/tunebook', function(context) {
+            route("tunebook", context);
         });
 
         page('editor/:tuneid', function(context) {

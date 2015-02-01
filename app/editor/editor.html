@@ -15,7 +15,34 @@
         {{/if}}
     </div>
     <div class="row toolbar" intro='fade'>
-        <div id="t1"></div>
+        <div class="toolbar-item">
+
+            <div class="dropdown-selected-value" on-click="show-transposition-menu"><span class="selected-span">{{selectedTransposition}}</span><span class="arrow-span"><i class="fa fa-arrow-down"></i></span></div>
+
+            {{#if showingTranspositionDropdown}}
+            <table class="table-to-dropdown">
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-7">-7 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-6">-6 Semitones</td></tr>
+                <tr><td class="dropdown-icon"><i class="fa fa-minus"></i> <i class="fa fa-minus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="-5">-5 Semitone</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-4">-4 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-3">-3 Semitones</td></tr>
+                <tr><td class="dropdown-icon"><i class="fa fa-minus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="-2">-2 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-1">-1 Semitones</td></tr>
+                <tr><td class="dropdown-icon"><i class="fa fa-circle"></i></td><td class="dropdown-option" on-click="selectTransposition" val="0">No Tranposition</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="1">+1 Semitone</td></tr>
+                <tr><td class="dropdown-icon"><i class="fa fa-plus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="2">+2 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="3">+3 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="4">+4 Semitones</td></tr>
+                <tr><td class="dropdown-icon"><i class="fa fa-plus"></i> <i class="fa fa-plus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="5">+5 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="6">+6 Semitones</td></tr>
+                <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="7">+7 Semitones</td></tr>
+            </table>
+            {{/if}}
+
+        </div>
+        <div class="toolbar-item">
+            <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
+        </div>
     </div>
     <div class="row editor" intro='fade' id="editor-section">
         <dialog id="window">

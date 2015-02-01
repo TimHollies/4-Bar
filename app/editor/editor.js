@@ -9,6 +9,8 @@ var
     dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
     ABCRenderer = engine.render,
+    AudioRenderer = engine.audioRender,
+    AudioEngine = engine.audio,
 
     enums = require('engine/types'),
     CodeMirrorABCMode = require('engine/abc_mode'),
@@ -50,11 +52,17 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         layout = ABCLayout(),
         renderer = ABCRenderer();
 
+    var transposeAmount = 0;
+
     var errors = [];
+    var processedTune = null;
 
     var parameters = queryString.parse(urlcontext.querystring);
 
     ractive.set("errors", errors);
+
+    ractive.set("showingTranspositionDropdown", false);
+    ractive.set("selectedTransposition", "No Transposition");
 
    /*var divvy = new Divvy({
         el: document.getElementById("editor-section"), // this is a reference to the container DOM element
@@ -68,12 +76,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         lineNumbers: true,
         mode: "abc",
         gutters: ["error-markers"],
-        //lint: true
     });
 
     editor.setSize("100%", "100%");
-
-    window.ed = editor;
 
     editor.on("change", function(instance, changeObj) {
 
@@ -127,8 +132,11 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
     dispatcher.on({
         "abc_error": (data) => {
-            
-            data.textMarker = editor.markText({line: data.line, ch: data.char-1}, {line: data.line, ch: data.char}, {className: "styled-background"});
+            data.markers = [];
+
+
+            data.markers.push(editor.markText({line: data.line, ch: data.char-1}, {line: data.line, ch: data.char}, {className: "styled-background"}));
+            data.markers.push(editor.markText({line: data.line, ch: data.char}, {line: data.line, ch: editor.getLine(data.line).length}, {className: "error-not-drawn"}));
 
             editor.setGutterMarker(data.line, "error-markers", document.createRange().createContextualFragment('<i class="fa fa-times-circle" style="color:red;padding-left: 4px;"></i>'));
 
@@ -164,7 +172,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                 if(err.line < item.startId || err.line >= (item.startId + item.count)) {
                     return true;
                 }
-                if(err.textMarker)err.textMarker.clear();
+                if(err.markers)err.markers.forEach((marker) => marker.clear());
                 editor.setGutterMarker(err.line, "error-markers", null);
                 return false;
             });
@@ -180,14 +188,18 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
         renderer(done);
 
+        processedTune = done;
+
         console.log("done", done);
     }
 
     function completelyRerenderScore() {
 
-        siz("#canvas")[0].innerHTML = ""
+        siz("#canvas")[0].innerHTML = "";
+        errors = [];
+        ractive.set("errors", errors);
 
-        parser = ABCParser();
+        parser = ABCParser(transposeAmount);
         layout = ABCLayout();
         renderer = ABCRenderer();
 
@@ -199,6 +211,8 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         .reduce(layout, 0);
 
         renderer(done);
+
+        processedTune = done;
         console.log("done", done);
     }
 
@@ -217,6 +231,21 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         "silly-save": function() {
             dispatcher.send("save_tune");
+        },
+        "show-transposition-menu": () => {
+            ractive.set("showingTranspositionDropdown", !ractive.get("showingTranspositionDropdown"));
+        },
+        "selectTransposition": (event) => {
+            console.log("EVT", event);
+            var intValue = parseInt(event.node.attributes.val.value);
+            transposeAmount = intValue;
+            dispatcher.send("transpose_change", intValue);
+
+            ractive.set("selectedTransposition", event.node.innerText);
+            ractive.set("showingTranspositionDropdown", false);
+        },
+        "toggle-play-tune": () => {
+             AudioEngine.play(AudioRenderer(processedTune));
         }
     });
 

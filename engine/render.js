@@ -1,7 +1,7 @@
 var s = require('virtual-dom/virtual-hyperscript/svg'),
     h = require('virtual-dom/h'),
     createElement = require('virtual-dom/create-element'),
-    draw = require('./rendering/virtual_stave_symbols.js'),
+    draw = require('./rendering/stave_symbols.js'),
     diff = require('virtual-dom/diff'),
     patch = require('virtual-dom/patch');
 

@@ -11,6 +11,7 @@ CodeMirror.defineSimpleMode("abc", {
     {regex: /\|/, token: "barline"},
     {regex: /(X|T|Z|S|R|M|L|K):/, token: "header-indicator", next: "header"},
     {regex: /[0-9]+/, token: "note-length"},
+    {regex: /`/, token: "backtick"},
     // You can match multiple tokens at once. Note that the captured
     // groups must span the whole string in this case
     //{regex: /(function)(\s+)([a-z$][\w$]*)/,

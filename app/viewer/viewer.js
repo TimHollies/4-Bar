@@ -14,6 +14,7 @@ var
     diff = engine.diff,
     dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
+    AudioRenderer = engine.audioRender,
 
     AudioEngine = engine.audio;
 
@@ -68,20 +69,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         },
         "toggle-play-tune": () => {
 
-            var tune = doneThing;
-
-            var outTune = [];
-
-            tune.scoreLines.forEach((line) => {
-
-                line.symbols
-                .filter((symbol) => symbol.type === "note")
-                .forEach((note) => {
-                    outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
-                });
-            });
-
-            AudioEngine.play(outTune);
+            AudioEngine.play(AudioRenderer(doneThing));
 
             ractive.set("playing", true);
         }

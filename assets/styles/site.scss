@@ -11,8 +11,6 @@
 
 @import 'colors';
 
-@import 'goog';
-
 body {    
     font-family: sans-serif;
     margin: 0;
@@ -110,9 +108,8 @@ h1, h2, h3, h4 {
 
 #search-box {
     background-color: white;
-    border: gray solid 1px;
-    border-radius: 3px;
     padding: 8px;
+    border-bottom: rgb(186, 186, 186) solid 1px;
     input {
         width: 92%;
         border: 0;
@@ -224,13 +221,17 @@ h1, h2, h3, h4 {
   font-weight: 700;
 }
 
+.error-not-drawn {
+    color: rgb(207, 85, 85);
+}
+
 .error-markers {
     width: 16px;
 }
 
 .abc-tune-rhythm {
     font-style: italic;
-}☻
+}
 
 h1, h2, h3, h4 {
     font-family: "futura-pt";
@@ -250,4 +251,63 @@ p {
             color: rgb(33, 73, 200);
         }
     }
+}
+
+.app-logo {
+    cursor: pointer;
+}
+
+.splashscreen {
+    background-color: $color_primary;
+      font-size: 18pt;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    color: white;
+    right: 0;
+    img {
+        position: absolute;
+        top: 40%;
+        right: 50%;
+        left:50%;
+        margin-left: -148px;
+        margin-top: -64px;
+    }
+
+    .spinners {
+        position: absolute;
+        left: 50%;
+        margin-left: -38px;
+        top: 48%;
+    }
+}
+
+.icon-spin-reverse {
+  display: inline-block;
+  -moz-animation: spin-reverse 2s infinite linear;
+  -o-animation: spin-reverse 2s infinite linear;
+  -webkit-animation: spin-reverse 2s infinite linear;
+  animation: spin-reverse 2s infinite linear;
+}
+
+@-moz-keyframes spin-reverse {
+  0% { -moz-transform: rotate(0deg); }
+  100% { -moz-transform: rotate(-359deg); }
+}
+@-webkit-keyframes spin-reverse {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(-359deg); }
+}
+@-o-keyframes spin-reverse {
+  0% { -o-transform: rotate(0deg); }
+  100% { -o-transform: rotate(-359deg); }
+}
+@-ms-keyframes spin-reverse {
+  0% { -ms-transform: rotate(0deg); }
+  100% { -ms-transform: rotate(-359deg); }
+}
+@keyframes spin-reverse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-359deg); }
 }

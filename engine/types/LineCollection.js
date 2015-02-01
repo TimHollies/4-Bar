@@ -6,6 +6,7 @@ AbcLine = function(raw, id) {
     this.raw = raw;
     this.id = id;
     this.endings = [];
+    this.tuplets = [];
     this.firstEndingEnder = null;
 }
 

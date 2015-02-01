@@ -2,17 +2,10 @@
     <div class="header row coloured" intro='fade'>        
         <div class="central-menu">
             <div class="app-name">
-                <img on-click="navigate_back" src="/images/logo.png" height="32px">
+                <img on-click="navigate_back" src="/images/logo.png" class="app-logo" height="32px">
             </div>            
         </div>        
-        <div class="user-box">
-            {{#if loggedIn === false }}
-                <button class="google-button" on-click="log_in"><div class="left"><i class="fa fa-google-plus"></i></div><div class="right">Sign in with Google+</div></button>
-            {{else}}
-                <span>Hi {{user.name.givenName}}</span>
-                <a href="/logout">Log out</a>
-            {{/if}}
-        </div>
+        {{>userbox}}
     </div>
     <!--<div class="row toolbar" intro='fade:{ delay: 100 }'>
         {{errors}}

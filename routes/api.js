@@ -55,6 +55,37 @@ router.post('/tunes/publish', function(req, res) {
    });
 });
 
+router.get('/tunebooks', function(req, res) {
+    if (req.user === undefined) res.send("");
+    res.type('json');
+
+    var collection = db.get("tunebooks");
+
+    collection.find({
+        'owner': req.user._id
+    }, {
+        fields: {
+            "name": 1,
+        }
+    })
+    .then(function(docs) {
+        res.json(docs);
+    });
+});
+
+router.post('/tunebook/add', function(req, res) {
+
+    var tunebooks = db.get('tunebooks')
+    var record = req.body;
+    record.owner = req.user._id;
+
+    tunebooks.insert(record, function (err, doc) {
+        
+    });
+
+    res.send("done");
+});
+
 router.get('/user', function(req, res) {
     if (req.user === undefined) res.send("");
     res.type('json');

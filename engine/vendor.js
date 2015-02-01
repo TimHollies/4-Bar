@@ -19,5 +19,6 @@ module.exports = {
 
     queryString: require('query-string'),
     sizzle: require('sizzle'),
-    domready: require('domready')
+    domready: require('domready'),
+    sortable: require('sortablejs')
 };

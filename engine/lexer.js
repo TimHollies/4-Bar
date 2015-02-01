@@ -240,9 +240,10 @@ lexer.addRule(/\[/, function() {
     return {
         type: "grace_stop"
     }
-}).addRule(/\([2-9]/, function() {
+}).addRule(/\(([2-9])/, function(all, size) {
     return {
-        type: "tuplet_start"
+        type: "tuplet_start",
+        data: parseInt(size)
     }
 }).addRule(/\(/, function() {
     return {

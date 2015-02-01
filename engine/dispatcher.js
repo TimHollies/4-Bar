@@ -5,6 +5,8 @@ var _ = require('vendor').lodash;
 var subscribers = new Map(),
     afterSubscribers = new Map();
 
+var disconnectId = 0;
+
 function send(eventName, data) {
 
     if (!subscribers.has(eventName)) {
@@ -12,20 +14,30 @@ function send(eventName, data) {
     }
 
     _(subscribers.get(eventName)).forEach(function(sub) {
-        sub(data);
+        sub.f(data);
     });
 
     _(afterSubscribers.get(eventName)).forEach(function(sub) {
-        sub(data);
+        sub.f(data);
     });
 }
 
 function subscribeEvent(subList, eventName, func) {
+
+    var connection = {
+        id: disconnectId,
+        f: func
+    };
+
+    disconnectId++;
+
     if (subList.has(eventName)) {
-        subList.get(eventName).push(func)
+        subList.get(eventName).push(connection)
     } else {
-        subList.set(eventName, [func]);
+        subList.set(eventName, [connection]);
     }
+
+    return disconnectId - 1;
 }
 
 function on(eventName, func) {
@@ -34,8 +46,18 @@ function on(eventName, func) {
             subscribeEvent(subscribers, propt, eventName[propt]);
         }
     } else {
-        subscribeEvent(subscribers, eventName, func);
+        return subscribeEvent(subscribers, eventName, func);
     }    
+}
+
+function off(id) {
+
+    subscribers.forEach(function(value, key) {
+      var toRemove = _.findIndex(value, (v) => v.id === id);
+        if(toRemove !== -1) {
+            value.splice(toRemove, 1);
+        }
+    });
 }
 
 function after(eventName, func) {
@@ -50,6 +72,7 @@ function after(eventName, func) {
 
 module.exports = {
     on: on,
+    off: off,
     send: send,
     after: after
 };

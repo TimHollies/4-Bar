@@ -16,7 +16,7 @@ function ParserException(message) {
     this.name = "ParserException";
 }    
 
-var ABCParser = () => {
+var ABCParser = (transposeAmount) => {
 
     var typecache = new Map();
     var dicache = new Map();
@@ -24,12 +24,7 @@ var ABCParser = () => {
     var decorationstack = [];
     var maxStartId = 0;
 
-    var transpose = 0;
-
-    dispatcher.on("transpose_change", function(data) {
-        transpose = data;
-    });
-
+    var transpose = transposeAmount || 0;
 
     //parse a note
     function parseNote(lexer, parsed) {
@@ -209,7 +204,10 @@ var ABCParser = () => {
             weight: 0
         };
 
-        var currentVarientEnding = null;
+        var 
+            currentVarientEnding = null,
+            tupletBuffer = [],
+            tupletCount = 0;
 
         while (lexed.length > 0) {
 
@@ -238,12 +236,29 @@ var ABCParser = () => {
             //     lexed.shift();
             //     continue;
             // }
+            if (lexed[0].type === "tuplet_start") {
+                tupletCount = lexed[0].data;
+                lexed.shift();
+                continue;
+            }
 
             if (lexed[0].type === "note") {
                 parseNote(lexed, parsed);
 
                 if(currentVarientEnding !== null && currentVarientEnding.start === null) {
                     currentVarientEnding.start = _.last(parsed.symbols);
+                }
+
+                if(tupletCount > 0) {
+                    tupletBuffer.push(_.last(parsed.symbols));
+                    tupletCount--;
+
+                    if(tupletCount === 0) {
+                        line.tuplets.push({
+                            notes: tupletBuffer
+                        });
+                        tupletBuffer = [];
+                    }
                 }
 
                 continue;
