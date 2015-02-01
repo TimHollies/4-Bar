@@ -1,11 +1,8 @@
 'use strict';
 
-var $ = require("vendor").jquery;
-
 var
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('vendor').toastr,
 
     //well these work... but are they useful?
     tut01 = require('app/tutorial/tut/tut01.htm'),
@@ -35,17 +32,12 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         page("/editor?tuneid=" + tuneId);
     });
 
-    $.getJSON("/api/tunes")
-        .then(function(data) {
-            ractive.set("tuneNames", data);
-        });
-
     ractive.set("filterTuneNames", function(tuneNames, filter) {
         if (filter.length <= 0) return tuneNames;
         return tuneNames.filter(function(a) {
             return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
         });
     });
-
+ 
     // toastr.success("YAY");
-};
+}; 

@@ -12,11 +12,11 @@ webpackJsonp([0,2],[
 	    console.log("ALMOST");
 	
 	   var
-	        Ractive = __webpack_require__(1).Ractive,
-	        routingConfig = __webpack_require__(2),
-	        page = __webpack_require__(1).page,
-	        _ = __webpack_require__(1).lodash,
-	        domready = __webpack_require__(1).domready;
+	        Ractive = __webpack_require__(2).Ractive,
+	        routingConfig = __webpack_require__(1),
+	        page = __webpack_require__(2).page,
+	        _ = __webpack_require__(2).lodash,
+	        domready = __webpack_require__(2).domready;
 	
 	    console = consoleKeeper;
 	
