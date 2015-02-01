@@ -87,7 +87,10 @@ router.post('/tunebook/add', function(req, res) {
 });
 
 router.get('/user', function(req, res) {
-    if (req.user === undefined) res.send("");
+    if (req.user === undefined) {
+        res.send("");
+        return;
+    } 
     res.type('json');
     res.send(req.user);
 });
