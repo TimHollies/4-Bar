@@ -30,6 +30,7 @@ for (var i = 1; i <= tunesToAdd; i++) {
             tunes.insert({
                 name: title,
                 raw: tune,
+                type: "tune",
 
                 settings: {
                     type: "Reel",

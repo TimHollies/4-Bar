@@ -22,12 +22,13 @@ var
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
     Combokeys = require('vendor').combokeys,
+    AbcLine = require('engine/types/LineCollection').AbcLine,
     Divvy = require('engine/scripts/divvy/divvy.js');
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
 
-var emptyTuneName = "Untitled Tune";
+var emptyTuneName = "Untitled Tune"; 
 
 var textFile = null,
     makeTextFile = function(text) {

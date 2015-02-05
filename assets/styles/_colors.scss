@@ -21,3 +21,16 @@
 		background-color: white;
 	}
 }
+
+.tune-list-item.selected {
+  background-color: chocolate;
+    &:hover {
+        background-color: red;
+    }
+} 
+
+.set-box {
+    min-height: 64px;
+    border: 1px solid grey;
+    background-color: rgb(240, 248, 255);
+}

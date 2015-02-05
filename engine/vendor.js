@@ -6,8 +6,8 @@ require('isomorphic-fetch');
 module.exports = {
 	lodash: require('lodash'),
 	lex: require('lex'),
-	Ractive: require('ractive'),
-
+	Ractive: require('ractive/ractive.runtime'),
+    
     page: require('page'),
     jsDiff: require('diff'),
     codeMirror: require('codemirror'),

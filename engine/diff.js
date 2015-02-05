@@ -1,7 +1,7 @@
  var
      enums = require('./types'),
      JsDiff = require('vendor').jsDiff,
-     LineCollection = require('./types/LineCollection');
+     LineCollection = require('./types/LineCollection').LineCollection;
 
 
 var Diff = function(change) {

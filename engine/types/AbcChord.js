@@ -14,7 +14,7 @@ var transposeNote = (note, a) => {
 	return zaz.notes.int_to_note(hashed); 
 }
 
-AbcChord = function(text) {
+var AbcChord = function(text) {
     this.text = text;
 
     var regexTestResult = chordRegex.exec(text);

@@ -1,4 +1,4 @@
-<section class="page-view" id="view-home">
+<section class="page-view" id="view-home" on-click="page-clicked">
     <div class="header row coloured" intro='fade'>
         <div class="central-menu">
             <div class="app-name">
@@ -25,7 +25,7 @@
                     <p>Login to use these features!</p>                   
                 {{else}}
                     {{#each myTunebookNames}}
-                         <div class="tile-button">
+                         <div on-click="view_tunebook" tunebookId="{{_id}}" class="tile-button">
                             <h4>{{name}}</h4>
                         </div> 
                     {{/each}}
@@ -46,12 +46,55 @@
 
                     <div class="search-option">
                         <label>Key</label>
-                        <select>
-                            <option>All</option>
-                            {{#each keynote}}
-                                <option>{{.}}</option>
-                            {{/each}}
-                        </select>
+                        <div class="key-selector">
+                            <div on-click="key-selector-value-clicked" class="key-selector-value">All</div>
+                            {{#if showingKeySelectorPopup}}
+                            <div class="key-selector-popup" on-click="key-popup-clicked">
+                                <div class="key-selector-popup-top">
+                                    <div class="key-selector-popup-top-left">
+                                        <table class="key-letter-selection-table">
+                                            <tr>
+                                                <td on-click="toggle-note" note="A" class="{{#if keynote['A']}}on{{/if}}">A</td>
+                                                <td on-click="toggle-note" note="A#" class="{{#if keynote['A#']}}on{{/if}}">A#</td>
+                                                <td on-click="toggle-note" note="B" class="{{#if keynote['B']}}on{{/if}}">B</td>
+                                                <td on-click="toggle-note" note="C" class="{{#if keynote['C']}}on{{/if}}">C</td>
+                                                <td on-click="toggle-note" note="C#" class="{{#if keynote['C#']}}on{{/if}}">C#</td>
+                                                <td on-click="toggle-note" note="D" class="{{#if keynote['D']}}on{{/if}}">D</td>
+                                            </tr>
+                                            <tr>
+                                                <td on-click="toggle-note" note="D#" class="{{#if keynote['D#']}}on{{/if}}" >D#</td>
+                                                <td on-click="toggle-note" note="E" class="{{#if keynote['E']}}on{{/if}}" >E</td>
+                                                <td on-click="toggle-note" note="F" class="{{#if keynote['F']}}on{{/if}}" >F</td>
+                                                <td on-click="toggle-note" note="F#" class="{{#if keynote['F#']}}on{{/if}}" >F#</td>
+                                                <td on-click="toggle-note" note="G" class="{{#if keynote['G']}}on{{/if}}" >G</td>
+                                                <td on-click="toggle-note" note="G#" class="{{#if keynote['G#']}}on{{/if}}" >G#</td>
+                                            </tr>
+                                        </table>
+                                        <div class="span-button-container"><span on-click="clear-all-keys">Clear All</span><span on-click="select-all-keys">Select All</span></div>
+                                    </div>
+                                    <div class="key-selector-popup-top-right">
+                                        <p>Include equivilent keys</p>
+                                        <input type="checkbox" value="Bike">
+                                    </div>
+                                </div>
+                                <table class="key-mode-selection-table">
+                                    <tr>
+                                        <td on-click="toggle-mode" mode="Major" class="{{#if keymode['Major']}}on{{/if}}">Major</td>
+                                        <td on-click="toggle-mode" mode="Dorian" class="{{#if keymode['Dorian']}}on{{/if}}">Dorian</td>
+                                        <td on-click="toggle-mode" mode="Phrygian" class="{{#if keymode['Phrygian']}}on{{/if}}">Phrygian</td>
+                                        <td on-click="toggle-mode" mode="Lydian" class="{{#if keymode['Lydian']}}on{{/if}}">Lydian</td>
+                                    </tr>
+                                    <tr>
+                                        <td on-click="toggle-mode" mode="Mixolydian" class="{{#if keymode['Mixolydian']}}on{{/if}}">Mixolydian</td>
+                                        <td on-click="toggle-mode" mode="Minor" class="{{#if keymode['Minor']}}on{{/if}}">Minor</td>
+                                        <td on-click="toggle-mode" mode="Locrian" class="{{#if keymode['Locrian']}}on{{/if}}">Locrian</td>
+                                    </tr>
+                                </table>
+                                <div class="span-button-container"><span on-click="clear-all-modes">Clear All</span><span on-click="select-all-modes">Select All</span></div>
+                            </div>
+                            {{/if}}
+
+                        </div>                        
                     </div>
 
                     <div class="search-option">

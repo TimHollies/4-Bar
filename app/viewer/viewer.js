@@ -93,22 +93,23 @@ module.exports = function(ractive, context, page, urlcontext, user) {
 
             ractive.set("tune", res);
 
-            var done = diff({
+            var diffed = diff({
                     newValue: res.raw,
                     oldValue: ""
-                })
-                .map(parser)
-                .reduce(layout, 0);
+                });
+            var parsed = diffed.map(parser);
+            var done = parsed.reduce(layout, 0);
 
             doneThing = done;
 
             renderer(done);
+            console.log("It WORKED!!", res);
 
 
 
-        }).catch(function(ex) {
+        });/*.catch(function(ex) {
             console.log('parsing failed', ex)
-        });
+        });*/
     }
 
     if(parameters.transpose) {

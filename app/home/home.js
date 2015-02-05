@@ -9,6 +9,7 @@ var
 module.exports = function(ractive, context, page, urlcontext, user) {
 
     window.ractive = ractive;
+    ractive.set("showingKeySelectorPopup", false);
 
     ractive.on({
         'new_tune': function(event) {
@@ -17,10 +18,10 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         'view_tutorial': function(event) {
             page("/tutorial");
         },
-        'view_new_tunebook': () => {
+        'view_new_tunebook': function() {
             page("/tunebook");
         },
-        'updated_search': (event, data) => {
+        'updated_search': function(event, data) {
             console.log("EVENT", event.context.search_filter);
 
             fetch("/api/tunes?name=" + event.context.search_filter)
@@ -34,6 +35,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             }).catch(function(ex) {
                 console.log('parsing failed', ex)
             });
+        },
+        'view_tunebook': function(event) {
+            page("/tunebook/view?tunebook=" + event.node.attributes.tunebookId.value);
         }
     });
 
@@ -41,6 +45,84 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         var tuneId = event.node.attributes["tune-id"].value;
         console.log(tuneId);
         page("/viewer?tuneid=" + tuneId);
+    });
+
+    ractive.on('toggle-note', function(event) {
+        var note = event.node.attributes.note.value;
+        ractive.set("keynote." + note, !ractive.get("keynote." + note));
+    });
+
+    ractive.on('toggle-mode', function(event) {
+        var mode = event.node.attributes.mode.value;
+        ractive.set("keymode." + mode, !ractive.get("keymode." + mode));
+    });
+
+    ractive.on({
+        "clear-all-keys": function() {
+            ractive.set("keynote", {
+                'A': false,
+                'A#': false,
+                'B': false,
+                'C': false,
+                'C#': false,
+                'D': false, 
+                'D#': false, 
+                'E': false, 
+                'F': false, 
+                'F#': false, 
+                'G': false,
+                'G#': false
+            });
+        },
+         "select-all-keys": function() {
+            ractive.set("keynote", {
+                'A': true,
+                'A#': true,
+                'B': true,
+                'C': true,
+                'C#': true,
+                'D': true, 
+                'D#': true, 
+                'E': true, 
+                'F': true, 
+                'F#': true, 
+                'G': true,
+                'G#': true
+            });
+        },
+        "clear-all-modes": function() {
+            ractive.set("keymode", {
+                'Major': false,
+                'Dorian': false,
+                'Phrygian': false,
+                'Lydian': false,
+                'Mixolydian': false,
+                'Minor': false, 
+                'Locrian': false
+            });
+        },
+         "select-all-modes": function() {
+            ractive.set("keymode", {
+                'Major': true,
+                'Dorian': true,
+                'Phrygian': true,
+                'Lydian': true,
+                'Mixolydian': true,
+                'Minor': true, 
+                'Locrian': true
+            });
+        },
+        "key-selector-value-clicked": function() {
+            ractive.set("showingKeySelectorPopup", !ractive.get("showingKeySelectorPopup"));
+            return false;
+        },
+        "page-clicked": function() {
+            if(ractive.get("showingKeySelectorPopup"))ractive.set("showingKeySelectorPopup", false);
+        },
+        "key-popup-clicked": function() {
+            console.log("meh");
+            if(ractive.get("showingKeySelectorPopup"))return false;
+        }
     });
 
     fetch("/api/tunes")
@@ -62,7 +144,31 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         console.log('parsing failed', ex)
     });
 
-    ractive.set("keynote", ['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+    ractive.set("keynote", {
+        'A': true,
+        'A#': true,
+        'B': true,
+        'C': true,
+        'C#': true,
+        'D': true, 
+        'D#': true, 
+        'E': true, 
+        'F': true, 
+        'F#': true, 
+        'G': true,
+        'G#': true
+    });
+
+    ractive.set("keymode", {
+        'Major': true,
+        'Dorian': true,
+        'Phrygian': true,
+        'Lydian': true,
+        'Mixolydian': true,
+        'Minor': true, 
+        'Locrian': true
+    });
+
     ractive.set("rhythm", ["Jig", "Reel"]);
 
 };

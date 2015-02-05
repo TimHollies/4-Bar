@@ -78,8 +78,8 @@ var ABCLayout = () => {
         if (beamList.length > 0) {
             //draw beam
             if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
-            beam_list = [];
-            beam_depth = 0;
+            beamList = [];
+            beamDepth = 0;
         }
 
         return line;

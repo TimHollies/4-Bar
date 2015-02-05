@@ -1,7 +1,7 @@
 var
     POS_SWITCH = 6;
 
-AbcBeam = function(notes) {
+var AbcBeam = function(notes) {
 
 	var hNote, lNote, hNoteIndex, lNoteIndex;
 

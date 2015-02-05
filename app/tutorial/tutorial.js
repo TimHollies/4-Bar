@@ -5,8 +5,8 @@ var
     fly = require('scripts/transitions/ractive.transitions.fly'),
 
     //well these work... but are they useful?
-    tut01 = require('app/tutorial/tut/tut01.htm'),
-    tut02 = require('app/tutorial/tut/tut02.htm');
+    tut01 = require('app/tutorial/tut/tut01.html'),
+    tut02 = require('app/tutorial/tut/tut02.html');
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {

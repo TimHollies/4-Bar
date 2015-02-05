@@ -6,7 +6,7 @@ var
 
 wkhtmltopdf.command = "D:/TimTech/WebABC/jar-bin/wkhtmltopdf.exe";
 
-var clientSideRoutes = ['', '/editor', '/user', '/viewer', '/tutorial', '/tunebook'];
+var clientSideRoutes = ['', '/editor', '/user', '/viewer', '/tutorial', '/tunebook', '/tunebook/view'];
 
 module.exports = function(root) {
     var router = express.Router();

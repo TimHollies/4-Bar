@@ -2,7 +2,7 @@
 // Symbol //
 ////////////
 
-AbcSymbol = function(type, weight) {
+var AbcSymbol = function(type, weight) {
     this.type = type;
     this.weight = weight || 0;
 }
@@ -19,7 +19,7 @@ AbcSymbol.prototype.getX = function(leadInWidth, lineWidth) {
 }
 
 
-AbcNote = function() {
+var AbcNote = function() {
     AbcSymbol.call(this, "note");
 }
 
@@ -39,7 +39,7 @@ AbcNote.prototype.y = null;
 AbcNote.prototype.beamed = false;
 AbcNote.prototype.chord = "";
 
-AbcRest = function() {
+var AbcRest = function() {
     AbcSymbol.call(this, "rest", 1);
 }
 

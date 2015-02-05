@@ -35,10 +35,17 @@ module.exports = {
         model: require('app/tutorial/tutorial')
     },
     "tunebook": {
-        template: require("app/tunebook/tunebook.html"),
+        template: require("app/tunebook/tunebook_edit.html"),
         partials: [
             require("app/partials/userbox") 
         ],
-        model: require('app/tunebook/tunebook')
+        model: require('app/tunebook/tunebook_edit')
+    },
+    "tunebooks": {
+        template: require("app/tunebook/tunebook_view.html"),
+        partials: [
+            require("app/partials/userbox") 
+        ],
+        model: require('app/tunebook/tunebook_view') 
     }
 };

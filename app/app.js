@@ -3,7 +3,7 @@ console.log("NOT READY");
 
 var consoleKeeper = console;
 
-require.ensure('vendor', function() {
+//require.ensure('vendor', function() {
 
     console.log("ALMOST");
 
@@ -93,9 +93,13 @@ require.ensure('vendor', function() {
             route("tunebook", context);
         });
 
-        page('editor/:tuneid', function(context) {
-            route("editor", context);
+        page('/tunebook/view', function(context) {
+            route("tunebooks", context);
         });
+
+        //page('editor/:tuneid', function(context) {
+        //    route("editor", context);
+        //});
 
         page.serverMap("/auth/google");
         page.serverMap("/logout");
@@ -110,6 +114,6 @@ require.ensure('vendor', function() {
 
         page.start();
 
-    });
+ //   });
 
 });

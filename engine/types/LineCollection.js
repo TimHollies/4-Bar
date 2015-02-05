@@ -2,7 +2,7 @@
 // ABCLine //
 /////////////
 
-AbcLine = function(raw, id) {
+var AbcLine = function(raw, id) {
     this.raw = raw;
     this.id = id;
     this.endings = [];
@@ -22,7 +22,7 @@ AbcLine.prototype.endWithEndingBar = false;
 //LineCollection //
 ///////////////////
 
-LineCollection = function(id, raw, action) {
+var LineCollection = function(id, raw, action) {
     
     var split = raw.split(/\r\n|\r|\n/);
 
@@ -41,4 +41,7 @@ LineCollection = function(id, raw, action) {
     this.startId = id;
 };
 
-module.exports = LineCollection;
+module.exports = {
+    LineCollection,
+    AbcLine
+};

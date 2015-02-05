@@ -2,7 +2,8 @@ var
     express = require('express'),
     router = express.Router();
     monk = require('monk'),
-    db = monk('localhost/webabc');
+    db = monk('localhost/webabc'),
+    ObjectID = require('mongodb').ObjectID;
 
 var PAGING_SIZE = 20;
 
@@ -24,6 +25,7 @@ router.get('/tunes', function(req, res) {
         fields: {
             "_id": 1,
             "name": 1,
+            "type": 1,
             "settings": 1,
             "metadata": 1
         },
@@ -84,6 +86,22 @@ router.post('/tunebook/add', function(req, res) {
     });
 
     res.send("done");
+});
+
+router.get('/tunebook/:id', function(req, res) {
+
+    var tunebooks = db.get('tunebooks')
+    var loggedInUser = req.user === undefined ? undefined : new ObjectID(req.user._id);
+    
+    tunebooks.findById(req.params.id,        
+    function(e, docs) {
+        console.log("REQUEST FROM ", loggedInUser, " FOR RESOURCE BELONGING TO ", docs.owner);
+        if(loggedInUser !== undefined && docs.owner.equals(loggedInUser)) {
+            res.json(docs);
+        } else {
+            res.status(500).send('Unauthorised');
+        }        
+    });
 });
 
 router.get('/user', function(req, res) {

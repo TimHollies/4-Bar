@@ -2,6 +2,8 @@ var JsDiff = require('diff');
 var fs = require('fs');
 var _ = require('lodash');
 
+var cat = (a) => a * 3;
+
 fs.readFile("Tam Lin.abc", "utf8", function(error, data) {
     fs.readFile("Tam Lin 2.abc", "utf8", function(error, data2) {
         var diff = JsDiff.diffLines(data, data2);
@@ -37,6 +39,6 @@ fs.readFile("Tam Lin.abc", "utf8", function(error, data) {
             });
         }
 
-        console.log(output);       
+        console.log(output);     
     });
-});
+});  
