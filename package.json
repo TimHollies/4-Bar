@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "run": "forever start server.js",
+    "server": "forever start server.js",
+    "style": "sass --watch assets/styles:public",
     "stop": "forever stop server.js",
-    "seed": "node ./data/seed",
-    "test": "node ./node_modules/mocha/bin/mocha --recursive",
-    "webpack": "webpack --config ./config/webpack.config.js"
+    "seed": "node --es_staging ./data/seed",
+    "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
     "body-parser": "~1.0.0",
@@ -46,6 +46,7 @@
     "rx": "~2.3.14",
     "sass-loader": "~0.3.0",
     "screenfull": "^1.2.1",
+    "slash": "^1.0.0",
     "sortablejs": "^1.0.1",
     "static-favicon": "~1.0.0",
     "whatwg-fetch": "^0.7.0",
@@ -66,6 +67,7 @@
     "gulp-browserify": "~0.5.0",
     "gulp-jslint": "~0.1.6",
     "gulp-livereload": "^3.7.0",
+    "gulp-ruby-sass": "^1.0.0-alpha.3",
     "gulp-sass": "~1.0.0",
     "gulp-sourcemaps": "^1.2.8",
     "gulp-util": "~3.0.1",

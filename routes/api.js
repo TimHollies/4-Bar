@@ -5,7 +5,10 @@ var
     db = monk('localhost/webabc'),
     ObjectID = require('mongodb').ObjectID;
 
-var PAGING_SIZE = 20;
+var PAGING_SIZE = 40;
+
+//ensure index
+db.get("tunes").ensureIndex({"name":"text"});
 
 /* GET home page. */
 router.get('/tunes', function(req, res) {
@@ -18,7 +21,14 @@ router.get('/tunes', function(req, res) {
         'metadata.public': true,
     };
 
-    if(req.query.name !== undefined)conditions['name'] = { "$regex": new RegExp("^" + req.query.name) };
+    if(req.query.name !== undefined && req.query.name.length > 0) {
+        conditions['name'] = { 
+            "$regex": new RegExp(req.query.name, "i") 
+        };
+        //conditions["$text"] = {
+        //    $search: req.query.name
+        //};
+    }
 
     collection.find(conditions, 
     {
@@ -30,7 +40,8 @@ router.get('/tunes', function(req, res) {
             "metadata": 1
         },
         limit: PAGING_SIZE,
-        skip: toSkip
+        skip: toSkip,
+        sort: {name: 1}
     })
     .then(function(docs) {
         res.json(docs);

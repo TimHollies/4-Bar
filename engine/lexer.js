@@ -1,8 +1,8 @@
 'use strict';
 
 var
-    _ = require('vendor').lodash,
-    Lexer = require('vendor').lex,
+    _ = require('lodash'),
+    Lexer = require('lex'),
     dispatcher = require('./dispatcher');
 
 //////////////////////
@@ -204,14 +204,28 @@ lexer.addRule(/\|/, function() {
         subtype: "double_repeat",
         v: 1
     }
-}).addRule(/\[([0-9]+)/, (all, sectionNumber) => {
+}).addRule(/\[([0-9]+)/, function (all, sectionNumber) {
     return {
         type: "varient_section",
         subtype: "start_section",
         data: sectionNumber,
         v: 2
     };
-}).addRule(/\["([a-z A-Z0-9]+)"/, (all, sectionName) => {
+}).addRule(/\["([a-z A-Z0-9]+)"/, function (all, sectionName) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionName,
+        v: 2
+    };
+}).addRule(/\|([0-9]+)/, function (all, sectionNumber) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionNumber,
+        v: 2
+    };
+}).addRule(/\|"([a-z A-Z0-9]+)"/, function (all, sectionName) {
     return {
         type: "varient_section",
         subtype: "start_section",
@@ -253,7 +267,7 @@ lexer.addRule(/\[/, function() {
     return {
         type: "slur_stop"
     }
-}).addRule(/-/, () => {
+}).addRule(/-/, function () {
     return {
         type: "tie"
     }

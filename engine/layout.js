@@ -1,11 +1,11 @@
 var 
     enums = require('./types'),
     data_tables = require('./data_tables'),
-    _ = require('vendor').lodash,
+    _ = require('lodash'),
     dispatcher = require('./dispatcher'),
     AbcBeam = require('./types/AbcBeam');
 
-var ABCLayout = () => {
+var ABCLayout = function () {
 
     var scoreLines = [];
     var tuneSettings = {
@@ -85,27 +85,51 @@ var ABCLayout = () => {
         return line;
     }
 
+    var handleDataLineSwitch = {
+        title(data) {
+            tuneSettings.title = data;
+            dispatcher.send("change_tune_title", data);
+        },
+
+        rhythm(data) {
+            tuneSettings.rhythm = data;
+            dispatcher.send("change_rhythm", data);
+        },
+
+        key(data) {
+            tuneSettings.key = data;
+            dispatcher.send("change_key", data);
+        },
+
+        timesig(data) {
+            tuneSettings.measure = data;
+            dispatcher.send("change_timesig", data);
+        },
+
+        notelength(data) {
+            tuneSettings.noteLength = data;
+            dispatcher.send("change_notelength", data);
+        },
+
+        number(data) {
+            tuneSettings.number = data;
+        },
+
+        transcriber(data) {
+            tuneSettings.transcriber = data;
+        },
+
+        source(data) {
+            tuneSettings.source = data;
+        },
+    };
+
     function handleDataLine(line) {
-        if (line.symbols[0].type === "title") {
-            tuneSettings.title = line.symbols[0].data;
-            dispatcher.send("change_tune_title", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "rhythm") {
-            tuneSettings.rhythm = line.symbols[0].data;
-            dispatcher.send("change_rhythm", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "key") {
-            tuneSettings.key = line.symbols[0].data;
-            dispatcher.send("change_key", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "timesig") {
-            tuneSettings.measure = line.symbols[0].data;
-            dispatcher.send("change_timesig", line.symbols[0].data);
-        }
+        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);       
     }
 
     var handleAction = {
-        "ADD": function(lineCollection) {
+        ADD ( lineCollection ) {
             //draw tune lines
             var renderedLines = lineCollection.lines.filter(function(line) {
                 return !line.error && line.type === "drawable";
@@ -124,7 +148,8 @@ var ABCLayout = () => {
             }).forEach(handleDataLine);
 
         },
-        "DEL": function(lineCollection) {
+        
+        DEL ( lineCollection ) {
             var dl = lineCollection.lines.filter(function(line) {
                 return !line.error && line.type === "drawable";
             });
@@ -141,7 +166,7 @@ var ABCLayout = () => {
 
     return function(oldScoreLines, lineCollection) {
         lineCollection.action === "NONE" || handleAction[lineCollection.action](lineCollection);
-        console.log("LAYOUT", scoreLines);
+        //console.log("LAYOUT", scoreLines);
         return  {
             scoreLines: scoreLines,
             tuneSettings: tuneSettings

@@ -22,7 +22,7 @@ function get_next_wave(ev) {
     // collect new wave data from libtimidity into waveBuffer
     read_wave_bytes = Module.ccall('mid_song_read_wave', 'number', ['number', 'number', 'number', 'number'], [song, waveBuffer, audioBufferSize * 2, false]);
     if (0 == read_wave_bytes) {
-        dispatcher.send("end-of-tune");
+        dispatcher.send("end_of_tune");
         stop();
         return;
     }
@@ -76,7 +76,7 @@ function loadMissingPatch(url, path, filename) {
     request.send();
 }
 
-var play = (base64) => {
+var play = function (base64) {
 
     midiFileArray = base64;
     midiFileBuffer = Module._malloc(midiFileArray.length);
@@ -106,7 +106,7 @@ var play = (base64) => {
 
 }
 
-var stop = () => {
+var stop = function () {
     if (source) {
         // terminate playback
         source.disconnect();
@@ -126,7 +126,7 @@ var stop = () => {
     }
 }
 
-var playTune = (tuneData) => {
+var playTune = function (tuneData) {
     var noteEvents = [];
     tuneData.forEach(function(note) {
         noteEvents.push(midiGen.MidiEvent.noteOn( { pitch: note[0], duration: 16 }));
@@ -138,7 +138,7 @@ var playTune = (tuneData) => {
 
     var song  = midiGen.MidiWriter({ tracks: [track] });
 
-    var convertDataURIToBinary = (raw) => {
+    var convertDataURIToBinary = function (raw) {
       var rawLength = raw.length;
       var array = new Uint8Array(new ArrayBuffer(rawLength));
      

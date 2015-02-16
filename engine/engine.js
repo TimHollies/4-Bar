@@ -6,6 +6,6 @@ module.exports = {
 	render: require('./render'),
 	layout: require('./layout'),
 	dispatcher: require('./dispatcher'),
-	audio: require('./audio/audio'),
-	audioRender: require('./audio_render')
+	//audio: require('./audio/audio'),
+	//audioRender: require('./audio_render')
 };

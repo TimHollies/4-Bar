@@ -9,7 +9,7 @@ var consoleKeeper = console;
 
    var
         Ractive = require('vendor').Ractive,
-        routingConfig = require("../routes/config.route"),
+        routingConfig = require("./routes"),
         page = require('vendor').page,
         _ = require('vendor').lodash,
         domready = require('vendor').domready;

@@ -1,6 +1,6 @@
 $fa-font-path: "/fonts";
 
-$color_primary: #32A9C5;
+$color_primary: #689F38; //#32A9C5;
 $color_light: #eceff1;
 $color_dark: #37474f;
 
@@ -8,3 +8,11 @@ $color_highlight: #FF5722;
 
 $color_text: rgba(0,0,0,0.87);
 $color_text_secondary: rgba(0,0,0,0.54);
+
+$break-small: 800px;
+$break-large: 1279px;
+
+$highlight-color: rgb(42, 108, 14);
+$light-color: #DCEDC8;
+$very-light-color: #F1F8E9;
+$medium-color: #9CCC65;

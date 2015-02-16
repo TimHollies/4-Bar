@@ -7,7 +7,7 @@ var
 db.get("tunes").drop();
 
 var p = true,
-  tunesToAdd = 200;
+  tunesToAdd = 1;
 
 var request = require('request');
 
@@ -15,27 +15,57 @@ var getTitle = / *T: *([\w ']*) */;
 
 var addedTunes = 0;
 
-var deferred = Q.defer();
+var deferreds = [];
 
-for (var i = 1; i <= tunesToAdd; i++) {
-    request('http://thesession.org/tunes/' + i + '/abc/1', function(error, response, body) {
+var engine = require("../engine/engine");
+
+//for (var i = 1; i <= tunesToAdd; i++) {
+function loadTune(i) {
+    var deferred = Q.defer();
+
+    deferred.promise.then(function() {
+        if(i > 1) {
+            loadTune(i-1);
+        } else {
+            process.exit(0);
+        }
+    });
+
+    request('http://thesession.org/tunes/' + i + '/abc/1', function(error, response, body) {        
+
         if (!error && response.statusCode == 200) {
+
+            try {
+
             var tune = body.trim();
 
-            var title = getTitle.exec(tune)[1];
+           // var title = getTitle.exec(tune)[1];
 
-            console.log("  - Adding: " + title);
+            //console.log("  - Adding: " + title);
+
+            var parser = engine.parser(),
+            layout = engine.layout();
+
+            //var logger = console.log;
+            //console.log = function(a) {};
+
+            var diffed = engine.diff({
+                newValue: tune,
+                oldValue: ""
+            });
+
+            var parsed = diffed.map(parser);
+            var done = parsed.reduce(layout, 0);
+
+            //console.log = logger;
 
             var tunes = db.get("tunes");
             tunes.insert({
-                name: title,
+                name: done.tuneSettings.title,
                 raw: tune,
                 type: "tune",
 
-                settings: {
-                    type: "Reel",
-                    key: "Gm"
-                },
+                settings: done.tuneSettings,
                 
                 metadata: {
                     owner: "108345118415232097428", 
@@ -45,13 +75,25 @@ for (var i = 1; i <= tunesToAdd; i++) {
                 }                
             });
 
-            addedTunes++;
+            deferred.resolve("hurray");
+
+            } catch(exception) {
+                console.log("Failed to get " + i);
+                deferred.resolve("ah");
+            }
+
+            /*addedTunes++;
             if(addedTunes === tunesToAdd) {
               deferred.resolve();
-            }
+            }*/
+
         }
+
+        deferred.resolve("oh well");
     })
 }
+
+loadTune(200);
 
 //var regex = /T: *[^\n]*/;
 /*
@@ -84,9 +126,9 @@ for(var i=0; i<10; i++) {
         console.log(data);
     });
 }*/
-
-deferred.promise.then(function() {
+/*
+Q.all(deferreds).then(function() {
   console.log("\nDatabase Seeded\n");
   process.exit(0);
 });
-
+*/

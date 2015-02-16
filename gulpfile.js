@@ -1,6 +1,5 @@
 var gulp = require('gulp'),
     path = require('path'),
-    sass = require('gulp-sass'),
     webpack = require('gulp-webpack'),
     sourcemaps = require('gulp-sourcemaps');
 
@@ -10,15 +9,13 @@ var watchify = require('watchify');
 var browserify = require('browserify');
 var gutil = require('gulp-util');
 var to5ify = require("6to5ify");
+var slash = require('slash');
 
-var ractiveify = require('ractiveify');
 var ractive = require('ractive');
-var ractify = require('ractify');
+
 var transformTools = require('browserify-transform-tools');
 var toSource = require('tosource');
 var livereload = require('gulp-livereload');
- 
-ractiveify.extensions.push('html', 'htm');
 
 var aliasify = require('aliasify').configure({
     aliases: {
@@ -31,39 +28,12 @@ var aliasify = require('aliasify').configure({
     verbose: false
 });
 
-gulp.task('default', ['copyfonts', 'scripts', 'style-watch']);
-
-gulp.task('sass', function () {
-    gulp.src('./assets/styles/*.scss')
-        .pipe(sourcemaps.init())
-        .pipe(sass())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('./public'));
-});
-
-gulp.task('scripts', function() {
-    gulp.src('./app/app.js')
-        .pipe(webpack(require('./config/webpack.config.js')))
-        .pipe(gulp.dest('./public'));
-});
+gulp.task('default', ['copyfonts', 'js']);
 
 gulp.task('copyfonts', function() {
     gulp.src('./node_modules/font-awesome/fonts/**/*.{ttf,woff,eof,svg}')
     .pipe(gulp.dest('./public/fonts'));
 });
-
-gulp.task('watch', function() {
-     livereload.listen();
-    gulp.watch('./assets/styles/*.scss', [ 'sass' ]);
-    gulp.watch('./app/**/*.js', [ 'scripts' ]);
-    gulp.watch('./app/**/*.html', [ 'scripts' ]);
-    gulp.watch('./engine/**/*.js', [ 'scripts' ]);
-});
-
-gulp.task('style-watch', function() {
-    gulp.watch('./assets/styles/**/*.scss', [ 'sass' ]);
-});
-
 
 var bundler = watchify(browserify({
     debug: true
@@ -86,10 +56,6 @@ var rtransform = transformTools.makeStringTransform("ractivetransform", options,
 
 
 bundler.transform(rtransform);
-
-//bundler.transform({ extension: 'html' }, ractify);
-
-//bundler.plugin('factor-bundle', { outputs: [ 'public/x.js', 'public/y.js', 'public/z.js'] });
 
 gulp.task('js', bundle);
 bundler.on('update', bundle);

@@ -22,7 +22,7 @@
                         <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
                     {{/if}}                    
                 </div>
-                <h2>{{tune.settings.type}} {{tune.settings.key}}</h2>
+                <h2>{{tune.settings.rhythm}} {{tune.settings.key.note}}<small>{{tune.settings.key.mode}}</small></h2>
                 <p>Added by <strong>Tim Hollies</strong> on {{tune.metadata.createdOn}}</p>
                 <div class="icon-button-panel">
                     <i on-click="edit_tune" class="fa fa-pencil-square-o"></i>

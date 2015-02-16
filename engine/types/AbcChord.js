@@ -4,11 +4,9 @@
 
 var chordRegex = /^([A-G](?:b|#)?)(m|min|maj|dim|aug|\+|sus)?(2|4|7|9|13)?(\/[A-G](?:b|#)?)?$/i;
 
-var zaz = require('vendor').zazate;
+var zaz = require('zazate.js');
 
-window.zaz = zaz;
-
-var transposeNote = (note, a) => {
+var transposeNote = function (note, a) {
 	var transposedInt = zaz.notes.note_to_int(note.toUpperCase()) + a;
 	var hashed = ((transposedInt % 12) + 12) % 12;
 	return zaz.notes.int_to_note(hashed); 
@@ -30,7 +28,7 @@ var AbcChord = function(text) {
     	this.base = regexTestResult[4];
     }
 
-    this.getText = (transpose) => {
+    this.getText = function (transpose) {
     	if(!this.parsed || transpose === 0) return this.text;
 
     	var output = transposeNote(this.note, transpose);

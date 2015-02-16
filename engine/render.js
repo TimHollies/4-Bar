@@ -1,3 +1,5 @@
+'use strict';
+
 var s = require('virtual-dom/virtual-hyperscript/svg'),
     h = require('virtual-dom/h'),
     createElement = require('virtual-dom/create-element'),
@@ -5,14 +7,14 @@ var s = require('virtual-dom/virtual-hyperscript/svg'),
     diff = require('virtual-dom/diff'),
     patch = require('virtual-dom/patch');
 
-var ABCRenderer = () => {
+var ABCRenderer = function () {
 
     var
         previousNodeTree = null,
         settings = null,
         nextLineStartsWithEnding = false;
 
-    var renderLine = (line, lineIndex) => {
+    var renderLine = function (line, lineIndex) {
 
         var lineGroup = s("g", {
             transform: `translate(100,${32 + lineIndex * 96})`
@@ -42,13 +44,16 @@ var ABCRenderer = () => {
         var 
             noteAreaWidth = 800 - leadInWidth;
 
-        for (var i = 0; i < line.symbols.length; i++) {
-            if(line.symbols[i].type === "tie")console.log("WAY");
+        for (let i = 0; i < line.symbols.length; i++) {
             symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], line.symbols[i].xp * noteAreaWidth, noteAreaWidth));
         }
 
-        for(var i = 0; i < line.endings.length; i++) {
+        for(let i = 0; i < line.endings.length; i++) {
             symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
+        }
+
+        for(let i = 0; i < line.tuplets.length; i++) {
+            symbolsGroup.children.push(draw.tuplets(line.tuplets[i], noteAreaWidth));
         }
 
         if(nextLineStartsWithEnding) {
@@ -68,7 +73,7 @@ var ABCRenderer = () => {
         return lineGroup;
     }
 
-    return (tuneData) => {
+    return function (tuneData) {
 
         settings = tuneData.tuneSettings;
 

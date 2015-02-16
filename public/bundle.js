@@ -9,7 +9,7 @@ var consoleKeeper = console;
 console.log("ALMOST");
 
 var Ractive = require('./../engine/vendor.js').Ractive,
-    routingConfig = require("../routes/config.route"),
+    routingConfig = require("./routes"),
     page = require('./../engine/vendor.js').page,
     _ = require('./../engine/vendor.js').lodash,
     domready = require('./../engine/vendor.js').domready;
@@ -112,7 +112,7 @@ domready(function () {
     //   });
 });
 
-},{"../routes/config.route":140,"./../engine/vendor.js":43}],2:[function(require,module,exports){
+},{"./../engine/vendor.js":44,"./routes":8}],2:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -809,7 +809,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     editor.setValue("X: 1\nT: " + emptyTuneName);
 };
 
-},{"./../../engine/abc_mode":20,"./../../engine/engine":27,"./../../engine/scripts/divvy/divvy.js":35,"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/types":38,"./../../engine/types/LineCollection":42,"./../../engine/vendor.js":43}],4:[function(require,module,exports){
+},{"./../../engine/abc_mode":21,"./../../engine/engine":28,"./../../engine/scripts/divvy/divvy.js":36,"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/types":39,"./../../engine/types/LineCollection":43,"./../../engine/vendor.js":44}],4:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -837,7 +837,7 @@ module.exports = { v:1,
         " ",
         { t:7,
           e:"div",
-          a:{ "class":"row" },
+          a:{ "class":"row main-row" },
           f:[ { t:7,
               e:"div",
               a:{ "class":"column quarter right-divide" },
@@ -924,12 +924,8 @@ module.exports = { v:1,
                 a:[ { delay:200 } ] },
               f:[ { t:7,
                   e:"div",
-                  a:{ "class":"text-area-padding scroll-list" },
+                  a:{ "class":"scroll-list" },
                   f:[ { t:7,
-                      e:"h3",
-                      f:[ "Public Tunes" ] },
-                    " ",
-                    { t:7,
                       e:"div",
                       a:{ id:"search-box" },
                       f:[ { t:7,
@@ -940,6 +936,7 @@ module.exports = { v:1,
                           e:"input",
                           v:{ keyup:"updated_search" },
                           a:{ type:"text",
+                            placeholder:"Type here to search for a tune..",
                             value:[ { t:2,
                                 r:"search_filter" } ] } } ] },
                     " ",
@@ -959,8 +956,15 @@ module.exports = { v:1,
                               f:[ { t:7,
                                   e:"div",
                                   v:{ click:"key-selector-value-clicked" },
-                                  a:{ "class":"key-selector-value" },
-                                  f:[ "All" ] },
+                                  a:{ "class":[ "key-selector-value ",
+                                      { t:4,
+                                        n:50,
+                                        r:"showingKeySelectorPopup",
+                                        f:[ "open" ] } ] },
+                                  f:[ "All ",
+                                    { t:7,
+                                      e:"i",
+                                      a:{ "class":"fa fa-arrow-down" } } ] },
                                 " ",
                                 { t:4,
                                   n:50,
@@ -1301,30 +1305,50 @@ module.exports = { v:1,
                                   f:[ "All" ] } ] } ] } ] },
                     " ",
                     { t:7,
-                      e:"ul",
-                      a:{ "class":"item-list" },
+                      e:"div",
+                      a:{ "class":"tune-card-list" },
                       f:[ { t:4,
                           n:52,
                           r:"publicTuneNames",
                           f:[ { t:7,
-                              e:"li",
+                              e:"div",
                               v:{ click:"view_tune" },
-                              a:{ "tune-id":[ { t:2,
+                              a:{ "class":"card-list",
+                                "tune-id":[ { t:2,
                                     r:"_id" } ] },
-                              f:[ { t:2,
-                                  r:"name" },
-                                { t:7,
-                                  e:"br" },
-                                { t:7,
-                                  e:"small",
-                                  f:[ { t:2,
-                                      r:"metadata.createdOn" },
-                                    " - ",
-                                    { t:2,
-                                      r:"settings.type" },
-                                    " - ",
-                                    { t:2,
-                                      r:"settings.key" } ] } ] } ] } ] } ] } ] } ] } ] } ] }
+                              f:[ { t:7,
+                                  e:"div",
+                                  a:{ "class":"tune-card card clearfix",
+                                    title:[ { t:2,
+                                        r:"name" } ] },
+                                  f:[ { t:7,
+                                      e:"div",
+                                      a:{ "class":"tune-card-left" },
+                                      f:[ { t:7,
+                                          e:"h3",
+                                          f:[ { t:7,
+                                              e:"span",
+                                              a:{ "class":"tune-key" },
+                                              f:[ { t:2,
+                                                  r:"settings.key.note" },
+                                                { t:7,
+                                                  e:"small",
+                                                  f:[ { t:2,
+                                                      r:"settings.key.mode" } ] } ] },
+                                            { t:7,
+                                              e:"span",
+                                              a:{ "class":"tune-title" },
+                                              f:[ { t:2,
+                                                  r:"name" } ] } ] } ] },
+                                    " ",
+                                    { t:7,
+                                      e:"div",
+                                      a:{ "class":"tune-card-right" },
+                                      f:[ { t:7,
+                                          e:"div",
+                                          a:{ "class":"tune-rhythm" },
+                                          f:[ { t:2,
+                                              r:"settings.rhythm" } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] }
 },{}],5:[function(require,module,exports){
 "use strict";
 
@@ -1494,7 +1518,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     ractive.set("rhythm", ["Jig", "Reel"]);
 };
 
-},{"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/vendor.js":43}],6:[function(require,module,exports){
+},{"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/vendor.js":44}],6:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"div",
@@ -1595,7 +1619,48 @@ module.exports = {
     }
 };
 
-},{"./../../engine/vendor.js":43,"./userbox.html":6}],8:[function(require,module,exports){
+},{"./../../engine/vendor.js":44,"./userbox.html":6}],8:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+    "": {
+        template: require('./home/home.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./home/home')
+    },
+    editor: {
+        template: require('./editor/editor.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./editor/editor')
+    },
+    user: {
+        template: require('./user/user.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./user/user')
+    },
+    viewer: {
+        template: require('./viewer/viewer.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./viewer/viewer')
+    },
+    tutorial: {
+        template: require('./tutorial/tutorial.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./tutorial/tutorial')
+    },
+    tunebook: {
+        template: require('./tunebook/tunebook_edit.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./tunebook/tunebook_edit')
+    },
+    tunebooks: {
+        template: require('./tunebook/tunebook_view.html'),
+        partials: [require('./partials/userbox')],
+        model: require('./tunebook/tunebook_view')
+    }
+};
+
+},{"./editor/editor":3,"./editor/editor.html":2,"./home/home":5,"./home/home.html":4,"./partials/userbox":7,"./tunebook/tunebook_edit":10,"./tunebook/tunebook_edit.html":9,"./tunebook/tunebook_view":12,"./tunebook/tunebook_view.html":11,"./tutorial/tutorial":16,"./tutorial/tutorial.html":15,"./user/user":18,"./user/user.html":17,"./viewer/viewer":20,"./viewer/viewer.html":19}],9:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -1633,7 +1698,7 @@ module.exports = { v:1,
           a:{ "class":"row editor" },
           f:[ { t:7,
               e:"div",
-              a:{ "class":"column half flex-column" },
+              a:{ "class":"column half flex-column card-list" },
               t1:{ n:"fade",
                 a:[ { delay:100 } ] },
               f:[ { t:7,
@@ -1647,13 +1712,373 @@ module.exports = { v:1,
                       e:"input",
                       v:{ keyup:"updated_search" },
                       a:{ type:"text",
+                        placeholder:"Type here to search for a tune..",
                         value:[ { t:2,
                             r:"search_filter" } ] } } ] },
                 " ",
                 { t:7,
                   e:"div",
-                  a:{ id:"search-options-box" },
-                  f:[  ] },
+                  a:{ "class":"search-options-bar" },
+                  f:[ { t:7,
+                      e:"div",
+                      a:{ "class":"search-option" },
+                      f:[ { t:7,
+                          e:"label",
+                          f:[ "Key" ] },
+                        " ",
+                        { t:7,
+                          e:"div",
+                          a:{ "class":"key-selector" },
+                          f:[ { t:7,
+                              e:"div",
+                              v:{ click:"key-selector-value-clicked" },
+                              a:{ "class":[ "key-selector-value ",
+                                  { t:4,
+                                    n:50,
+                                    r:"showingKeySelectorPopup",
+                                    f:[ "open" ] } ] },
+                              f:[ "All ",
+                                { t:7,
+                                  e:"i",
+                                  a:{ "class":"fa fa-arrow-down" } } ] },
+                            " ",
+                            { t:4,
+                              n:50,
+                              r:"showingKeySelectorPopup",
+                              f:[ { t:7,
+                                  e:"div",
+                                  a:{ "class":"key-selector-popup" },
+                                  v:{ click:"key-popup-clicked" },
+                                  f:[ { t:7,
+                                      e:"div",
+                                      a:{ "class":"key-selector-popup-top" },
+                                      f:[ { t:7,
+                                          e:"div",
+                                          a:{ "class":"key-selector-popup-top-left" },
+                                          f:[ { t:7,
+                                              e:"table",
+                                              a:{ "class":"key-letter-selection-table" },
+                                              f:[ { t:7,
+                                                  e:"tr",
+                                                  f:[ { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"A",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"A\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "A" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"A#",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"A#\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "A#" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"B",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"B\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "B" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"C",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"C\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "C" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"C#",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"C#\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "C#" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"D",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"D\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "D" ] } ] },
+                                                " ",
+                                                { t:7,
+                                                  e:"tr",
+                                                  f:[ { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"D#",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"D#\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "D#" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"E",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"E\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "E" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"F",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"F\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "F" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"F#",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"F#\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "F#" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"G",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"G\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "G" ] },
+                                                    " ",
+                                                    { t:7,
+                                                      e:"td",
+                                                      v:{ click:"toggle-note" },
+                                                      a:{ note:"G#",
+                                                        "class":[ { t:4,
+                                                            n:50,
+                                                            rx:{ r:"keynote",
+                                                              m:[ { r:[  ],
+                                                                  s:"\"G#\"" } ] },
+                                                            f:[ "on" ] } ] },
+                                                      f:[ "G#" ] } ] } ] },
+                                            " ",
+                                            { t:7,
+                                              e:"div",
+                                              a:{ "class":"span-button-container" },
+                                              f:[ { t:7,
+                                                  e:"span",
+                                                  v:{ click:"clear-all-keys" },
+                                                  f:[ "Clear All" ] },
+                                                { t:7,
+                                                  e:"span",
+                                                  v:{ click:"select-all-keys" },
+                                                  f:[ "Select All" ] } ] } ] },
+                                        " ",
+                                        { t:7,
+                                          e:"div",
+                                          a:{ "class":"key-selector-popup-top-right" },
+                                          f:[ { t:7,
+                                              e:"p",
+                                              f:[ "Include equivilent keys" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"input",
+                                              a:{ type:"checkbox",
+                                                value:"Bike" } } ] } ] },
+                                    " ",
+                                    { t:7,
+                                      e:"table",
+                                      a:{ "class":"key-mode-selection-table" },
+                                      f:[ { t:7,
+                                          e:"tr",
+                                          f:[ { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Major",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Major\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Major" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Dorian",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Dorian\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Dorian" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Phrygian",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Phrygian\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Phrygian" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Lydian",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Lydian\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Lydian" ] } ] },
+                                        " ",
+                                        { t:7,
+                                          e:"tr",
+                                          f:[ { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Mixolydian",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Mixolydian\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Mixolydian" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Minor",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Minor\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Minor" ] },
+                                            " ",
+                                            { t:7,
+                                              e:"td",
+                                              v:{ click:"toggle-mode" },
+                                              a:{ mode:"Locrian",
+                                                "class":[ { t:4,
+                                                    n:50,
+                                                    rx:{ r:"keymode",
+                                                      m:[ { r:[  ],
+                                                          s:"\"Locrian\"" } ] },
+                                                    f:[ "on" ] } ] },
+                                              f:[ "Locrian" ] } ] } ] },
+                                    " ",
+                                    { t:7,
+                                      e:"div",
+                                      a:{ "class":"span-button-container" },
+                                      f:[ { t:7,
+                                          e:"span",
+                                          v:{ click:"clear-all-modes" },
+                                          f:[ "Clear All" ] },
+                                        { t:7,
+                                          e:"span",
+                                          v:{ click:"select-all-modes" },
+                                          f:[ "Select All" ] } ] } ] } ] } ] } ] },
+                    " ",
+                    { t:7,
+                      e:"div",
+                      a:{ "class":"search-option" },
+                      f:[ { t:7,
+                          e:"label",
+                          f:[ "Rhythm" ] },
+                        " ",
+                        { t:7,
+                          e:"select",
+                          f:[ { t:7,
+                              e:"option",
+                              f:[ "All" ] },
+                            " ",
+                            { t:4,
+                              n:52,
+                              r:"rhythm",
+                              f:[ { t:7,
+                                  e:"option",
+                                  f:[ { t:2,
+                                      r:"." } ] } ] } ] } ] },
+                    " ",
+                    { t:7,
+                      e:"div",
+                      a:{ "class":"search-option" },
+                      f:[ { t:7,
+                          e:"label",
+                          f:[ "Type" ] },
+                        " ",
+                        { t:7,
+                          e:"select",
+                          f:[ { t:7,
+                              e:"option",
+                              f:[ "All" ] } ] } ] },
+                    " ",
+                    { t:7,
+                      e:"div",
+                      a:{ "class":"search-option" },
+                      f:[ { t:7,
+                          e:"label",
+                          f:[ "Time Signature" ] },
+                        " ",
+                        { t:7,
+                          e:"select",
+                          f:[ { t:7,
+                              e:"option",
+                              f:[ "All" ] } ] } ] } ] },
                 " ",
                 { t:7,
                   e:"div",
@@ -1667,7 +2092,7 @@ module.exports = { v:1,
                           r:"publicTuneNames",
                           f:[ { t:7,
                               e:"li",
-                              a:{ "class":"drag tune-list-item",
+                              a:{ "class":"drag tune-list-item thin-card",
                                 tuneId:[ { t:2,
                                     r:"_id" } ],
                                 tuneData:[ { t:2,
@@ -1676,10 +2101,12 @@ module.exports = { v:1,
                               f:[ { t:7,
                                   e:"h3",
                                   f:[ { t:2,
-                                      r:"settings.type" },
+                                      r:"settings.rhythm" },
                                     " - ",
                                     { t:2,
-                                      r:"settings.key" },
+                                      r:"settings.key.note" },
+                                    { t:2,
+                                      r:"settings.key.mode" },
                                     " - ",
                                     { t:2,
                                       r:"name" } ] },
@@ -1738,7 +2165,7 @@ module.exports = { v:1,
                               e:"button",
                               v:{ click:"save-tunebook" },
                               f:[ "Save" ] } ] } ] } ] } ] } ] } ] } ] }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'),
@@ -1811,7 +2238,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     });
 };
 
-},{"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/vendor.js":43}],10:[function(require,module,exports){
+},{"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/vendor.js":44}],11:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2041,7 +2468,7 @@ module.exports = { v:1,
                   e:"div",
                   a:{ id:"canvas" },
                   f:[  ] } ] } ] } ] } ] }
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'),
@@ -2194,7 +2621,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
 //error
 //onSort: updateListOrderFunc
 
-},{"./../../engine/engine":27,"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/vendor.js":43}],12:[function(require,module,exports){
+},{"./../../engine/engine":28,"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/vendor.js":44}],13:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2203,9 +2630,9 @@ module.exports = { v:1,
       f:[ { t:7,
           e:"h1",
           f:[ "Tutorial 1" ] } ] } ] }
-},{}],13:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],14:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],15:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2270,7 +2697,7 @@ module.exports = { v:1,
               f:[ { t:7,
                   e:"h1",
                   f:[ "Yay Tutorial!" ] } ] } ] } ] } ] }
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 
 var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'),
@@ -2314,7 +2741,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     // toastr.success("YAY");
 };
 
-},{"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./tut/tut01.html":12,"./tut/tut02.html":13}],16:[function(require,module,exports){
+},{"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./tut/tut01.html":13,"./tut/tut02.html":14}],17:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2372,7 +2799,7 @@ module.exports = { v:1,
               f:[ { t:7,
                   e:"h1",
                   f:[ "Yay User!" ] } ] } ] } ] } ] }
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 var $ = require('./../../engine/vendor.js').jquery;
@@ -2412,7 +2839,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     // toastr.success("YAY");
 };
 
-},{"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/vendor.js":43}],18:[function(require,module,exports){
+},{"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/vendor.js":44}],19:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2475,10 +2902,14 @@ module.exports = { v:1,
                     { t:7,
                       e:"h2",
                       f:[ { t:2,
-                          r:"tune.settings.type" },
+                          r:"tune.settings.rhythm" },
                         " ",
                         { t:2,
-                          r:"tune.settings.key" } ] },
+                          r:"tune.settings.key.note" },
+                        { t:7,
+                          e:"small",
+                          f:[ { t:2,
+                              r:"tune.settings.key.mode" } ] } ] },
                     " ",
                     { t:7,
                       e:"p",
@@ -2515,7 +2946,7 @@ module.exports = { v:1,
                   e:"div",
                   a:{ id:"canvas" },
                   f:[  ] } ] } ] } ] } ] }
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 "use strict";
 
 var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'),
@@ -2528,8 +2959,8 @@ var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'
     diff = engine.diff,
     dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
-    AudioRenderer = engine.audioRender,
-    AudioEngine = engine.audio;
+    AudioRenderer = require('./../../engine/audio_render'),
+    AudioEngine = require('./../../engine/audio/audio');
 
 
 module.exports = function (ractive, context, page, urlcontext, user) {
@@ -2542,16 +2973,16 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     ractive.set("playing", false);
 
     dispatcher.on({
-        edit_tune: function () {
+        edit_tune: function edit_tune() {
             page("/editor?tuneid=" + parameters.tuneid);
         },
-        show_fullscreen: function () {
+        show_fullscreen: function show_fullscreen() {
             var elem = document.getElementById("fullscreenZone");
             if (screenfull.enabled) {
                 screenfull.request(elem);
             }
         },
-        publish_tune: function () {
+        publish_tune: function publish_tune() {
             $.ajax({
                 type: "POST",
                 url: "/api/tunes/publish",
@@ -2563,7 +2994,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
                 toastr.success("Tune published", "Success!");
             });
         },
-        "end-of-tune": function () {
+        end_of_tune: function end_of_tune() {
             ractive.set("playing", false);
         }
     });
@@ -2640,13 +3071,13 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     };
 };
 
-},{"./../../engine/engine":27,"./../../engine/scripts/transitions/ractive.transitions.fade":36,"./../../engine/scripts/transitions/ractive.transitions.fly":37,"./../../engine/vendor.js":43}],20:[function(require,module,exports){
+},{"./../../engine/audio/audio":22,"./../../engine/audio_render":24,"./../../engine/engine":28,"./../../engine/scripts/transitions/ractive.transitions.fade":37,"./../../engine/scripts/transitions/ractive.transitions.fly":38,"./../../engine/vendor.js":44}],21:[function(require,module,exports){
 "use strict";
 
 /* Example definition of a simple mode that understands a subset of
  * JavaScript:
  */
-var CodeMirror = require('./vendor.js').codeMirror,
+var CodeMirror = require("codemirror"),
     CodeMirrorSimple = require("./scripts/codemirror_simple");
 
 CodeMirror.defineSimpleMode("abc", {
@@ -2694,7 +3125,7 @@ CodeMirror.defineSimpleMode("abc", {
 // mode.
 //{regex: /<</, token: "meta", mode: {spec: "xml", end: />>/}}
 
-},{"./scripts/codemirror_simple":34,"./vendor.js":43}],21:[function(require,module,exports){
+},{"./scripts/codemirror_simple":35,"codemirror":47}],22:[function(require,module,exports){
 "use strict";
 
 var midiGen = require("./midi");
@@ -2719,7 +3150,7 @@ function get_next_wave(ev) {
     // collect new wave data from libtimidity into waveBuffer
     read_wave_bytes = Module.ccall("mid_song_read_wave", "number", ["number", "number", "number", "number"], [song, waveBuffer, audioBufferSize * 2, false]);
     if (0 == read_wave_bytes) {
-        dispatcher.send("end-of-tune");
+        dispatcher.send("end_of_tune");
         stop();
         return;
     }
@@ -2853,7 +3284,7 @@ module.exports = {
 };
 // MIDIjs.message_callback("Error: Cannot retrieve patch file " + path + filename);
 
-},{"../dispatcher":26,"./midi":22}],22:[function(require,module,exports){
+},{"../dispatcher":27,"./midi":23}],23:[function(require,module,exports){
 "use strict";
 
 /*jslint es5: true, laxbreak: true */
@@ -2862,12 +3293,14 @@ var AP = Array.prototype;
 
 // Create a mock console object to void undefined errors if the console object
 // is not defined.
-if (!window.console || !console.firebug) {
-    var names = ["log", "debug", "info", "warn", "error"];
+if (window !== undefined) {
+    if (!window.console || !console.firebug) {
+        var names = ["log", "debug", "info", "warn", "error"];
 
-    window.console = {};
-    for (var i = 0; i < names.length; ++i) {
-        window.console[names[i]] = function () {};
+        window.console = {};
+        for (var i = 0; i < names.length; ++i) {
+            window.console[names[i]] = function () {};
+        }
     }
 }
 
@@ -3329,7 +3762,7 @@ module.exports = {
 // TBD
 // TBD
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 
 var data_tables = require("./data_tables.js");
@@ -3355,13 +3788,13 @@ var audioRender = function (tune) {
 
 module.exports = audioRender;
 
-},{"./data_tables.js":24}],24:[function(require,module,exports){
+},{"./data_tables.js":25}],25:[function(require,module,exports){
 "use strict";
 
 var data_tables = {},
     dispatcher = require("./dispatcher"),
-    zazate = require('./vendor.js').zazate,
-    _ = require('./vendor.js').lodash;
+    zazate = require("zazate.js"),
+    _ = require("lodash");
 
 data_tables.notes = {
     C: {
@@ -3677,7 +4110,7 @@ data_tables.normaliseMode = function (mode) {
     return mode.toLowerCase().substr(0, 3);
 };
 
-window.toMajorMode = function (note, mode) {
+data_tables.toMajorMode = function (note, mode) {
     var norm = data_tables.normaliseMode(mode);
     var middle = data_tables.mode_map[norm];
     var key = majorMode[data_tables.keySig[note][middle]];
@@ -3706,7 +4139,7 @@ window.toMajorMode = function (note, mode) {
     });
 };
 
-window.gkm = data_tables.getKeyModifiers = function (key) {
+data_tables.gkm = data_tables.getKeyModifiers = function (key) {
     var norm = data_tables.normaliseMode(key.mode);
     var middle = data_tables.mode_map[norm];
     var meh = parseInt(data_tables.keySig[key.note][middle]);
@@ -3754,11 +4187,11 @@ data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];
 
 module.exports = data_tables;
 
-},{"./dispatcher":26,"./vendor.js":43}],25:[function(require,module,exports){
+},{"./dispatcher":27,"lodash":94,"zazate.js":135}],26:[function(require,module,exports){
 "use strict";
 
 var enums = require("./types"),
-    JsDiff = require('./vendor.js').jsDiff,
+    JsDiff = require("diff"),
     LineCollection = require("./types/LineCollection").LineCollection;
 
 
@@ -3808,10 +4241,10 @@ var Diff = function (change) {
 
 module.exports = Diff;
 
-},{"./types":38,"./types/LineCollection":42,"./vendor.js":43}],26:[function(require,module,exports){
+},{"./types":39,"./types/LineCollection":43,"diff":83}],27:[function(require,module,exports){
 "use strict";
 
-var _ = require('./vendor.js').lodash;
+var _ = require("lodash");
 
 var subscribers = new Map(),
     afterSubscribers = new Map();
@@ -3819,9 +4252,7 @@ var subscribers = new Map(),
 var disconnectId = 0;
 
 function send(eventName, data) {
-    if (!subscribers.has(eventName)) {
-        console.log("No subscribers for " + eventName, data);
-    }
+    if (!subscribers.has(eventName)) {}
 
     _(subscribers.get(eventName)).forEach(function (sub) {
         sub.f(data);
@@ -3886,8 +4317,9 @@ module.exports = {
     send: send,
     after: after
 };
+//console.log("No subscribers for " + eventName, data);
 
-},{"./vendor.js":43}],27:[function(require,module,exports){
+},{"lodash":94}],28:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -3895,17 +4327,16 @@ module.exports = {
 	diff: require("./diff"),
 	render: require("./render"),
 	layout: require("./layout"),
-	dispatcher: require("./dispatcher"),
-	audio: require("./audio/audio"),
-	audioRender: require("./audio_render")
-};
+	dispatcher: require("./dispatcher") };
+//audio: require('./audio/audio'),
+//audioRender: require('./audio_render')
 
-},{"./audio/audio":21,"./audio_render":23,"./diff":25,"./dispatcher":26,"./layout":28,"./parser":30,"./render":31}],28:[function(require,module,exports){
+},{"./diff":26,"./dispatcher":27,"./layout":29,"./parser":31,"./render":32}],29:[function(require,module,exports){
 "use strict";
 
 var enums = require("./types"),
     data_tables = require("./data_tables"),
-    _ = require('./vendor.js').lodash,
+    _ = require("lodash"),
     dispatcher = require("./dispatcher"),
     AbcBeam = require("./types/AbcBeam");
 
@@ -3985,27 +4416,50 @@ var ABCLayout = function () {
         return line;
     };
 
+    var handleDataLineSwitch = {
+        title: function title(data) {
+            tuneSettings.title = data;
+            dispatcher.send("change_tune_title", data);
+        },
+
+        rhythm: function rhythm(data) {
+            tuneSettings.rhythm = data;
+            dispatcher.send("change_rhythm", data);
+        },
+
+        key: function key(data) {
+            tuneSettings.key = data;
+            dispatcher.send("change_key", data);
+        },
+
+        timesig: function timesig(data) {
+            tuneSettings.measure = data;
+            dispatcher.send("change_timesig", data);
+        },
+
+        notelength: function notelength(data) {
+            tuneSettings.noteLength = data;
+            dispatcher.send("change_notelength", data);
+        },
+
+        number: function number(data) {
+            tuneSettings.number = data;
+        },
+
+        transcriber: function transcriber(data) {
+            tuneSettings.transcriber = data;
+        },
+
+        source: function source(data) {
+            tuneSettings.source = data;
+        } };
+
     function handleDataLine(line) {
-        if (line.symbols[0].type === "title") {
-            tuneSettings.title = line.symbols[0].data;
-            dispatcher.send("change_tune_title", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "rhythm") {
-            tuneSettings.rhythm = line.symbols[0].data;
-            dispatcher.send("change_rhythm", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "key") {
-            tuneSettings.key = line.symbols[0].data;
-            dispatcher.send("change_key", line.symbols[0].data);
-        }
-        if (line.symbols[0].type === "timesig") {
-            tuneSettings.measure = line.symbols[0].data;
-            dispatcher.send("change_timesig", line.symbols[0].data);
-        }
+        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);
     }
 
     var handleAction = {
-        ADD: function (lineCollection) {
+        ADD: function ADD(lineCollection) {
             //draw tune lines
             var renderedLines = lineCollection.lines.filter(function (line) {
                 return !line.error && line.type === "drawable";
@@ -4023,7 +4477,8 @@ var ABCLayout = function () {
                 return !line.error && line.type === "data";
             }).forEach(handleDataLine);
         },
-        DEL: function (lineCollection) {
+
+        DEL: function DEL(lineCollection) {
             var dl = lineCollection.lines.filter(function (line) {
                 return !line.error && line.type === "drawable";
             });
@@ -4040,7 +4495,7 @@ var ABCLayout = function () {
 
     return function (oldScoreLines, lineCollection) {
         lineCollection.action === "NONE" || handleAction[lineCollection.action](lineCollection);
-        console.log("LAYOUT", scoreLines);
+        //console.log("LAYOUT", scoreLines);
         return {
             scoreLines: scoreLines,
             tuneSettings: tuneSettings
@@ -4050,11 +4505,11 @@ var ABCLayout = function () {
 
 module.exports = ABCLayout;
 
-},{"./data_tables":24,"./dispatcher":26,"./types":38,"./types/AbcBeam":39,"./vendor.js":43}],29:[function(require,module,exports){
+},{"./data_tables":25,"./dispatcher":27,"./types":39,"./types/AbcBeam":40,"lodash":94}],30:[function(require,module,exports){
 "use strict";
 
-var _ = require('./vendor.js').lodash,
-    Lexer = require('./vendor.js').lex,
+var _ = require("lodash"),
+    Lexer = require("lex"),
     dispatcher = require("./dispatcher");
 
 //////////////////////
@@ -4267,6 +4722,20 @@ lexer.addRule(/\|/, function () {
         data: sectionName,
         v: 2
     };
+}).addRule(/\|([0-9]+)/, function (all, sectionNumber) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionNumber,
+        v: 2
+    };
+}).addRule(/\|"([a-z A-Z0-9]+)"/, function (all, sectionName) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionName,
+        v: 2
+    };
 });
 
 /////////////////
@@ -4423,15 +4892,16 @@ module.exports = function (input, lineId) {
     return output;
 };
 
-},{"./dispatcher":26,"./vendor.js":43}],30:[function(require,module,exports){
+},{"./dispatcher":27,"lex":93,"lodash":94}],31:[function(require,module,exports){
 "use strict";
 
 var lexer = require("./lexer.js"),
     data_tables = require("./data_tables.js"),
-    _ = require('./vendor.js').lodash,
+    _ = require("lodash"),
     enums = require("./types"),
     dispatcher = require("./dispatcher"),
     AbcNote = require("./types/AbcSymbol").AbcNote,
+    AbcRest = require("./types/AbcSymbol").AbcRest,
     AbcSymbol = require("./types/AbcSymbol").AbcSymbol,
     AbcChord = require("./types/AbcChord").AbcChord;
 
@@ -4446,6 +4916,12 @@ var ABCParser = function (transposeAmount) {
     var drawableIndex = 0;
     var decorationstack = [];
     var maxStartId = 0;
+
+    var noteLengthModifier = 0.125;
+
+    dispatcher.on("change_notelength", function (data) {
+        noteLengthModifier = data;
+    });
 
     var transpose = transposeAmount || 0;
 
@@ -4484,7 +4960,7 @@ var ABCParser = function (transposeAmount) {
         }
 
         if (lexer[0] && lexer[0].subType == "length") {
-            newNote.noteLength = lexer.shift().data;
+            newNote.noteLength = lexer.shift().data * (noteLengthModifier / 0.125);
         }
 
         newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
@@ -4625,7 +5101,8 @@ var ABCParser = function (transposeAmount) {
 
         var currentVarientEnding = null,
             tupletBuffer = [],
-            tupletCount = 0;
+            tupletCount = 0,
+            tupletValue = 0;
 
         while (lexed.length > 0) {
             if (lexed[0].type === "data") {
@@ -4655,6 +5132,7 @@ var ABCParser = function (transposeAmount) {
             // }
             if (lexed[0].type === "tuplet_start") {
                 tupletCount = lexed[0].data;
+                tupletValue = lexed[0].data;
                 lexed.shift();
                 continue;
             }
@@ -4671,8 +5149,14 @@ var ABCParser = function (transposeAmount) {
                     tupletCount--;
 
                     if (tupletCount === 0) {
+                        tupletBuffer.forEach(function (note) {
+                            note.noteLength = note.noteLength / tupletValue * 2;
+                            //note.weight = data_tables.symbol_width.note(note);
+                        });
+
                         line.tuplets.push({
-                            notes: tupletBuffer
+                            notes: tupletBuffer,
+                            value: tupletValue
                         });
                         tupletBuffer = [];
                     }
@@ -4764,7 +5248,7 @@ var ABCParser = function (transposeAmount) {
             line.endWithEndingBar = true;
         }
 
-        console.log("PARSED", parsed);
+        //console.log("PARSED", parsed);
         return parsed;
     }
 
@@ -4847,7 +5331,7 @@ var ABCParser = function (transposeAmount) {
 
 module.exports = ABCParser;
 
-},{"./data_tables.js":24,"./dispatcher":26,"./lexer.js":29,"./types":38,"./types/AbcChord":40,"./types/AbcSymbol":41,"./vendor.js":43}],31:[function(require,module,exports){
+},{"./data_tables.js":25,"./dispatcher":27,"./lexer.js":30,"./types":39,"./types/AbcChord":41,"./types/AbcSymbol":42,"lodash":94}],32:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg"),
@@ -4891,12 +5375,15 @@ var ABCRenderer = function () {
         var noteAreaWidth = 800 - leadInWidth;
 
         for (var i = 0; i < line.symbols.length; i++) {
-            if (line.symbols[i].type === "tie") console.log("WAY");
             symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], line.symbols[i].xp * noteAreaWidth, noteAreaWidth));
         }
 
         for (var i = 0; i < line.endings.length; i++) {
             symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
+        }
+
+        for (var i = 0; i < line.tuplets.length; i++) {
+            symbolsGroup.children.push(draw.tuplets(line.tuplets[i], noteAreaWidth));
         }
 
         if (nextLineStartsWithEnding) {
@@ -4949,7 +5436,7 @@ var ABCRenderer = function () {
 module.exports = ABCRenderer;
 //height: "100%"
 
-},{"./rendering/stave_symbols.js":33,"virtual-dom/create-element":101,"virtual-dom/diff":102,"virtual-dom/h":103,"virtual-dom/patch":105,"virtual-dom/virtual-hyperscript/svg":117}],32:[function(require,module,exports){
+},{"./rendering/stave_symbols.js":34,"virtual-dom/create-element":102,"virtual-dom/diff":103,"virtual-dom/h":104,"virtual-dom/patch":106,"virtual-dom/virtual-hyperscript/svg":118}],33:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -5328,7 +5815,7 @@ module.exports = {
     }
 };
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg");
@@ -5336,8 +5823,7 @@ var s = require("virtual-dom/virtual-hyperscript/svg");
 var drawing_functions = {},
     randomColor = require("randomcolor"),
     glyphs = require("./glyphs"),
-    _ = require('./../vendor.js').lodash,
-    SVG = require('./../vendor.js').svgjs,
+    _ = require("lodash"),
     data_tables = require("../data_tables"),
     dispatcher = require("../dispatcher");
 
@@ -6015,6 +6501,25 @@ drawing_functions.rest = function (currentNote, offset, noteAreaWidth) {
     return colGroup;
 };
 
+drawing_functions.tuplets = function (currentTuplet, noteAreaWidth) {
+    var offset = (currentTuplet.notes[0].xp + (_.last(currentTuplet.notes).xp - currentTuplet.notes[0].xp) / 2) * noteAreaWidth;
+
+    var colGroup = s("g", {
+        transform: "translate(" + offset + ",16)"
+    });
+
+    colGroup.children.push(s("text", {
+        x: 12,
+        y: 0,
+        "text-anchor": "middle",
+        fill: "black",
+        transform: "scale(0.7, 0.7)",
+        "font-weight": "bold"
+    }, [currentTuplet.value.toString()]));
+
+    return colGroup;
+};
+
 module.exports = drawing_functions;
 /* return line.text(currentSymbol.text).font({
      family: 'Helvetica',
@@ -6025,7 +6530,7 @@ module.exports = drawing_functions;
      fill: 'black'
  });*/
 
-},{"../data_tables":24,"../dispatcher":26,"./../vendor.js":43,"./glyphs":32,"randomcolor":97,"virtual-dom/virtual-hyperscript/svg":117}],34:[function(require,module,exports){
+},{"../data_tables":25,"../dispatcher":27,"./glyphs":33,"lodash":94,"randomcolor":98,"virtual-dom/virtual-hyperscript/svg":118}],35:[function(require,module,exports){
 "use strict";
 
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
@@ -6231,7 +6736,7 @@ module.exports = drawing_functions;
   }
 });
 
-},{"./../vendor.js":43}],35:[function(require,module,exports){
+},{"./../vendor.js":44}],36:[function(require,module,exports){
 "use strict";
 
 // Divvy v0.1.7
@@ -7127,7 +7632,7 @@ module.exports = drawing_functions;
 	}
 })(undefined);
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 /*
@@ -7226,7 +7731,7 @@ module.exports = drawing_functions;
 	Ractive.transitions.fade = fade;
 });
 
-},{"./../../vendor.js":43}],37:[function(require,module,exports){
+},{"./../../vendor.js":44}],38:[function(require,module,exports){
 "use strict";
 
 /*
@@ -7333,7 +7838,7 @@ module.exports = drawing_functions;
 	Ractive.transitions.fly = fly;
 });
 
-},{"./../../vendor.js":43}],38:[function(require,module,exports){
+},{"./../../vendor.js":44}],39:[function(require,module,exports){
 "use strict";
 
 var line_types = {
@@ -7357,7 +7862,7 @@ module.exports = {
 	line_actions: line_actions
 };
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 
 var POS_SWITCH = 6;
@@ -7425,7 +7930,7 @@ AbcBeam.prototype.weight = 0;
 
 module.exports = AbcBeam;
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 "use strict";
 
 ////////////
@@ -7434,9 +7939,7 @@ module.exports = AbcBeam;
 
 var chordRegex = /^([A-G](?:b|#)?)(m|min|maj|dim|aug|\+|sus)?(2|4|7|9|13)?(\/[A-G](?:b|#)?)?$/i;
 
-var zaz = require('./../vendor.js').zazate;
-
-window.zaz = zaz;
+var zaz = require("zazate.js");
 
 var transposeNote = function (note, a) {
     var transposedInt = zaz.notes.note_to_int(note.toUpperCase()) + a;
@@ -7445,7 +7948,6 @@ var transposeNote = function (note, a) {
 };
 
 var AbcChord = function (text) {
-    var _this = this;
     this.text = text;
 
     var regexTestResult = chordRegex.exec(text);
@@ -7462,12 +7964,12 @@ var AbcChord = function (text) {
     }
 
     this.getText = function (transpose) {
-        if (!_this.parsed || transpose === 0) return _this.text;
+        if (!this.parsed || transpose === 0) return this.text;
 
-        var output = transposeNote(_this.note, transpose);
-        if (_this.type) output += _this.type;
-        if (_this.number) output += _this.number;
-        if (_this.base) output += "/" + transposeNote(_this.base.substr(1), transpose);
+        var output = transposeNote(this.note, transpose);
+        if (this.type) output += this.type;
+        if (this.number) output += this.number;
+        if (this.base) output += "/" + transposeNote(this.base.substr(1), transpose);
         return output;
     };
 };
@@ -7475,7 +7977,7 @@ var AbcChord = function (text) {
 module.exports = {
     AbcChord: AbcChord };
 
-},{"./../vendor.js":43}],41:[function(require,module,exports){
+},{"zazate.js":135}],42:[function(require,module,exports){
 "use strict";
 
 ////////////
@@ -7523,14 +8025,16 @@ var AbcRest = function () {
     AbcSymbol.call(this, "rest", 1);
 };
 
+AbcRest.prototype = Object.create(AbcSymbol.prototype);
 AbcRest.prototype.restLength = 1;
 
 module.exports = {
     AbcNote: AbcNote,
-    AbcSymbol: AbcSymbol
+    AbcSymbol: AbcSymbol,
+    AbcRest: AbcRest
 };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 "use strict";
 
 /////////////
@@ -7580,7 +8084,7 @@ module.exports = {
     AbcLine: AbcLine
 };
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 "use strict";
 
 //polyfill
@@ -7606,9 +8110,9 @@ module.exports = {
     sortable: require("sortablejs")
 };
 
-},{"codemirror":46,"codemirror/addon/lint/lint":45,"combokeys":79,"diff":82,"domready":83,"filesaver.js":141,"isomorphic-fetch":91,"lex":92,"lodash":93,"page":94,"query-string":95,"ractive/ractive.runtime":96,"screenfull":98,"sizzle":99,"sortablejs":100,"zazate.js":134}],44:[function(require,module,exports){
+},{"codemirror":47,"codemirror/addon/lint/lint":46,"combokeys":80,"diff":83,"domready":84,"filesaver.js":141,"isomorphic-fetch":92,"lex":93,"lodash":94,"page":95,"query-string":96,"ractive/ractive.runtime":97,"screenfull":99,"sizzle":100,"sortablejs":101,"zazate.js":135}],45:[function(require,module,exports){
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -7814,7 +8318,7 @@ module.exports = {
   });
 });
 
-},{"../../lib/codemirror":46}],46:[function(require,module,exports){
+},{"../../lib/codemirror":47}],47:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -15646,7 +16150,7 @@ module.exports = {
   return CodeMirror;
 });
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -15743,7 +16247,7 @@ module.exports.reset = require("./reset");
  */
 module.exports.REVERSE_MAP = null;
 
-},{"./prototype/addEvents":48,"./prototype/bind":49,"./prototype/bindMultiple":50,"./prototype/bindSequence":51,"./prototype/bindSingle":52,"./prototype/fireCallback":53,"./prototype/getKeyInfo":54,"./prototype/getMatches":55,"./prototype/getReverseMap":56,"./prototype/handleKey":57,"./prototype/pickBestAction":60,"./prototype/reset.js":61,"./prototype/resetSequenceTimer":62,"./prototype/resetSequences":63,"./prototype/stopCallback":64,"./prototype/trigger":65,"./prototype/unbind":66,"./reset":67}],48:[function(require,module,exports){
+},{"./prototype/addEvents":49,"./prototype/bind":50,"./prototype/bindMultiple":51,"./prototype/bindSequence":52,"./prototype/bindSingle":53,"./prototype/fireCallback":54,"./prototype/getKeyInfo":55,"./prototype/getMatches":56,"./prototype/getReverseMap":57,"./prototype/handleKey":58,"./prototype/pickBestAction":61,"./prototype/reset.js":62,"./prototype/resetSequenceTimer":63,"./prototype/resetSequences":64,"./prototype/stopCallback":65,"./prototype/trigger":66,"./prototype/unbind":67,"./reset":68}],49:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 module.exports = function () {
@@ -15762,7 +16266,7 @@ module.exports = function () {
     addEvent(element, "keyup", boundHandler);
 };
 
-},{"../../helpers/addEvent":68,"./handleKeyEvent":58}],49:[function(require,module,exports){
+},{"../../helpers/addEvent":69,"./handleKeyEvent":59}],50:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -15787,7 +16291,7 @@ module.exports = function(keys, callback, action) {
     return self;
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -15807,7 +16311,7 @@ module.exports = function (combinations, callback, action) {
     }
 };
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -15887,7 +16391,7 @@ module.exports = function (combo, keys, callback, action) {
     }
 };
 
-},{"../../helpers/characterFromEvent":69}],52:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":70}],53:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -15945,7 +16449,7 @@ module.exports = function (combination, callback, action, sequenceName, level) {
     });
 };
 
-},{}],53:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -15977,7 +16481,7 @@ module.exports = function (callback, e, combo, sequence) {
     }
 };
 
-},{"../../helpers/preventDefault":73,"../../helpers/stopPropagation":78}],54:[function(require,module,exports){
+},{"../../helpers/preventDefault":74,"../../helpers/stopPropagation":79}],55:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16040,7 +16544,7 @@ module.exports = function (combination, action) {
     };
 };
 
-},{"../../helpers/isModifier":71,"../../helpers/keysFromString":72,"../../helpers/shift-map":74,"../../helpers/special-aliases":75}],55:[function(require,module,exports){
+},{"../../helpers/isModifier":72,"../../helpers/keysFromString":73,"../../helpers/shift-map":75,"../../helpers/special-aliases":76}],56:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16121,7 +16625,7 @@ module.exports = function (character, modifiers, e, sequenceName, combination, l
     return matches;
 };
 
-},{"../../helpers/isModifier":71,"./modifiersMatch":59}],56:[function(require,module,exports){
+},{"../../helpers/isModifier":72,"./modifiersMatch":60}],57:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16155,7 +16659,7 @@ module.exports = function () {
     return constructor.REVERSE_MAP;
 };
 
-},{"../../helpers/special-keys-map":77}],57:[function(require,module,exports){
+},{"../../helpers/special-keys-map":78}],58:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16252,7 +16756,7 @@ module.exports = function (character, modifiers, e) {
     self.ignoreNextKeypress = processedSequenceCallback && e.type === "keydown";
 };
 
-},{"../../helpers/isModifier":71}],58:[function(require,module,exports){
+},{"../../helpers/isModifier":72}],59:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16290,7 +16794,7 @@ module.exports = function (e) {
     self.handleKey(character, eventModifiers(e), e);
 };
 
-},{"../../helpers/characterFromEvent":69,"../../helpers/eventModifiers":70}],59:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":70,"../../helpers/eventModifiers":71}],60:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16305,7 +16809,7 @@ module.exports = function (modifiers1, modifiers2) {
     return modifiers1.sort().join(",") === modifiers2.sort().join(",");
 };
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16334,7 +16838,7 @@ module.exports = function (key, modifiers, action) {
     return action;
 };
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16352,7 +16856,7 @@ module.exports = function() {
     return this;
 };
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16375,7 +16879,7 @@ module.exports = function () {
     );
 };
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16406,7 +16910,7 @@ module.exports = function (doNotReset) {
     }
 };
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16428,7 +16932,7 @@ module.exports = function(e, element) {
     return element.tagName === "INPUT" || element.tagName === "SELECT" || element.tagName === "TEXTAREA" || element.isContentEditable;
 };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16445,7 +16949,7 @@ module.exports = function(keys, action) {
     return this;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16471,7 +16975,7 @@ module.exports = function(keys, action) {
     return self.bind(keys, function() {}, action);
 };
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16483,7 +16987,7 @@ module.exports = function () {
     });
 };
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16504,7 +17008,7 @@ module.exports = function (object, type, callback) {
     object.attachEvent("on" + type, callback);
 };
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16558,7 +17062,7 @@ module.exports = function (e) {
     return String.fromCharCode(e.which).toLowerCase();
 };
 
-},{"./special-characters-map":76,"./special-keys-map":77}],70:[function(require,module,exports){
+},{"./special-characters-map":77,"./special-keys-map":78}],71:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16590,7 +17094,7 @@ module.exports = function (e) {
     return modifiers;
 };
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16604,7 +17108,7 @@ module.exports = function (key) {
     return key === "shift" || key === "ctrl" || key === "alt" || key === "meta";
 };
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16622,7 +17126,7 @@ module.exports = function (combination) {
     return combination.split("+");
 };
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16641,7 +17145,7 @@ module.exports = function (e) {
     e.returnValue = false;
 };
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16676,7 +17180,7 @@ module.exports = {
     "|": "\\"
 };
 
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16693,7 +17197,7 @@ module.exports = {
     "mod": /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "meta" : "ctrl"
 };
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16723,7 +17227,7 @@ module.exports = {
     222: "'"
 };
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 /**
@@ -16775,7 +17279,7 @@ for (i = 0; i <= 9; ++i) {
     module.exports[i + 96] = i;
 }
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
@@ -16794,13 +17298,13 @@ module.exports = function (e) {
     e.cancelBubble = true;
 };
 
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 /* eslint-env node, browser */
 "use strict";
 
 module.exports = require("./Combokeys");
 
-},{"./Combokeys":47}],80:[function(require,module,exports){
+},{"./Combokeys":48}],81:[function(require,module,exports){
 module.exports = createHash
 
 function createHash(elem) {
@@ -16824,7 +17328,7 @@ function createHash(elem) {
     return hash
 }
 
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 var createStore = require("weakmap-shim/create-store")
 var Individual = require("individual")
 
@@ -16844,7 +17348,7 @@ function DataSet(elem) {
     return store.hash
 }
 
-},{"./create-hash.js":80,"individual":88,"weakmap-shim/create-store":129}],82:[function(require,module,exports){
+},{"./create-hash.js":81,"individual":89,"weakmap-shim/create-store":130}],83:[function(require,module,exports){
 /* See LICENSE file for terms of use */
 
 /*
@@ -17215,7 +17719,7 @@ if (typeof module !== 'undefined') {
     module.exports = JsDiff;
 }
 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -17247,7 +17751,7 @@ if (typeof module !== 'undefined') {
 
 });
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 module.exports = function(obj) {
     if (typeof obj === 'string') return camelCase(obj);
     return walk(obj);
@@ -17308,7 +17812,7 @@ function reduce (xs, f, acc) {
     return acc;
 }
 
-},{}],85:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 var nargs = /\{([0-9a-zA-Z]+)\}/g
 var slice = Array.prototype.slice
 
@@ -17344,7 +17848,7 @@ function template(string) {
     })
 }
 
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = extend
 
 function extend(target) {
@@ -17361,7 +17865,7 @@ function extend(target) {
     return target
 }
 
-},{}],87:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 var camelize = require("camelize")
 var template = require("string-template")
 var extend = require("xtend/mutable")
@@ -17411,7 +17915,7 @@ function TypedError(args) {
 }
 
 
-},{"camelize":84,"string-template":85,"xtend/mutable":86}],88:[function(require,module,exports){
+},{"camelize":85,"string-template":86,"xtend/mutable":87}],89:[function(require,module,exports){
 (function (global){
 var root = typeof window !== 'undefined' ?
     window : typeof global !== 'undefined' ?
@@ -17434,14 +17938,14 @@ function Individual(key, value) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],89:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 module.exports = isObject
 
 function isObject(x) {
     return typeof x === "object" && x !== null
 }
 
-},{}],90:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 (function() {
   'use strict';
 
@@ -17783,10 +18287,10 @@ function isObject(x) {
   self.fetch.polyfill = true
 })();
 
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 module.exports = require('whatwg-fetch');
 
-},{"whatwg-fetch":90}],92:[function(require,module,exports){
+},{"whatwg-fetch":91}],93:[function(require,module,exports){
 if (typeof module === "object" && typeof module.exports === "object") module.exports = Lexer;
 
 Lexer.defunct = function (char) {
@@ -17933,7 +18437,7 @@ function Lexer(defunct) {
     }
 }
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -24723,7 +25227,7 @@ function Lexer(defunct) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 
 ;(function(){
 
@@ -25169,7 +25673,7 @@ function Lexer(defunct) {
 
 })();
 
-},{}],95:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 /*!
 	query-string
 	Parse and stringify URL query strings
@@ -25237,7 +25741,7 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 /*
 	ractive.runtime.js v0.6.1
 	2014-10-25 - commit 3a576eb3 
@@ -38398,7 +38902,7 @@ function Lexer(defunct) {
 
 }( typeof window !== 'undefined' ? window : this ) );
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 ;(function(root, factory) {
 
   // Support AMD
@@ -38760,7 +39264,7 @@ function Lexer(defunct) {
 
   return randomColor;
 }));
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 /*!
 * screenfull
 * v1.2.0 - 2014-04-29
@@ -38917,7 +39421,7 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 /*!
  * Sizzle CSS Selector Engine v2.1.1
  * http://sizzlejs.com/
@@ -40983,7 +41487,7 @@ if ( typeof define === "function" && define.amd ) {
 
 })( window );
 
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 /**!
  * Sortable
  * @author	RubaXa   <trash@rubaxa.org>
@@ -41997,22 +42501,22 @@ if ( typeof define === "function" && define.amd ) {
 	return Sortable;
 });
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":107}],102:[function(require,module,exports){
+},{"./vdom/create-element.js":108}],103:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":128}],103:[function(require,module,exports){
+},{"./vtree/diff.js":129}],104:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":115}],104:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":116}],105:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -42032,12 +42536,12 @@ if (typeof document !== 'undefined') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"min-document":44}],105:[function(require,module,exports){
+},{"min-document":45}],106:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":110}],106:[function(require,module,exports){
+},{"./vdom/patch.js":111}],107:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -42133,7 +42637,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":120,"is-object":89}],107:[function(require,module,exports){
+},{"../vnode/is-vhook.js":121,"is-object":90}],108:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -42181,7 +42685,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":118,"../vnode/is-vnode.js":121,"../vnode/is-vtext.js":122,"../vnode/is-widget.js":123,"./apply-properties":106,"global/document":104}],108:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":119,"../vnode/is-vnode.js":122,"../vnode/is-vtext.js":123,"../vnode/is-widget.js":124,"./apply-properties":107,"global/document":105}],109:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -42268,7 +42772,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -42440,7 +42944,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":123,"../vnode/vpatch.js":126,"./apply-properties":106,"./create-element":107,"./update-widget":111}],110:[function(require,module,exports){
+},{"../vnode/is-widget.js":124,"../vnode/vpatch.js":127,"./apply-properties":107,"./create-element":108,"./update-widget":112}],111:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -42518,7 +43022,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":108,"./patch-op":109,"global/document":104,"x-is-array":131}],111:[function(require,module,exports){
+},{"./dom-index":109,"./patch-op":110,"global/document":105,"x-is-array":132}],112:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -42535,7 +43039,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":123}],112:[function(require,module,exports){
+},{"../vnode/is-widget.js":124}],113:[function(require,module,exports){
 var DataSet = require("data-set")
 
 module.exports = DataSetHook;
@@ -42555,7 +43059,7 @@ DataSetHook.prototype.hook = function (node, propertyName) {
     ds[propName] = this.value;
 };
 
-},{"data-set":81}],113:[function(require,module,exports){
+},{"data-set":82}],114:[function(require,module,exports){
 var DataSet = require("data-set")
 
 module.exports = DataSetHook;
@@ -42582,7 +43086,7 @@ DataSetHook.prototype.unhook = function(node, propertyName) {
     ds[propName] = undefined;
 }
 
-},{"data-set":81}],114:[function(require,module,exports){
+},{"data-set":82}],115:[function(require,module,exports){
 module.exports = SoftSetHook;
 
 function SoftSetHook(value) {
@@ -42599,7 +43103,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],115:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 var TypedError = require("error/typed")
 
 var VNode = require("../vnode/vnode.js")
@@ -42728,7 +43232,7 @@ function isChildren(x) {
     return typeof x === "string" || Array.isArray(x) || isChild(x)
 }
 
-},{"../vnode/is-thunk":119,"../vnode/is-vhook":120,"../vnode/is-vnode":121,"../vnode/is-vtext":122,"../vnode/is-widget":123,"../vnode/vnode.js":125,"../vnode/vtext.js":127,"./hooks/data-set-hook.js":112,"./hooks/ev-hook.js":113,"./hooks/soft-set-hook.js":114,"./parse-tag.js":116,"error/typed":87}],116:[function(require,module,exports){
+},{"../vnode/is-thunk":120,"../vnode/is-vhook":121,"../vnode/is-vnode":122,"../vnode/is-vtext":123,"../vnode/is-widget":124,"../vnode/vnode.js":126,"../vnode/vtext.js":128,"./hooks/data-set-hook.js":113,"./hooks/ev-hook.js":114,"./hooks/soft-set-hook.js":115,"./parse-tag.js":117,"error/typed":88}],117:[function(require,module,exports){
 var classIdSplit = /([\.#]?[a-zA-Z0-9_:-]+)/
 var notClassId = /^\.|#/
 
@@ -42779,7 +43283,7 @@ function parseTag(tag, props) {
     return tagName ? tagName.toLowerCase() : "div"
 }
 
-},{}],117:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 var h = require("./index.js")
 
 var BLACKLISTED_KEYS = {
@@ -42833,7 +43337,7 @@ function isChildren(x) {
     return typeof x === "string" || Array.isArray(x)
 }
 
-},{"./index.js":115}],118:[function(require,module,exports){
+},{"./index.js":116}],119:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -42875,14 +43379,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":119,"./is-vnode":121,"./is-vtext":122,"./is-widget":123}],119:[function(require,module,exports){
+},{"./is-thunk":120,"./is-vnode":122,"./is-vtext":123,"./is-widget":124}],120:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],120:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -42890,7 +43394,7 @@ function isHook(hook) {
         !hook.hasOwnProperty("hook")
 }
 
-},{}],121:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -42899,7 +43403,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":124}],122:[function(require,module,exports){
+},{"./version":125}],123:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -42908,17 +43412,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":124}],123:[function(require,module,exports){
+},{"./version":125}],124:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],124:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 module.exports = "1"
 
-},{}],125:[function(require,module,exports){
+},{}],126:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -42992,7 +43496,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":119,"./is-vhook":120,"./is-vnode":121,"./is-widget":123,"./version":124}],126:[function(require,module,exports){
+},{"./is-thunk":120,"./is-vhook":121,"./is-vnode":122,"./is-widget":124,"./version":125}],127:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -43016,7 +43520,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":124}],127:[function(require,module,exports){
+},{"./version":125}],128:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -43028,7 +43532,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":124}],128:[function(require,module,exports){
+},{"./version":125}],129:[function(require,module,exports){
 var isArray = require("x-is-array")
 var isObject = require("is-object")
 
@@ -43406,7 +43910,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":118,"../vnode/is-thunk":119,"../vnode/is-vhook":120,"../vnode/is-vnode":121,"../vnode/is-vtext":122,"../vnode/is-widget":123,"../vnode/vpatch":126,"is-object":89,"x-is-array":131}],129:[function(require,module,exports){
+},{"../vnode/handle-thunk":119,"../vnode/is-thunk":120,"../vnode/is-vhook":121,"../vnode/is-vnode":122,"../vnode/is-vtext":123,"../vnode/is-widget":124,"../vnode/vpatch":127,"is-object":90,"x-is-array":132}],130:[function(require,module,exports){
 var hiddenStore = require('./hidden-store.js');
 
 module.exports = createStore;
@@ -43425,7 +43929,7 @@ function createStore() {
     };
 }
 
-},{"./hidden-store.js":130}],130:[function(require,module,exports){
+},{"./hidden-store.js":131}],131:[function(require,module,exports){
 module.exports = hiddenStore;
 
 function hiddenStore(obj, key) {
@@ -43443,7 +43947,7 @@ function hiddenStore(obj, key) {
     return store;
 }
 
-},{}],131:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -43453,7 +43957,7 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],132:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	diatonic = require('./diatonic.js'),
@@ -44807,7 +45311,7 @@ exports.determine_extended_chord5 = determine_extended_chord5;
 exports.determine_extended_chord6 = determine_extended_chord6;
 exports.determine_extended_chord7 = determine_extended_chord7;
 exports.determine_polychords = determine_polychords;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./intervals.js":135,"./notes.js":137}],133:[function(require,module,exports){
+},{"../node_modules/underscore":140,"./diatonic.js":134,"./intervals.js":136,"./notes.js":138}],134:[function(require,module,exports){
 var notes = require('./notes.js'),
 	_ = require('../node_modules/underscore');
 
@@ -44923,14 +45427,14 @@ exports._key_cache = _key_cache;
 exports.get_notes = get_notes;
 exports.int_to_note = int_to_note;
 exports.interval = interval;
-},{"../node_modules/underscore":139,"./notes.js":137}],134:[function(require,module,exports){
+},{"../node_modules/underscore":140,"./notes.js":138}],135:[function(require,module,exports){
 exports.diatonic = require('./diatonic.js');
 exports.notes = require('./notes.js');
 exports.intervals = require('./intervals.js');
 exports.chords = require('./chords.js');
 exports.scales = require('./scales.js');
 exports.meter = require('./meter.js');
-},{"./chords.js":132,"./diatonic.js":133,"./intervals.js":135,"./meter.js":136,"./notes.js":137,"./scales.js":138}],135:[function(require,module,exports){
+},{"./chords.js":133,"./diatonic.js":134,"./intervals.js":136,"./meter.js":137,"./notes.js":138,"./scales.js":139}],136:[function(require,module,exports){
 var notes = require('./notes.js'),
 	diatonic = require('./diatonic.js');
 	_ = require('../node_modules/underscore');
@@ -45382,7 +45886,7 @@ exports.is_consonant = is_consonant;
 exports.is_dissonant = is_dissonant;
 exports.is_perfect_consonant = is_perfect_consonant;
 exports.is_imperfect_consonant = is_imperfect_consonant;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./notes.js":137}],136:[function(require,module,exports){
+},{"../node_modules/underscore":140,"./diatonic.js":134,"./notes.js":138}],137:[function(require,module,exports){
 common_time = (4, 4);
 cut_time = (2, 2);
 
@@ -45424,7 +45928,7 @@ exports.is_valid = is_valid;
 exports.is_compound = is_compound;
 exports.is_asymmetrical = is_asymmetrical;
 exports.is_simple = is_simple;
-},{}],137:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	_ = require('../node_modules/underscore');
 
@@ -45566,7 +46070,7 @@ exports.augment = augment
 exports.diminish = diminish;
 exports.to_major = to_major;
 exports.to_minor = to_minor;
-},{"../node_modules/underscore":139,"./intervals.js":135}],138:[function(require,module,exports){
+},{"../node_modules/underscore":140,"./intervals.js":136}],139:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	get_notes = require('./diatonic.js').get_notes,
@@ -45782,7 +46286,7 @@ exports.chromatic = chromatic;
 exports.whole_note = whole_note;
 exports.diminished = diminished;
 exports.determine = determine;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./intervals.js":135,"./notes.js":137}],139:[function(require,module,exports){
+},{"../node_modules/underscore":140,"./diatonic.js":134,"./intervals.js":136,"./notes.js":138}],140:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -47060,48 +47564,7 @@ exports.determine = determine;
 
 }).call(this);
 
-},{}],140:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-    "": {
-        template: require('./../app/home/home.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/home/home')
-    },
-    editor: {
-        template: require('./../app/editor/editor.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/editor/editor')
-    },
-    user: {
-        template: require('./../app/user/user.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/user/user')
-    },
-    viewer: {
-        template: require('./../app/viewer/viewer.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/viewer/viewer')
-    },
-    tutorial: {
-        template: require('./../app/tutorial/tutorial.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/tutorial/tutorial')
-    },
-    tunebook: {
-        template: require('./../app/tunebook/tunebook_edit.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/tunebook/tunebook_edit')
-    },
-    tunebooks: {
-        template: require('./../app/tunebook/tunebook_view.html'),
-        partials: [require('./../app/partials/userbox')],
-        model: require('./../app/tunebook/tunebook_view')
-    }
-};
-
-},{"./../app/editor/editor":3,"./../app/editor/editor.html":2,"./../app/home/home":5,"./../app/home/home.html":4,"./../app/partials/userbox":7,"./../app/tunebook/tunebook_edit":9,"./../app/tunebook/tunebook_edit.html":8,"./../app/tunebook/tunebook_view":11,"./../app/tunebook/tunebook_view.html":10,"./../app/tutorial/tutorial":15,"./../app/tutorial/tutorial.html":14,"./../app/user/user":17,"./../app/user/user.html":16,"./../app/viewer/viewer":19,"./../app/viewer/viewer.html":18}],141:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 /* FileSaver.js
  *  A saveAs() FileSaver implementation.
  *  2014-05-27

@@ -1,6 +1,6 @@
 'use strict';
 
-var
+var 
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
 
@@ -14,9 +14,9 @@ var
     diff = engine.diff,
     dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
-    AudioRenderer = engine.audioRender,
+    AudioRenderer = require('engine/audio_render'),
 
-    AudioEngine = engine.audio;
+    AudioEngine = require('engine/audio/audio');
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {
@@ -24,22 +24,22 @@ module.exports = function(ractive, context, page, urlcontext, user) {
     var parameters = queryString.parse(urlcontext.querystring);
 
     var parser = ABCParser(),
-        layout = ABCLayout(),
-        renderer = ABCRenderer();
+    layout = ABCLayout(),
+    renderer = ABCRenderer();
 
     ractive.set("playing", false);
 
     dispatcher.on({
-        "edit_tune": function() {
+        edit_tune() {
             page("/editor?tuneid=" + parameters.tuneid);
         },
-        "show_fullscreen": function() {
+        show_fullscreen() {
             var elem = document.getElementById('fullscreenZone');
             if (screenfull.enabled) {
                 screenfull.request(elem);
             }
         },
-        "publish_tune": function() {
+        publish_tune() {
             $.ajax({
                 type: "POST",
                 url: "/api/tunes/publish",
@@ -51,7 +51,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                 toastr.success("Tune published", "Success!");
             });
         },
-        "end-of-tune": function() {            
+        end_of_tune() {            
             ractive.set("playing", false);
         }
     });
@@ -94,9 +94,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             ractive.set("tune", res);
 
             var diffed = diff({
-                    newValue: res.raw,
-                    oldValue: ""
-                });
+                newValue: res.raw,
+                oldValue: ""
+            });
             var parsed = diffed.map(parser);
             var done = parsed.reduce(layout, 0);
 
@@ -110,27 +110,27 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         });/*.catch(function(ex) {
             console.log('parsing failed', ex)
         });*/
-    }
+}
 
-    if(parameters.transpose) {
-        dispatcher.send("transpose_change", parseInt(parameters.transpose));
-    }
+if(parameters.transpose) {
+    dispatcher.send("transpose_change", parseInt(parameters.transpose));
+}
 
-    window.getTune = () => {
-        var tune = doneThing;
+window.getTune = () => {
+    var tune = doneThing;
 
-        var outTune = [];
+    var outTune = [];
 
-        tune.scoreLines.forEach((line) => {
+    tune.scoreLines.forEach((line) => {
 
-            line.symbols
-            .filter((symbol) => symbol.type === "note")
-            .forEach((note) => {
-                outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
-            });
+        line.symbols
+        .filter((symbol) => symbol.type === "note")
+        .forEach((note) => {
+            outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
         });
+    });
 
-        return outTune;
-    }
+    return outTune;
+}
 
 };

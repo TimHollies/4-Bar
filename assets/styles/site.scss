@@ -9,7 +9,7 @@
 
 @import 'layout';
 
-@import 'colors';
+@import 'colors'; 
 
 body {    
     font-family: sans-serif;
@@ -58,12 +58,12 @@ h1, h2, h3, h4 {
 .item-list {
     list-style: none;
     padding: 0;
+    padding-top: 8px;
+
     li {
-        padding: 10px;
         &:last-child {
             border-bottom: 0;
         }
-        border-bottom: #CCC solid 1px;
         cursor: pointer;
         &:hover {
             background-color: #CCC;
@@ -109,15 +109,19 @@ h1, h2, h3, h4 {
 #search-box {
     background-color: white;
     padding: 8px;
-    border-bottom: rgb(186, 186, 186) solid 1px;
+    line-height: 64px;
+    //border-bottom: rgb(186, 186, 186) solid 1px;
     input {
         width: 92%;
         border: 0;
-        font-size: 16px;
+        font-size: 2rem;
         outline: none;
+        color: rgba(0, 0, 0, 0.8);
     }
     i {
-        width: 4%;
+      font-size: 2rem;
+      margin: 0 8px 0 10px;
+      color: rgb(73, 73, 73);
     }
 }
 

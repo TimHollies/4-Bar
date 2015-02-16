@@ -4,12 +4,14 @@ var AP = Array.prototype;
 
 // Create a mock console object to void undefined errors if the console object
 // is not defined.
-if (!window.console || !console.firebug) {
-    var names = ["log", "debug", "info", "warn", "error"];
+if(window !== undefined) {
+    if (!window.console || !console.firebug) {
+        var names = ["log", "debug", "info", "warn", "error"];
 
-    window.console = {};
-    for (var i = 0; i < names.length; ++i) {
-        window.console[names[i]] = function() {};
+        window.console = {};
+        for (var i = 0; i < names.length; ++i) {
+            window.console[names[i]] = function() {};
+        }
     }
 }
 

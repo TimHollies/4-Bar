@@ -3,11 +3,12 @@
 var
     lexer = require('./lexer.js'),
     data_tables = require('./data_tables.js'),
-    _ = require('vendor').lodash,
+    _ = require('lodash'),
     enums = require('./types'),
     dispatcher = require('./dispatcher'),
 
     AbcNote = require("./types/AbcSymbol").AbcNote,
+    AbcRest = require("./types/AbcSymbol").AbcRest,
     AbcSymbol = require("./types/AbcSymbol").AbcSymbol,
     AbcChord = require("./types/AbcChord").AbcChord;
 
@@ -16,13 +17,19 @@ function ParserException(message) {
     this.name = "ParserException";
 }    
 
-var ABCParser = (transposeAmount) => {
+var ABCParser = function(transposeAmount) {
 
     var typecache = new Map();
     var dicache = new Map();
     var drawableIndex = 0;
     var decorationstack = [];
     var maxStartId = 0;
+
+    var noteLengthModifier = 0.125;
+
+    dispatcher.on("change_notelength", function(data) {
+        noteLengthModifier = data;
+    });
 
     var transpose = transposeAmount || 0;
 
@@ -63,7 +70,7 @@ var ABCParser = (transposeAmount) => {
         }
 
         if (lexer[0] && lexer[0].subType == "length") {
-            newNote.noteLength = lexer.shift().data;
+            newNote.noteLength = lexer.shift().data * (noteLengthModifier / 0.125);
         }
 
         newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
@@ -179,7 +186,7 @@ var ABCParser = (transposeAmount) => {
         return false;
     };
 
-    var parseBarline = (lexed, parsed) => {
+    var parseBarline = function (lexed, parsed) {
 
         var symbol = lexed.shift();
 
@@ -207,7 +214,8 @@ var ABCParser = (transposeAmount) => {
         var 
             currentVarientEnding = null,
             tupletBuffer = [],
-            tupletCount = 0;
+            tupletCount = 0,
+            tupletValue = 0;
 
         while (lexed.length > 0) {
 
@@ -238,6 +246,7 @@ var ABCParser = (transposeAmount) => {
             // }
             if (lexed[0].type === "tuplet_start") {
                 tupletCount = lexed[0].data;
+                tupletValue = lexed[0].data;
                 lexed.shift();
                 continue;
             }
@@ -254,8 +263,15 @@ var ABCParser = (transposeAmount) => {
                     tupletCount--;
 
                     if(tupletCount === 0) {
+
+                        tupletBuffer.forEach(function(note) {
+                            note.noteLength = (note.noteLength / tupletValue) * 2;
+                            //note.weight = data_tables.symbol_width.note(note);
+                        });
+
                         line.tuplets.push({
-                            notes: tupletBuffer
+                            notes: tupletBuffer,
+                            value: tupletValue
                         });
                         tupletBuffer = [];
                     }
@@ -351,7 +367,7 @@ var ABCParser = (transposeAmount) => {
             line.endWithEndingBar = true;
         }
 
-        console.log("PARSED", parsed);
+        //console.log("PARSED", parsed);
         return parsed;
     }
 
@@ -402,7 +418,7 @@ var ABCParser = (transposeAmount) => {
             drawableIndex++;
     }
 
-    return (lineCollection) => {
+    return function (lineCollection) {
         //if (lineCollection.startId === 0) drawableIndex = 0;
         if (lineCollection.startId < maxStartId) {      
             drawableIndex = 0;

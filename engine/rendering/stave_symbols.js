@@ -5,8 +5,7 @@ var s = require('virtual-dom/virtual-hyperscript/svg');
 var drawing_functions = {},
     randomColor = require('randomcolor'),
     glyphs = require('./glyphs'),
-    _ = require('vendor').lodash,
-    SVG = require('vendor').svgjs,
+    _ = require('lodash'),
     data_tables = require("../data_tables"),
     dispatcher = require("../dispatcher");
 
@@ -63,7 +62,7 @@ function drawLedgerLines(currentNote, offset, colGroup) {
     }
 }
 
-drawing_functions.note = (currentNote, offset, noteAreaWidth) => {
+drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
 
     //return;   
 
@@ -643,7 +642,7 @@ drawing_functions.keysig = function(keysig, xoffset, lineId) {
     };
 };
 
-drawing_functions.varientEndings = (currentEnding, noteAreaWidth, continuation) => {
+drawing_functions.varientEndings = function (currentEnding, noteAreaWidth, continuation) {
     var
         startX = (currentEnding.start.xp * noteAreaWidth) - 8,
         endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.xp * noteAreaWidth,
@@ -711,6 +710,26 @@ drawing_functions.rest = function(currentNote, offset, noteAreaWidth) {
     colGroup.children.push(s("path", {
         d: glyphs[restLengthMap[restLength]].d
     }));
+
+    return colGroup;
+}
+
+drawing_functions.tuplets = function(currentTuplet, noteAreaWidth) {
+
+    var offset = ( currentTuplet.notes[0].xp + ( ( _.last(currentTuplet.notes).xp - currentTuplet.notes[0].xp) / 2 ) ) * noteAreaWidth;
+
+    var colGroup = s("g", {
+        transform: `translate(${offset},16)`
+    });
+
+    colGroup.children.push(s("text", {
+       x: 12,
+       y: 0,
+       "text-anchor": "middle",
+       fill: "black",
+       transform: "scale(0.7, 0.7)",
+       "font-weight": "bold"
+    }, [currentTuplet.value.toString()]));
 
     return colGroup;
 }

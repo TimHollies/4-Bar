@@ -43,9 +43,11 @@ var AbcRest = function() {
     AbcSymbol.call(this, "rest", 1);
 }
 
+AbcRest.prototype = Object.create(AbcSymbol.prototype);
 AbcRest.prototype.restLength = 1;
 
 module.exports = {
     AbcNote: AbcNote,
-    AbcSymbol: AbcSymbol
+    AbcSymbol: AbcSymbol,
+    AbcRest: AbcRest
 };

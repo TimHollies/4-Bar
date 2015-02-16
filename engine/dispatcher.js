@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('vendor').lodash;
+var _ = require('lodash');
 
 var subscribers = new Map(),
     afterSubscribers = new Map();
@@ -10,7 +10,7 @@ var disconnectId = 0;
 function send(eventName, data) {
 
     if (!subscribers.has(eventName)) {
-    	console.log("No subscribers for " + eventName, data);
+    	//console.log("No subscribers for " + eventName, data);
     }
 
     _(subscribers.get(eventName)).forEach(function(sub) {
@@ -53,7 +53,7 @@ function on(eventName, func) {
 function off(id) {
 
     subscribers.forEach(function(value, key) {
-      var toRemove = _.findIndex(value, (v) => v.id === id);
+      var toRemove = _.findIndex(value, function (v) { return v.id === id });
         if(toRemove !== -1) {
             value.splice(toRemove, 1);
         }

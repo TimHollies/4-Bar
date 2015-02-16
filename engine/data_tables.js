@@ -2,8 +2,8 @@
 
 var data_tables = {},
     dispatcher = require('./dispatcher'),
-    zazate = require('vendor').zazate,
-    _ = require('vendor').lodash;
+    zazate = require('zazate.js'),
+    _ = require('lodash');
 
 data_tables["notes"] = {
     "C": {
@@ -316,9 +316,9 @@ var majorMode = {
     "7": "C#"
 };
 
-data_tables.normaliseMode = (mode) => mode.toLowerCase().substr(0, 3);
+data_tables.normaliseMode = function (mode) { return mode.toLowerCase().substr(0, 3); }
 
-window.toMajorMode = (note, mode) => {
+data_tables.toMajorMode = function (note, mode) {
     var norm = data_tables.normaliseMode(mode);
     var middle = data_tables.mode_map[norm];
     var key = majorMode[data_tables.keySig[note][middle]];
@@ -333,17 +333,17 @@ window.toMajorMode = (note, mode) => {
     chords.push(zazate.chords.VI(key));
     chords.push(zazate.chords.VII(key));
 
-    var indexOfRootNote = _.findIndex(chords, (c) => c[0] === note);
+    var indexOfRootNote = _.findIndex(chords, function (c) { return c[0] === note; });
 
     while(indexOfRootNote > 0) {
         indexOfRootNote--;
         chords.push(chords.shift());
     }
 
-    return chords.map((c) => zazate.chords.determine(c, true)[0]);
+    return chords.map(function (c) { return zazate.chords.determine(c, true)[0]; });
 };
 
-window.gkm = data_tables.getKeyModifiers = (key) => {
+data_tables.gkm = data_tables.getKeyModifiers = function (key) {
     var norm = data_tables.normaliseMode(key.mode);
     var middle = data_tables.mode_map[norm];
     var meh = parseInt(data_tables.keySig[key.note][middle]);
@@ -354,7 +354,7 @@ window.gkm = data_tables.getKeyModifiers = (key) => {
         var range = _.range(-1, meh-1);
         return {
             mod: 1,
-            notes: range.map((r) => majorMode[r])
+            notes: range.map(function (r) { return majorMode[r]; })
         };
     }
 
@@ -362,7 +362,7 @@ window.gkm = data_tables.getKeyModifiers = (key) => {
         var range = _.range(5, meh+5, -1);
         return {
             mod: -1,
-            notes: range.map((r) => majorMode[r])
+            notes: range.map(function (r) { return majorMode[r]; })
         }
     }
 
@@ -373,7 +373,7 @@ window.gkm = data_tables.getKeyModifiers = (key) => {
 };
 
 
-data_tables.getKeySig = (note, mode) => {
+data_tables.getKeySig = function (note, mode) {
     var 
         normalisedMode = data_tables.mode_map[data_tables.normaliseMode(mode)];
 

@@ -1,7 +1,7 @@
 /* Example definition of a simple mode that understands a subset of
  * JavaScript:
  */
-var CodeMirror = require('vendor').codeMirror,
+var CodeMirror = require('codemirror'),
   CodeMirrorSimple = require('./scripts/codemirror_simple');
 
 CodeMirror.defineSimpleMode("abc", {
