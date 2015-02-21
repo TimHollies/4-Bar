@@ -2,16 +2,17 @@
 // Symbol //
 ////////////
 
-var AbcSymbol = function(type, weight) {
+var AbcSymbol = function(type) {
     this.type = type;
-    this.weight = weight || 0;
 }
 
 AbcSymbol.prototype.subType = "";
-AbcSymbol.prototype.weight = 0;
 AbcSymbol.prototype.visible = true;
 AbcSymbol.prototype.xp = 0;
 AbcSymbol.prototype.align = 0;
+
+AbcSymbol.prototype.fixedWidth = 0;
+AbcSymbol.prototype.springConstant = 0;
 
 
 AbcSymbol.prototype.getX = function(leadInWidth, lineWidth) {
@@ -21,6 +22,7 @@ AbcSymbol.prototype.getX = function(leadInWidth, lineWidth) {
 
 var AbcNote = function() {
     AbcSymbol.call(this, "note");
+    this.decorations = [];
 }
 
 AbcNote.prototype = Object.create(AbcSymbol.prototype);

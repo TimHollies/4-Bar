@@ -225,13 +225,6 @@ lexer.addRule(/\|/, function() {
         data: sectionNumber,
         v: 2
     };
-}).addRule(/\|"([a-z A-Z0-9]+)"/, function (all, sectionName) {
-    return {
-        type: "varient_section",
-        subtype: "start_section",
-        data: sectionName,
-        v: 2
-    };
 });
 
 /////////////////
@@ -360,16 +353,16 @@ lexer.addRule(/ /, function() {
     }
 });
 
-module.exports = function(input, lineId) {
+
+module.exports = function(dispatcher, input, lineId) {
     lexer.setInput(input);
-    var output = [],
-        data = lexer.lex();
+    var output = [];
 
-    while(data != undefined) {  
-
-        output.push(data);
+    do {  
+        var data = undefined;
         try {
             data = lexer.lex();
+            if(data !== undefined)output.push(data);
         } catch(e) {
             
             var error = {
@@ -382,11 +375,11 @@ module.exports = function(input, lineId) {
 
             console.log(error);
 
-            dispatcher.send("abc_error", error);
+            dispatcher.fire("abc_error", error);
 
             break;
         }           
-    }
+    } while(data != undefined);
 
     return output;
-};
+}

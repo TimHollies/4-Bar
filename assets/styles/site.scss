@@ -315,3 +315,13 @@ p {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(-359deg); }
 }
+
+//for highlighting notes?
+.selected-note {
+  fill: rgb(255,0,0);  
+  transition: fill .5s ease-in-out;
+}
+
+.noteHead {
+  transition: fill .1s ease-in-out;
+}

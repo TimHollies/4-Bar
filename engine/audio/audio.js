@@ -1,5 +1,8 @@
 'use strict';
 
+var base64 = require('base64-js');
+var _ = require('lodash');
+
 var midiGen = require('./midi');
 
 var dispatcher = require('../dispatcher');

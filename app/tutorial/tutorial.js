@@ -9,35 +9,35 @@ var
     tut02 = require('app/tutorial/tut/tut02.html');
 
 
-module.exports = function(ractive, context, page, urlcontext, user) {
+var template = require("./tutorial.html");
 
-    ractive.on({
-        'new_tune': function(event) {
-            page("/editor");
-        },
-        "navigate_back": function(event) {
-            window.history.back();
-        },
-        "goto_p1": (event) => {
-            console.log("p1");
-        },
-        "goto_p2": (event) => {
-            console.log("p2");
-        }
-    });
+module.exports = function() {
 
-    ractive.on('view_tune', function(event) {
-        var tuneId = event.node.attributes["tune-id"].value;
-        console.log(tuneId);
-        page("/editor?tuneid=" + tuneId);
-    });
+    var onInit = function() {
 
-    ractive.set("filterTuneNames", function(tuneNames, filter) {
-        if (filter.length <= 0) return tuneNames;
-        return tuneNames.filter(function(a) {
-            return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
+        var ractive = this;
+
+        ractive.on({
+            'new_tune': function(event) {
+                page("/editor");
+            },
+            "navigate_back": function(event) {
+                window.history.back();
+            },
+            "goto_p1": (event) => {
+                console.log("p1");
+            },
+            "goto_p2": (event) => {
+                console.log("p2");
+            }
         });
-    });
+    }
  
-    // toastr.success("YAY");
+    var ractive = Ractive.extend({
+      isolated: false,
+      template: template,
+      oninit: onInit
+    }); 
+
+    return ractive;
 }; 

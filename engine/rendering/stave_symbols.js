@@ -104,11 +104,37 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
 
     var downstem = (currentNote.truepos >= POS_SWITCH || currentNote.forceStem === 1) && !(currentNote.forceStem === -1);
 
+    //DECORATIONS
+    if(currentNote.decorations.length > 0) {
+        for(var i=0; i<currentNote.decorations.length; i++) {
+            switch(currentNote.decorations[i].data) {
+                case "~": {
+                    var transform = "";
+
+                    var relativePositioning = downstem ? currentNote.y > 4 : currentNote.y > 16;
+
+                    if(relativePositioning) {
+                        transform = "translate(0, -6)";
+                    } else {
+                        transform = `translate(0, ${currentNote.y - 10})`
+                    }
+                    colGroup.children.push(s("path", {
+                            d: glyphs["scripts.roll"].d,
+                            fill: "black",
+                            transform
+                        }));
+                    break;
+                }
+            }
+        }
+    }
+
 
     var noteDot, stem, accidental;
 
     //noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(10,0)"}) : s("g", { class: "noteHead"});
-     noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(0,0)"}) : s("g", { class: "noteHead"});
+    var elementName = `g#note_${currentNote.renderNoteId}`;
+     noteDot = downstem ? s(elementName, { class: "noteHead", transform: "translate(0,0)"}) : s(elementName, { class: "noteHead"});
 
     //dotted note?
     if ((2 * currentNote.noteLength) % 3 === 0) {
@@ -152,8 +178,7 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
     }
 
     noteDot.children.push(s("path", {
-        d: dotType,
-        fill: "black"
+        d: dotType
     }));
 
     
@@ -297,10 +322,12 @@ drawing_functions.barline = function(currentSymbol, offset) {
     var 
         barlineGroup = s("g");
 
+    var rightAligned = currentSymbol.align === 2;
+
     switch (currentSymbol.subType) {
         case "normal":
             barlineGroup.children.push(s("rect", {
-                x: offset,
+                x: offset + 4 + (rightAligned ? 4 : 0),
                 width: 1,
                 height: 32,
                 fill: 'black'
@@ -363,7 +390,7 @@ drawing_functions.barline = function(currentSymbol, offset) {
             barlineGroup.children.push(s("ellipse",{
                 rx: 2,
                 ry: 2,
-                cx: offset - 12,
+                cx: offset - 12 + 20,
                 cy: 12,
                 fill: 'black'
             }));
@@ -371,7 +398,7 @@ drawing_functions.barline = function(currentSymbol, offset) {
             barlineGroup.children.push(s("ellipse",{
                 rx: 2,
                 ry: 2,
-                cx: offset - 12,
+                cx: offset - 12 + 20,
                 cy: 20,
                 fill: 'black'
             }));
@@ -381,13 +408,13 @@ drawing_functions.barline = function(currentSymbol, offset) {
             var alignment = currentSymbol.align === 2 ? -6 : 0;
 
             barlineGroup.children.push(s("rect", {
-                x: offset + 2 + alignment,
+                x: offset + 2 + 20 + alignment,
                 width: 4,
                 height: 32,
                 fill: 'black'
             }));
             barlineGroup.children.push(s("rect", {
-                x: offset - 2  + alignment,
+                x: offset - 2 + 20  + alignment,
                 width: 1,
                 height: 32,
                 fill: 'black'
@@ -571,8 +598,9 @@ function sigmoid(a) {
  */
 drawing_functions.beam = function(beam, group, noteAreaWidth) {
 
-    var startX = -((beam.notes[beam.count - 1].xp - beam.notes[0].xp) * noteAreaWidth) + (beam.downBeam ? 0 : 10);
-    var endY = beam.notes[beam.count - 1].beamOffsetFactor;
+    //var startX = -((beam.notes[beam.count - 1].xp - beam.notes[0].xp) * noteAreaWidth) + (beam.downBeam ? 0 : 10);
+    var startX = -(beam.notes[beam.count - 1].renderedXPos - beam.notes[0].renderedXPos) + (beam.downBeam ? 0 : 10);
+    var endY = beam.notes[beam.count - 1].beamOffsetFactor; 
     var startY = beam.notes[0].beamOffsetFactor;
 
     if(beam.downBeam) {
@@ -586,6 +614,23 @@ drawing_functions.beam = function(beam, group, noteAreaWidth) {
         }));
     }
 
+    for(var i=0; i<beam.notes.length; i++) {
+
+        var bm = beam.notes[i];
+
+        if(bm.beamDepth < -1) {
+
+            var tailsToDraw = Math.abs(bm.beamDepth) - 1;
+
+            for(var j=0; j<tailsToDraw; j++) {
+                var notePos = -(beam.notes[beam.count - 1].xp - bm.xp) * noteAreaWidth + (beam.downBeam ? 0 : 10);
+                var tailPosY = bm.beamOffsetFactor+6+(j*6);
+                group.children.push(s("path", {
+                    d: `M${notePos} ${tailPosY}L${notePos} ${tailPosY+4}L${notePos-4} ${tailPosY+4}L${notePos-4} ${tailPosY}L${notePos} ${tailPosY}Z`
+                }));
+            }
+        }
+    }
 }
 
 /**
@@ -644,8 +689,8 @@ drawing_functions.keysig = function(keysig, xoffset, lineId) {
 
 drawing_functions.varientEndings = function (currentEnding, noteAreaWidth, continuation) {
     var
-        startX = (currentEnding.start.xp * noteAreaWidth) - 8,
-        endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.xp * noteAreaWidth,
+        startX = currentEnding.start.renderedXPos,//(currentEnding.start.xp * noteAreaWidth) - 8,
+        endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.renderedXPos,
         path = "";
         //path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
 
@@ -662,10 +707,10 @@ drawing_functions.varientEndings = function (currentEnding, noteAreaWidth, conti
     }));
 
     endingGroup.children.push(s("text", {
-       x: startX + 4,
-       y: -60,
+       x: 0,
+       y: 0,
        fill: "black",
-       transform: "scale(0.5, 0.5)"
+       transform: `translate(${startX + 4}, -30)scale(0.5, 0.5)`
     }, [currentEnding.name]));
 
     return endingGroup;
@@ -716,18 +761,26 @@ drawing_functions.rest = function(currentNote, offset, noteAreaWidth) {
 
 drawing_functions.tuplets = function(currentTuplet, noteAreaWidth) {
 
-    var offset = ( currentTuplet.notes[0].xp + ( ( _.last(currentTuplet.notes).xp - currentTuplet.notes[0].xp) / 2 ) ) * noteAreaWidth;
+    var middle = (currentTuplet.notes.length - 1) / 2;
+
+    var offset = currentTuplet.notes[middle].renderedXPos + (currentTuplet.notes[middle].forceStem === -1 ? 10 : 0);//xp * noteAreaWidth;
+
+    var tupletNumberY = currentTuplet.notes[middle].forceStem === -1 ?
+        currentTuplet.notes[middle].beamOffsetFactor - 10 :
+        currentTuplet.notes[middle].beamOffsetFactor + 10;
+
+    console.log("middle", currentTuplet.notes[middle]);
 
     var colGroup = s("g", {
-        transform: `translate(${offset},16)`
+        transform: `translate(${offset},${tupletNumberY})`
     });
 
     colGroup.children.push(s("text", {
-       x: 12,
+       x: 0,
        y: 0,
        "text-anchor": "middle",
        fill: "black",
-       transform: "scale(0.7, 0.7)",
+       transform: "scale(0.5, 0.5)",
        "font-weight": "bold"
     }, [currentTuplet.value.toString()]));
 

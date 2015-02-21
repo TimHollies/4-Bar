@@ -10,14 +10,16 @@ var s = require('virtual-dom/virtual-hyperscript/svg'),
 var ABCRenderer = function () {
 
     var
-        previousNodeTree = null,
-        settings = null,
-        nextLineStartsWithEnding = false;
+    previousNodeTree = null,
+    settings = null,
+    nextLineStartsWithEnding = false,
+    currentRenderNoteId = 0;
 
-    var renderLine = function (line, lineIndex) {
+    var renderLine = function (line, drawnLineIndex, lineIndex) {        
 
-        var lineGroup = s("g", {
-            transform: `translate(100,${32 + lineIndex * 96})`
+        var lineGroup = s(`g#line-${lineIndex}`, {
+            transform: `translate(100,${32 + drawnLineIndex * 96})`,
+            class: "svgTuneLine"
         });
 
         var leadInGroup = s("g");
@@ -32,7 +34,7 @@ var ABCRenderer = function () {
 
         var leadInWidth = clef.width + keySig.width;
 
-        if (lineIndex === 0) {
+        if (drawnLineIndex === 0) {
             var timeSig = draw.timesig(settings.measure.top, settings.measure.bottom, clef.width + keySig.width);
             leadInGroup.children.push(timeSig.node);
             leadInWidth += timeSig.width;
@@ -42,11 +44,28 @@ var ABCRenderer = function () {
         
 
         var 
-            noteAreaWidth = 800 - leadInWidth;
+        noteAreaWidth = 800 - leadInWidth;
+
+        /////////////////NEW///////////////////
+        var springLength = noteAreaWidth - line.totalFixedWidth;
+        console.log(springLength);
+        var springMod = springLength / line.totalSpringConstant;
+        console.log(springMod); 
+
+
+        var xPos = 0;
+        //////////////////////////////////////
 
         for (let i = 0; i < line.symbols.length; i++) {
-            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], line.symbols[i].xp * noteAreaWidth, noteAreaWidth));
+            line.symbols[i].renderedXPos = xPos;
+            if(line.symbols[i].type === "note") {
+                line.symbols[i].renderNoteId = currentRenderNoteId++;
+            }   
+            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos/*line.symbols[i].xp * noteAreaWidth*/, noteAreaWidth));
+            xPos += (line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant);
         }
+
+        console.log(xPos, noteAreaWidth);
 
         for(let i = 0; i < line.endings.length; i++) {
             symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
@@ -76,26 +95,28 @@ var ABCRenderer = function () {
     return function (tuneData) {
 
         settings = tuneData.tuneSettings;
+        currentRenderNoteId = 0;
 
         var 
-            doc = s("svg", {
-                viewBox: "0 0 1000 800",
-                width: "100%",
+        doc = s("svg#tuneSVGCanvas", {
+            viewBox: "0 0 1000 800",
+            width: "100%",
                 //height: "100%"
             }),
-            nextLineStartsWithEnding = false;
+        nextLineStartsWithEnding = false;
 
-        tuneData.scoreLines.map(renderLine).forEach(function(renderedLine) {
-            doc.children.push(renderedLine);
+        var drawnLines = 0;
+        tuneData.parsedLines.forEach(function(line, i) {
+            if(line.type === "drawable") doc.children.push(renderLine(line, drawnLines++, i));            
         });
 
         var topDiv = h("div.render-div", [
             h("div.tune-header", [
                 h("h2", [settings.title]),
                 h("p.abc-tune-rhythm", [settings.rhythm])
-            ]),
+                ]),
             h("div.tune-body", [doc])
-        ]);
+            ]);
 
         if(previousNodeTree === undefined) {
             document.getElementById("canvas").innerHTML = '';
@@ -104,9 +125,17 @@ var ABCRenderer = function () {
             document.getElementById("canvas").innerHTML = '';
             document.getElementById("canvas").appendChild(createElement(topDiv));
             //var patchData = diff(previousNodeTree, topDiv);
-            //patch(document.getElementById("canvas").firstChild, patchData);
-            
-         }
+            //patch(document.getElementById("canvas").firstChild, patchData);            
+        }
+
+        var svgs = document.getElementById("tuneSVGCanvas");
+        var canvasElement = document.getElementById("canvas");
+
+        var scrollDist = canvasElement.scrollTop;
+        svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
+        canvasElement.scrollTop = scrollDist;
+
+
 
         previousNodeTree = topDiv;    
     };

@@ -85,7 +85,7 @@ data_tables.symbol_width = {
     },
     "rest": 1,
     "beat_rest": 1,
-    "barline": 1,
+    "barline": 0.25,
     "space": 0,
     "chord_annotation": 0
 };

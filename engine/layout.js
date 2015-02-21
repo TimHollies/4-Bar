@@ -1,13 +1,14 @@
 var 
-    enums = require('./types'),
-    data_tables = require('./data_tables'),
-    _ = require('lodash'),
-    dispatcher = require('./dispatcher'),
-    AbcBeam = require('./types/AbcBeam');
+enums = require('./types'),
+data_tables = require('./data_tables'),
+_ = require('lodash'),
+dispatcher = require('./dispatcher'),
+AbcBeam = require('./types/AbcBeam'),
+springs = require('./springs');
 
-var ABCLayout = function () {
+var ABCLayout = function (dispatcher) {
 
-    var scoreLines = [];
+    var parsedLines = [];
     var tuneSettings = {
         key: {
             note: "C",
@@ -25,11 +26,14 @@ var ABCLayout = function () {
         if(line.symbols.length === 0)return line;
 
         var
-            posMod = 1 / (line.weight + 1),
-            totalOffset = 0,
-            beamList = [],
-            beamDepth = 0,
-            lastNote = null;
+        posMod = 1 / (line.weight + 1),
+        totalOffset = 0,
+        beamList = [],
+        beamDepth = 0,
+        lastNote = null;
+
+        var totalFixedWidth = 0,
+            totalSpringConstant = 0;
 
         if(_.last(line.symbols).type === "barline") {
             posMod = 1 / (line.weight);
@@ -40,6 +44,28 @@ var ABCLayout = function () {
             if(line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section" || line.symbols[i].type == "slur") continue;
 
             var currentSymbol = line.symbols[i];
+
+            //////////////////////////NEW//////////////////////////
+
+            if(springs[currentSymbol.type] !== undefined) {
+                if(currentSymbol.subType !== undefined) {
+                    if(springs[currentSymbol.type][currentSymbol.subType] !== undefined) {
+                        totalFixedWidth += (currentSymbol.fixedWidth = springs[currentSymbol.type][currentSymbol.subType]);
+                    }
+                } else {
+                    totalFixedWidth += (currentSymbol.fixedWidth = springs[currentSymbol.type]);
+                }                
+            }
+
+            if(!(i === line.symbols.length - 1 && line.symbols[i].type === "barline")) {
+                if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
+                    totalSpringConstant += (currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type](currentSymbol));
+                } else {
+                    totalSpringConstant += (currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type]);
+                }
+            }
+
+            ///////////////////////////////////////////////////////
 
             currentSymbol.xp = totalOffset;
             if(i === line.symbols.length - 1 && currentSymbol.type === "barline") {
@@ -60,11 +86,9 @@ var ABCLayout = function () {
             }
 
             if (currentSymbol.beamDepth !== undefined && currentSymbol.beamDepth < 0) {
-                if (currentSymbol.beamDepth <= beamDepth) {
-                    if(currentSymbol.type === "note")beamList.push(currentSymbol);
-                    beamDepth = currentSymbol.beamDepth;
-                }
-            } else {
+               if(currentSymbol.type === "note")beamList.push(currentSymbol);
+               beamDepth = currentSymbol.beamDepth;
+           } else {
                 //draw beam
                 //if(currentSymbol.type === "note")beamList.push(currentSymbol);
                 if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
@@ -82,33 +106,36 @@ var ABCLayout = function () {
             beamDepth = 0;
         }
 
+        line.totalFixedWidth = totalFixedWidth;
+        line.totalSpringConstant = totalSpringConstant;
+
         return line;
     }
 
     var handleDataLineSwitch = {
         title(data) {
             tuneSettings.title = data;
-            dispatcher.send("change_tune_title", data);
+            dispatcher.fire("change_tune_title", data);
         },
 
         rhythm(data) {
             tuneSettings.rhythm = data;
-            dispatcher.send("change_rhythm", data);
+            dispatcher.fire("change_rhythm", data);
         },
 
         key(data) {
             tuneSettings.key = data;
-            dispatcher.send("change_key", data);
+            dispatcher.fire("change_key", data);
         },
 
         timesig(data) {
             tuneSettings.measure = data;
-            dispatcher.send("change_timesig", data);
+            dispatcher.fire("change_timesig", data);
         },
 
         notelength(data) {
             tuneSettings.noteLength = data;
-            dispatcher.send("change_notelength", data);
+            dispatcher.fire("change_notelength", data);
         },
 
         number(data) {
@@ -125,52 +152,49 @@ var ABCLayout = function () {
     };
 
     function handleDataLine(line) {
-        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);       
+        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);   
+        return line;    
     }
 
     var handleAction = {
         ADD ( lineCollection ) {
-            //draw tune lines
-            var renderedLines = lineCollection.lines.filter(function(line) {
-                return !line.error && line.type === "drawable";
-            }).map(layoutDrawableLine);
 
 
-            //renderedLines[0].di IS UNDEFINED!!!!
-            if (renderedLines.length > 0) {
-                var args = [renderedLines[0].di, 0].concat(renderedLines);
-                Array.prototype.splice.apply(scoreLines, args);
-            }
-
-            //draw or handle data lines
-            lineCollection.lines.filter(function(line) {
-                return !line.error && line.type === "data";
-            }).forEach(handleDataLine);
-
-        },
-        
-        DEL ( lineCollection ) {
-            var dl = lineCollection.lines.filter(function(line) {
-                return !line.error && line.type === "drawable";
+            var layoutedLines = lineCollection.lines.map(function(line) {
+                if(line.type === "drawable") return layoutDrawableLine(line);
+                if(line.type === "data") return handleDataLine(line);
+                return line;
             });
 
-            if (dl.length > 0) {
-                var removed_lines = scoreLines.splice(dl[0].di, dl.length);
+            if (layoutedLines.length > 0) {
+                var args = [layoutedLines[0].id, 0].concat(layoutedLines);
+                Array.prototype.splice.apply(parsedLines, args);
+            }
 
-                for (var i = dl[0].di; i < scoreLines.length; i++) {
-                    scoreLines[i].id -= dl.length;
+        },
+
+        
+        DEL ( lineCollection ) {
+
+            if (lineCollection.lines.length > 0) {
+                var removed_lines = parsedLines.splice(lineCollection.lines[0].id, lineCollection.lines.length);
+
+                for (var i = lineCollection.lines[0].id; i < parsedLines.length; i++) {
+                    parsedLines[i].id -= lineCollection.lines.length;
                 }
             }
         }
     };
 
     return function(oldScoreLines, lineCollection) {
-        lineCollection.action === "NONE" || handleAction[lineCollection.action](lineCollection);
-        //console.log("LAYOUT", scoreLines);
+
+        handleAction[lineCollection.action](lineCollection);
+
         return  {
-            scoreLines: scoreLines,
-            tuneSettings: tuneSettings
+            tuneSettings: tuneSettings,
+            parsedLines: parsedLines
         };
+
     }
 }
 

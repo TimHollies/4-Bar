@@ -5,115 +5,96 @@ var consoleKeeper = console;
 
 //require.ensure('vendor', function() {
 
-    console.log("ALMOST");
+console.log("ALMOST");
 
-   var
-        Ractive = require('vendor').Ractive,
-        routingConfig = require("./routes"),
-        page = require('vendor').page,
-        _ = require('vendor').lodash,
-        domready = require('vendor').domready;
+var
+    Ractive = require('vendor').Ractive,
+    routingConfig = require("./routes"),
+    page = require('vendor').page,
+    _ = require('vendor').lodash,
+    domready = require('vendor').domready;
 
-    console = consoleKeeper;
+console = consoleKeeper;
 
-    console.log("ALMOST");
+console.log("ALMOST");
 
-    domready(() => {
+domready(() => {
 
-        console.log("READY");
+    console.log("READY");
 
-        function route(currentRoute, context) {
+    var components = {};
 
-            if (routingConfig[currentRoute] !== undefined) {
-                var currentRouteConfig = routingConfig[currentRoute];
+    _.forOwn(routingConfig, function (val, key) {
+        components[val.name] = val.model;
+    });
 
-                var dummyData = {};
-                var partials = [];
-                var partialviews = {};
+    var ractive = new Ractive({
+        el: "#stage",
+        template: require("app/index.gen.html"),
+        data: {
+            url: ""
+        },
+        lazy: false,
+        partials: {
+            userbox: require("app/partials/userbox.html")
+        },
+        components: components
+    });
 
-                if (currentRouteConfig.partials !== undefined) {
-                    partials = currentRouteConfig.partials;
-                    partialviews = partials.reduce(function(a, b) {
-                        a[b.name] = b.view;
-                        return a;
-                    }, {});
-                }
+    //user stuff
+    var loggedIn = false,
+        userData = {};
+    
+    if(loggedIn) {
+        ractive.set("loggedIn", true);
+        ractive.set("user", userData);
+    } else {
 
-                var ractive = new Ractive({
-                    el: "#stage",
-                    template: currentRouteConfig.template,
-                    data: dummyData,
-                    lazy: false,
-                    partials: partialviews
-                });
+        ractive.set("loggedIn", false);
 
-                currentRouteConfig.model(ractive, dummyData, page, context);
 
-                _(partials).each(function(partial) {
-                    partial.model(ractive);
-                });
+        fetch("/api/user")
+        .then(function(response) {
+            return response.json()
+        }).then(function(data) {
 
-            } else {
+            console.log("CURRENT USER", data);
 
-            }
-        }
+            ractive.set("loggedIn", true);
+            loggedIn = true;
 
-        //forcs the request to go to the server rather than the client
-        page.serverMap = function(url) {
-            page(url, function(context) {
-                window.location = url;
-            });
-        }
+            ractive.set("user", data);
+            userData = data;
 
-        page('', function(context) {
-            route("", context);
+        }).catch(function(ex) {
+            console.log('parsing failed', ex)
         });
+    }   
+    
+    ractive.on('*.log_in', function() {
+        page("/auth/google");
+    });
 
-        page('/editor', function(context) {
-            route("editor", context);
+    ractive.on("*.navigate_to_page", function(urlToNavigateTo) {
+        page(urlToNavigateTo);
+    });
+
+    //forcs the request to go to the server rather than the client
+    page.serverMap = function(url) {
+        page(url, function(context) {
+            window.location = url;
         });
+    }
 
-        page('/user', function(context) {
-            route("user", context);
-        });
+    page.serverMap("/auth/google");
+    page.serverMap("/logout");
 
-        page('/viewer', function(context) {
-            route("viewer", context);
-        });
+    page('*', function(context) {
+        console.log(context)
+        //route(context.pathname.substr(1), context);
+        ractive.set("url", context);
+    });
 
-        page('/viewer/:tuneid', function(context) {
-            route("viewer", context);
-        });
-
-        page('/tutorial', function(context) {
-            route("tutorial", context);
-        });
-
-        page('/tunebook', function(context) {
-            route("tunebook", context);
-        });
-
-        page('/tunebook/view', function(context) {
-            route("tunebooks", context);
-        });
-
-        //page('editor/:tuneid', function(context) {
-        //    route("editor", context);
-        //});
-
-        page.serverMap("/auth/google");
-        page.serverMap("/logout");
-
-        page('*', function(context) {
-            console.log("BAD");
-        });
-
-        //route();
-
-        //window.onhashchange = route;
-
-        page.start();
-
- //   });
+    page.start();
 
 });

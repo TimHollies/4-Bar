@@ -9,9 +9,11 @@ var watchify = require('watchify');
 var browserify = require('browserify');
 var gutil = require('gulp-util');
 var to5ify = require("6to5ify");
-var slash = require('slash');
+
+var file = require('gulp-file');
 
 var ractive = require('ractive');
+var _ = require('lodash');
 
 var transformTools = require('browserify-transform-tools');
 var toSource = require('tosource');
@@ -33,6 +35,18 @@ gulp.task('default', ['copyfonts', 'js']);
 gulp.task('copyfonts', function() {
     gulp.src('./node_modules/font-awesome/fonts/**/*.{ttf,woff,eof,svg}')
     .pipe(gulp.dest('./public/fonts'));
+});
+
+gulp.task('generate', function() {
+
+    var str = "<!-- generated -->\n";
+
+    var routeConfig = require('./app/routes');
+    _.forOwn(routeConfig, function(val, key) {
+        str += `{{#if url.pathname==="${key}"}}<${val.name}></${val.name}>{{/if}}\n`
+    });
+ 
+    return file('index.gen.html', str, { src: true }).pipe(gulp.dest('app'));
 });
 
 var bundler = watchify(browserify({

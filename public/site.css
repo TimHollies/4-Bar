@@ -3059,5 +3059,11 @@ p {
     transform: rotate(0deg); }
   100% {
     transform: rotate(-359deg); } }
+.selected-note {
+  fill: red;
+  transition: fill .5s ease-in-out; }
+
+.noteHead {
+  transition: fill .1s ease-in-out; }
 
 /*# sourceMappingURL=site.css.map */

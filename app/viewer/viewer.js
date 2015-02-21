@@ -12,125 +12,130 @@ var
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
-    dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
     AudioRenderer = require('engine/audio_render'),
 
-    AudioEngine = require('engine/audio/audio');
+    AudioEngine = require('engine/audio/audio'),
+
+    tunePlayer = require('engine/audio/myplayer');
 
 
-module.exports = function(ractive, context, page, urlcontext, user) {
+var template = require("./viewer.html");
 
-    var parameters = queryString.parse(urlcontext.querystring);
+module.exports = function(r) {
 
-    var parser = ABCParser(),
-    layout = ABCLayout(),
-    renderer = ABCRenderer();
+    var onInit = function() {
 
-    ractive.set("playing", false);
+        var ractive = this;
 
-    dispatcher.on({
-        edit_tune() {
-            page("/editor?tuneid=" + parameters.tuneid);
-        },
-        show_fullscreen() {
-            var elem = document.getElementById('fullscreenZone');
-            if (screenfull.enabled) {
-                screenfull.request(elem);
-            }
-        },
-        publish_tune() {
-            $.ajax({
-                type: "POST",
-                url: "/api/tunes/publish",
-                data: {
-                    tuneId: ractive.get("tune")._id
+        var parameters = queryString.parse(ractive.get("url").querystring);
+
+        var parser = ABCParser(ractive),
+        layout = ABCLayout(ractive),
+        renderer = ABCRenderer(ractive);
+
+        ractive.set("playing", false);
+      
+        var tuneStopper = null;
+
+        ractive.on({
+            show_fullscreen() {
+                var elem = document.getElementById('fullscreenZone');
+                if (screenfull.enabled) {
+                    screenfull.request(elem);
                 }
-            }).then(function() {
-                dispatcher.send("tune_publish_success");
-                toastr.success("Tune published", "Success!");
-            });
-        },
-        end_of_tune() {            
-            ractive.set("playing", false);
-        }
-    });
+            },
+            publish_tune() {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/tunes/publish",
+                    data: {
+                        tuneId: ractive.get("tune")._id
+                    }
+                }).then(function() {
+                    ractive.fire("tune_publish_success");
+                    toastr.success("Tune published", "Success!");
+                });
+            },
+            end_of_tune() {            
+                ractive.set("playing", false);
+            },    
+            "navigate_back": function() {
+                window.history.back();
+            },
+            "edit_tune": () => { 
+                ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get('tune')._id);
+            },
+            "toggle-stop-tune": () => {
+                if(tuneStopper !== null)tuneStopper();
+                ractive.set("playing", false);
+            },
+            "toggle-play-tune": () => {
 
-    ractive.on({
-        "navigate_back": function() {
-            window.history.back();
-        },
-        "edit_tune": () => { 
-            page("/editor?tuneid=" + ractive.get('tune')._id);
-        },
-        "toggle-stop-tune": () => {
-            AudioEngine.stop();
-            ractive.set("playing", false);
-        },
-        "toggle-play-tune": () => {
+                //AudioEngine.play();
 
-            AudioEngine.play(AudioRenderer(doneThing));
+                tuneStopper = tunePlayer(AudioRenderer(doneThing));
 
-            ractive.set("playing", true);
-        }
-    });
-
-    ractive.set("filterTuneNames", function(tuneNames, filter) {
-        if (filter.length <= 0) return tuneNames;
-        return tuneNames.filter(function(a) {
-            return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
+                ractive.set("playing", true);
+            }
         });
-    });
 
-    var doneThing = null;
+        var doneThing = null;
 
-    if (parameters.tuneid) {
+        if (parameters.tuneid) {
 
-        fetch("/api/tune/" + parameters.tuneid)
-        .then(function(response) {
-            return response.json()
-        }).then(function(res) {
+            fetch("/api/tune/" + parameters.tuneid)
+            .then(function(response) {
+                return response.json()
+            }).then(function(res) {
 
-            ractive.set("tune", res);
+                ractive.set("tune", res);
 
-            var diffed = diff({
-                newValue: res.raw,
-                oldValue: ""
+                var diffed = diff({
+                    newValue: res.raw,
+                    oldValue: ""
+                });
+                var parsed = diffed.map(parser);
+                var done = parsed.reduce(layout, 0);
+
+                doneThing = done;
+
+                renderer(done);
+                console.log("It WORKED!!", res);
+
+
+
             });
-            var parsed = diffed.map(parser);
-            var done = parsed.reduce(layout, 0);
+        }
 
-            doneThing = done;
+        if(parameters.transpose) {
+            ractive.fire("transpose_change", parseInt(parameters.transpose));
+        }
 
-            renderer(done);
-            console.log("It WORKED!!", res);
+        window.getTune = () => {
+            var tune = doneThing;
 
+            var outTune = [];
 
+            tune.scoreLines.forEach((line) => {
 
-        });/*.catch(function(ex) {
-            console.log('parsing failed', ex)
-        });*/
-}
+                line.symbols
+                .filter((symbol) => symbol.type === "note")
+                .forEach((note) => {
+                    outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
+                });
+            });
 
-if(parameters.transpose) {
-    dispatcher.send("transpose_change", parseInt(parameters.transpose));
-}
+            return outTune;
+        }
+    }
 
-window.getTune = () => {
-    var tune = doneThing;
+    var ractive = Ractive.extend({
+      isolated: false,
+      template: template,
+      oninit: onInit
+    }); 
 
-    var outTune = [];
-
-    tune.scoreLines.forEach((line) => {
-
-        line.symbols
-        .filter((symbol) => symbol.type === "note")
-        .forEach((note) => {
-            outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
-        });
-    });
-
-    return outTune;
-}
+    return ractive;
 
 };

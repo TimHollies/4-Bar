@@ -17,12 +17,13 @@ function ParserException(message) {
     this.name = "ParserException";
 }    
 
-var ABCParser = function(transposeAmount) {
+var ABCParser = function(dispatcher, transposeAmount) {
 
-    var typecache = new Map();
-    var dicache = new Map();
+    //the typecache is to get the type of deleted rows without having to reparse
+    var typecache = [];
+    // var dicache = [];
+
     var drawableIndex = 0;
-    var decorationstack = [];
     var maxStartId = 0;
 
     var noteLengthModifier = 0.125;
@@ -44,6 +45,7 @@ var ABCParser = function(transposeAmount) {
         }
 
         while (lexer[0] && lexer[0].subType === "decoration") {
+            newNote.decorations.push(lexer[0]);
             lexer.shift();
         }
 
@@ -194,7 +196,7 @@ var ABCParser = function(transposeAmount) {
         newBarline.subType = symbol.subtype;
 
         parsed.symbols.push(newBarline);
-        parsed.weight += 1;
+        parsed.weight += data_tables.symbol_width["barline"];
 
         return symbol.v;
     };
@@ -375,14 +377,15 @@ var ABCParser = function(transposeAmount) {
 
        // try {
 
+            //TODO: are these defaults defined in an odd place??
             if (line.raw.length === 0) {
                 line.type = "drawable";
-                line.di = drawableIndex++;
+                // line.di = drawableIndex++;
                 line.symbols = [];
                 line.weight = 0;
             }
 
-            var lexed = lexer(line.raw, line.id);
+            var lexed = lexer(dispatcher, line.raw, line.id);
 
             if (lexed.length > 0) {
 
@@ -393,43 +396,48 @@ var ABCParser = function(transposeAmount) {
 
                 if (!(parseOutput.symbols.length === 1 && parseOutput.symbols[0].type_class === "data")) {
                     line.type = "drawable";
-                    line.di = drawableIndex++;
+                    // line.di = drawableIndex++;
                 } else {
                     line.type = "data";
                 }
             } else {
-                line.type = "drawable";
-                line.parsed = [];
+                line.type = typecache[line.id-1] === "drawable" ? "drawable" : "blank";
+                line.symbols = [];
             }
 
-        typecache.set(line.id, line.type);
-        dicache.set(line.id, line.di);
+        //typecache.set(line.id, line.type);
+        typecache.splice(line.id, 0, line.type);
+        //dicache.set(line.id, line.di);
+        // dicache.splice(line.id, 0, line.di);
+
+
+        // if(line.type === "drawable") {
+        //     line.di = line.id - (_.findIndex(typecache, function(val) { return val === "drawable"; }));
+        // }
     }
 
     var processDeletedLine = function(line) {
-        line.type = typecache.get(line.id);
-        if (typecache.get(line.id) === "drawable") {
-            line.di = dicache.get(line.id);
-        }
-    }
+        line.type = typecache[line.id];
+        // if (line.type === "drawable") {
+            // line.di = dicache[line.id];
+        // }
 
-    var processUnmodifiedLine = function(line) {
-        if (typecache.get(line.id) === "drawable")
-            drawableIndex++;
+        typecache.splice(line.id, 1);
+        // dicache.splice(line.id, 1);
     }
 
     return function (lineCollection) {
-        //if (lineCollection.startId === 0) drawableIndex = 0;
+
         if (lineCollection.startId < maxStartId) {      
             drawableIndex = 0;
             for(var i=0; i<lineCollection.startId; i++) {
-                if (typecache.get(i) === "drawable") drawableIndex++;
+                if (typecache[i] === "drawable") drawableIndex++;
             }
         } 
 
         if(lineCollection.startId > maxStartId) {
             for(var i = maxStartId; i<lineCollection.startId; i++) {
-                if (typecache.get(i) === "drawable") drawableIndex++;
+                if (typecache[i] === "drawable") drawableIndex++;
             }
         }
 
@@ -440,12 +448,10 @@ var ABCParser = function(transposeAmount) {
         }
 
         if (lineCollection.action === "DEL") {
-            lineCollection.lines.forEach(processDeletedLine);
+            _.forEachRight(lineCollection.lines, processDeletedLine);
         }
 
-        //if (lineCollection.action === "NONE") {
-        //    lineCollection.lines.forEach(processUnmodifiedLine);
-        //}
+        console.log("FIRST DRAWABLE IS", 1 + _.findIndex(typecache, function(val) { return val === "drawable"; }), typecache)
 
         return lineCollection;
     };

@@ -11,7 +11,10 @@
     "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
+    "base64-arraybuffer": "^0.1.2",
+    "base64-js": "0.0.8",
     "body-parser": "~1.0.0",
+    "clockmaker": "^2.0.0",
     "combokeys": "^2.0.0",
     "compress": "^0.99.0",
     "compression": "^1.2.0",
@@ -65,6 +68,7 @@
     "forever": "~0.4.3",
     "gulp": "~3.8.6",
     "gulp-browserify": "~0.5.0",
+    "gulp-file": "^0.2.0",
     "gulp-jslint": "~0.1.6",
     "gulp-livereload": "^3.7.0",
     "gulp-ruby-sass": "^1.0.0-alpha.3",

@@ -41,7 +41,11 @@
 
         </div>
         <div class="toolbar-item">
-            <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
+            {{#if playing}}
+                <i on-click="toggle-stop-tune" class="fa fa-stop" style="cursor: pointer"></i>
+            {{else}}
+                <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
+            {{/if}}   
         </div>
     </div>
     <div class="row editor" intro='fade' id="editor-section">

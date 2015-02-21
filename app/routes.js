@@ -1,51 +1,32 @@
+var inBrowser = typeof window !== 'undefined';
+
 module.exports = {
-    "": {
-        template: require("app/home/home.html"),
-        partials: [
-            require("app/partials/userbox")    
-        ],
-        model: require('app/home/home')
+    "/": {
+        name: "HomePage",
+        model: inBrowser ? require('app/home/home') : null
     },
-    "editor": {
-        template: require("app/editor/editor.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/editor/editor')
+    "/editor": {
+        name: "EditorPage",
+        model: inBrowser ? require('app/editor/editor') : null
     },
-    "user": {
-        template: require("app/user/user.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/user/user')
+    "/user": {
+        name: "UserPage",
+        model: inBrowser ? require('app/user/user') : null
     },
-    "viewer": {
-        template: require("app/viewer/viewer.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/viewer/viewer')
+    "/viewer": {
+        name: "ViewerPage",
+        model: inBrowser ? require('app/viewer/viewer') : null
     },
-    "tutorial": {
-        template: require("app/tutorial/tutorial.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/tutorial/tutorial')
+    "/tutorial": {
+        name: "TutorialPage",
+        model: inBrowser ? require('app/tutorial/tutorial') : null
     },
-    "tunebook": {
-        template: require("app/tunebook/tunebook_edit.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/tunebook/tunebook_edit')
+    "/tunebook": {
+        name: "TunebookPage",
+        model: inBrowser ? require('app/tunebook/tunebook_edit') : null
     },
-    "tunebooks": {
-        template: require("app/tunebook/tunebook_view.html"),
-        partials: [
-            require("app/partials/userbox") 
-        ],
-        model: require('app/tunebook/tunebook_view') 
+    "/tunebook/view": {
+        name: "TunebookViewerPage",
+        model: inBrowser ? require('app/tunebook/tunebook_view')  : null
     }
 };

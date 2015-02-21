@@ -15,7 +15,6 @@ var
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
-    dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
     AudioRenderer = engine.audioRender,
 
@@ -23,146 +22,167 @@ var
 
 var setListIdRegex = /^set_(.*)_list$/;
 
+var template = require("./tunebook_view.html");
 
-module.exports = function(ractive, context, page, urlcontext, user) {
+module.exports = function() {
 
-    var selectedTuneCount = 0;
-    var params = queryString.parse(urlcontext.querystring);
+    var onInit = function() {
 
-    ractive.set("selectedItem", "");
-    var tunebookData = {};
+        var ractive = this;
 
-    if(params.tunebook != undefined) {
-        fetch("/api/tunebook/" + params.tunebook)
-        .then(function(response) {
-            return response.json()
-        }).then(function(data) {
-            tunebookData = data;
-            ractive.set("tunebook", data); 
-        }).catch(function(ex) {
-            console.log('parsing failed', ex)
-        });
-    } else {
-        //error
-    }
+        var selectedTuneCount = 0;
+        var params = queryString.parse(ractive.get('url').querystring);
 
-    var updateListOrderFunc = function(evt) {
-        console.log(evt);
-        var movedTune = null;
+        ractive.set("selectedItem", "");
+        var tunebookData = {};
 
-        if(evt.from.id === "tunebookTunes") {
-            movedTune = tunebookData.tunes.splice(evt.oldIndex, 1);
-        } else {
-            var regexTestResult = setListIdRegex.exec(evt.from.id);
-            if(regexTestResult !== null) {
-                var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
-                     return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
-                });
-                movedTune = currentSet.tunes.splice(evt.oldIndex, 1);
-            }
-        }
-
-        if(evt.target.id === "tunebookTunes") {
-            tunebookData.tunes.splice(evt.newIndex, 0, movedTune[0]);
-        } else {
-            var regexTestResult = setListIdRegex.exec(evt.target.id);
-            if(regexTestResult !== null) {
-                var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
-                     return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
-                });
-                currentSet.tunes.splice(evt.newIndex, 0, movedTune[0]);
-            }
-        } 
-
-        ractive.set("tunebook", tunebookData); 
-    }
-
-    ractive.on({ 
-        "navigate_back": function(event) {
-            page.show("/");
-        },
-        "tune_item_click": function(event) {
-
-            var tuneId = event.node.attributes.tuneId.value;
-
-            ractive.set("selectedItem", tuneId);
-
-            fetch("/api/tune/" + tuneId)
+        if(params.tunebook != undefined) {
+            fetch("/api/tunebook/" + params.tunebook)
             .then(function(response) {
                 return response.json()
-            }).then(function(res) {
+            }).then(function(data) {
+                tunebookData = data;
+                ractive.set("tunebook", data); 
+            }).catch(function(ex) {
+                console.log('parsing failed', ex)
+            });
+        } else {
+            //error
+        }        
 
-                var parser = ABCParser(),
-                    layout = ABCLayout(),
-                    renderer = ABCRenderer();
+        ractive.on({ 
+            "navigate_back": function(event) {
+                ractive.fire("navigate_to_page", "/");
+            },
+            "tune_item_click": function(event) {
 
-                ractive.set("tune", res);
+                var tuneId = event.node.attributes.tuneId.value;
 
-                var diffed = diff({
-                        newValue: res.raw,
-                        oldValue: ""
+                ractive.set("selectedItem", tuneId);
+
+                fetch("/api/tune/" + tuneId)
+                .then(function(response) {
+                    return response.json()
+                }).then(function(res) {
+
+                    var parser = ABCParser(),
+                        layout = ABCLayout(),
+                        renderer = ABCRenderer();
+
+                    ractive.set("tune", res);
+
+                    var diffed = diff({
+                            newValue: res.raw,
+                            oldValue: ""
+                        });
+                    var parsed = diffed.map(parser);
+                    var done = parsed.reduce(layout, 0);
+
+                    renderer(done);
+                    console.log("It WORKED!!", res);
+
+                });
+            },
+            "set_item_click": function(event) {
+
+                var setId = event.node.attributes.setId.value;
+                ractive.set("selectedItem", setId);
+
+                siz('#canvas')[0].innerHTML = "<h3>YAY A SET</h3>";
+            },
+            "add-new-set": function() {
+
+                var newId = _.uniqueId("set_");
+
+                tunebookData.tunes.push({
+                    name: "Set",
+                    type: "set",
+                    _id: newId,
+                    tunes: []
+                });
+                
+                Sortable.create(siz('#' + newId + "_list")[0], { 
+                    animation: 150,
+                    group: "omega",
+                    handle: ".drag-handle",
+                    onSort: updateListOrderFunc
+                });              
+            },
+            "convert-to-set": function(event) {
+
+                var arrayId = event.node.attributes.arrayId.value;
+
+                var newId = _.uniqueId("set_");
+
+                var oldTune = tunebookData.tunes[arrayId];
+
+                tunebookData.tunes.splice(arrayId, 1, {
+                    name: "Set",
+                    type: "set",
+                    _id: newId,
+                    tunes: [oldTune]
+                });
+
+                Sortable.create(siz('#' + newId + "_list")[0], { 
+                    animation: 150,
+                    group: "omega",
+                    handle: ".drag-handle",
+                    //onSort: updateListOrderFunc
+                });  
+            }
+        });         
+    }
+
+    var onRender = function() {
+
+        var ractive = this;
+
+        var updateListOrderFunc = function(evt) {
+            console.log(evt);
+            var movedTune = null;
+
+            if(evt.from.id === "tunebookTunes") {
+                movedTune = tunebookData.tunes.splice(evt.oldIndex, 1);
+            } else {
+                var regexTestResult = setListIdRegex.exec(evt.from.id);
+                if(regexTestResult !== null) {
+                    var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
+                         return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
                     });
-                var parsed = diffed.map(parser);
-                var done = parsed.reduce(layout, 0);
+                    movedTune = currentSet.tunes.splice(evt.oldIndex, 1);
+                }
+            }
 
-                renderer(done);
-                console.log("It WORKED!!", res);
+            if(evt.target.id === "tunebookTunes") {
+                tunebookData.tunes.splice(evt.newIndex, 0, movedTune[0]);
+            } else {
+                var regexTestResult = setListIdRegex.exec(evt.target.id);
+                if(regexTestResult !== null) {
+                    var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
+                         return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
+                    });
+                    currentSet.tunes.splice(evt.newIndex, 0, movedTune[0]);
+                }
+            } 
 
-            });
-        },
-        "set_item_click": function(event) {
-
-            var setId = event.node.attributes.setId.value;
-            ractive.set("selectedItem", setId);
-
-            siz('#canvas')[0].innerHTML = "<h3>YAY A SET</h3>";
-        },
-        "add-new-set": function() {
-
-            var newId = _.uniqueId("set_");
-
-            tunebookData.tunes.push({
-                name: "Set",
-                type: "set",
-                _id: newId,
-                tunes: []
-            });
-            
-            Sortable.create(siz('#' + newId + "_list")[0], { 
-                animation: 150,
-                group: "omega",
-                handle: ".drag-handle",
-                onSort: updateListOrderFunc
-            });              
-        },
-        "convert-to-set": function(event) {
-
-            var arrayId = event.node.attributes.arrayId.value;
-
-            var newId = _.uniqueId("set_");
-
-            var oldTune = tunebookData.tunes[arrayId];
-
-            tunebookData.tunes.splice(arrayId, 1, {
-                name: "Set",
-                type: "set",
-                _id: newId,
-                tunes: [oldTune]
-            });
-
-            Sortable.create(siz('#' + newId + "_list")[0], { 
-                animation: 150,
-                group: "omega",
-                handle: ".drag-handle",
-                //onSort: updateListOrderFunc
-            });  
+            ractive.set("tunebook", tunebookData); 
         }
+
+        Sortable.create(siz('#tunebookTunes')[0], { 
+            animation: 150,
+            group: "omega",
+            handle: ".drag-handle",
+            onSort: updateListOrderFunc
+        });
+    }
+
+
+    var ractive = Ractive.extend({
+      isolated: false,
+      template: template,
+      oninit: onInit,
+      onrender: onRender
     }); 
 
-    Sortable.create(siz('#tunebookTunes')[0], { 
-        animation: 150,
-        group: "omega",
-        handle: ".drag-handle",
-        onSort: updateListOrderFunc
-    });   
+    return ractive;
 };
