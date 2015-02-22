@@ -5,7 +5,8 @@ var s = require('virtual-dom/virtual-hyperscript/svg'),
     createElement = require('virtual-dom/create-element'),
     draw = require('./rendering/stave_symbols.js'),
     diff = require('virtual-dom/diff'),
-    patch = require('virtual-dom/patch');
+    patch = require('virtual-dom/patch'),
+    stringify = require('virtual-dom-stringify');
 
 var ABCRenderer = function () {
 
@@ -13,7 +14,8 @@ var ABCRenderer = function () {
     previousNodeTree = null,
     settings = null,
     nextLineStartsWithEnding = false,
-    currentRenderNoteId = 0;
+    cachedLines = [],
+    renderElement = null;
 
     var renderLine = function (line, drawnLineIndex, lineIndex) {        
 
@@ -46,26 +48,16 @@ var ABCRenderer = function () {
         var 
         noteAreaWidth = 800 - leadInWidth;
 
-        /////////////////NEW///////////////////
         var springLength = noteAreaWidth - line.totalFixedWidth;
-        console.log(springLength);
         var springMod = springLength / line.totalSpringConstant;
-        console.log(springMod); 
-
 
         var xPos = 0;
-        //////////////////////////////////////
 
         for (let i = 0; i < line.symbols.length; i++) {
             line.symbols[i].renderedXPos = xPos;
-            if(line.symbols[i].type === "note") {
-                line.symbols[i].renderNoteId = currentRenderNoteId++;
-            }   
             symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos/*line.symbols[i].xp * noteAreaWidth*/, noteAreaWidth));
             xPos += (line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant);
         }
-
-        console.log(xPos, noteAreaWidth);
 
         for(let i = 0; i < line.endings.length; i++) {
             symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
@@ -95,7 +87,6 @@ var ABCRenderer = function () {
     return function (tuneData) {
 
         settings = tuneData.tuneSettings;
-        currentRenderNoteId = 0;
 
         var 
         doc = s("svg#tuneSVGCanvas", {
@@ -107,7 +98,16 @@ var ABCRenderer = function () {
 
         var drawnLines = 0;
         tuneData.parsedLines.forEach(function(line, i) {
-            if(line.type === "drawable") doc.children.push(renderLine(line, drawnLines++, i));            
+            if(line.type === "drawable") {
+                if(tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding) {
+                    doc.children.push(cachedLines[i]);
+                } else {
+                    var vRenderedLine = renderLine(line, drawnLines, i);
+                    doc.children.push(vRenderedLine);
+                    cachedLines[i] = vRenderedLine;
+                }                
+                drawnLines++;
+            }            
         });
 
         var topDiv = h("div.render-div", [
@@ -118,15 +118,18 @@ var ABCRenderer = function () {
             h("div.tune-body", [doc])
             ]);
 
-        if(previousNodeTree === undefined) {
+        //if(previousNodeTree === null) {
+            renderElement = createElement(topDiv);
             document.getElementById("canvas").innerHTML = '';
-            document.getElementById("canvas").appendChild(createElement(topDiv));
-        } else {
-            document.getElementById("canvas").innerHTML = '';
-            document.getElementById("canvas").appendChild(createElement(topDiv));
-            //var patchData = diff(previousNodeTree, topDiv);
-            //patch(document.getElementById("canvas").firstChild, patchData);            
-        }
+            document.getElementById("canvas").appendChild(renderElement);
+        //} else {
+            //document.getElementById("canvas").innerHTML = '';
+            //document.getElementById("canvas").appendChild(createElement(topDiv));
+        //    var patchData = diff(previousNodeTree, topDiv);
+       //     renderElement = patch(renderElement, patchData);     
+       //     document.getElementById("canvas").innerHTML = '';
+       //     document.getElementById("canvas").appendChild(renderElement);       
+       // }
 
         var svgs = document.getElementById("tuneSVGCanvas");
         var canvasElement = document.getElementById("canvas");

@@ -119,7 +119,7 @@ module.exports = function() {
                 ractive.set("showingTranspositionDropdown", !ractive.get("showingTranspositionDropdown"));
             },
             "selectTransposition": (event) => {
-                console.log("EVT", event);
+
                 var intValue = parseInt(event.node.attributes.val.value);
                 transposeAmount = intValue;
                 ractive.fire("transpose_change", intValue);
@@ -165,20 +165,15 @@ module.exports = function() {
                 siz(".lineIndicatorRect").forEach(function(r) { r.remove(); });
 
                 for(var i=changedTo.start; i <= changedTo.stop; i++) {
-                    //console.log("SEL", changedTo, i);
 
                     var line1 = document.getElementById(`line-${i}`);
-                    if(line1 !== null) {
-                        //console.log("LINE1", line1);                       
-                        
+                    if(line1 !== null) {       
                         line1.appendChild(customElements.selectionBox());
                     }
 
                 }                
             }
         });
-
-        console.log("CTX", parameters);
 
         var dialog = document.getElementById('window');
 

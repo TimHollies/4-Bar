@@ -21,6 +21,9 @@ var ABCLayout = function (dispatcher) {
         title: "Untitled Tune"
     };
 
+
+    var currentRenderNoteId = 0;
+
     var layoutDrawableLine = function(line) {
 
         if(line.symbols.length === 0)return line;
@@ -80,6 +83,9 @@ var ABCLayout = function (dispatcher) {
             }
 
             if (currentSymbol.type === "note") {
+
+                line.symbols[i].renderNoteId = currentRenderNoteId++;
+
                 currentSymbol.truepos = currentSymbol.pos + (7 * (currentSymbol.octave - 4));
                 currentSymbol.y = 40 - (currentSymbol.truepos * 4);
                 currentSymbol.beams = [];
@@ -190,9 +196,20 @@ var ABCLayout = function (dispatcher) {
 
         handleAction[lineCollection.action](lineCollection);
 
+        var changedLines = [];
+
+        for(var i=lineCollection.startId; i<lineCollection.startId + lineCollection.count; i++) {
+            changedLines.push(i);
+        }
+
+        if(oldScoreLines !== 0) {
+            changedLines = changedLines.concat(oldScoreLines.changedLines);
+        }
+
         return  {
             tuneSettings: tuneSettings,
-            parsedLines: parsedLines
+            parsedLines: parsedLines,
+            changedLines
         };
 
     }

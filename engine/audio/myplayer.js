@@ -1,6 +1,7 @@
 var Base64 = require('base64-arraybuffer');
 var _ = require('lodash');
 var Timer = require('clockmaker').Timer;
+var siz = require('Sizzle');
 
 var note = {};
 
@@ -82,7 +83,7 @@ RhythmSample.play = function(tuneData) {
   }
 
   var currentPosition = 0;
-  var firstNote = document.getElementById("note_0");
+  var firstNote = siz(".tune-body .noteHead")[0];
   firstNote.classList.add("selected-note");
   var lastHighlightedNote = firstNote;
   var timer = new Timer(function(timer) {

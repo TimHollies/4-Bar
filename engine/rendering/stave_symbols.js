@@ -507,7 +507,9 @@ drawing_functions.tie = function(currentSymbol, ignore, noteAreaWidth) {
     });
 };
 
-drawing_functions.space = _.noop;
+drawing_functions.space = function() {
+    return s("g");
+}
 
 /**
  * [beat_rest description]

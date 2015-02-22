@@ -369,7 +369,6 @@ var ABCParser = function(dispatcher, transposeAmount) {
             line.endWithEndingBar = true;
         }
 
-        //console.log("PARSED", parsed);
         return parsed;
     }
 
@@ -450,8 +449,6 @@ var ABCParser = function(dispatcher, transposeAmount) {
         if (lineCollection.action === "DEL") {
             _.forEachRight(lineCollection.lines, processDeletedLine);
         }
-
-        console.log("FIRST DRAWABLE IS", 1 + _.findIndex(typecache, function(val) { return val === "drawable"; }), typecache)
 
         return lineCollection;
     };
