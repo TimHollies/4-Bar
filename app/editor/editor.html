@@ -87,7 +87,10 @@
                 </table>
                 {{else}}
                 <p class="all-is-well-box">No errors detected :D</p>
-                {{/if}}
+                {{/if}}                
+            </div>
+            <div class="stats">
+                <small>Last Render: {{lastRenderTime.toFixed(2)}}ms</small>
             </div>
         </div>
         <div class="column" id="canvas">        

@@ -494,7 +494,18 @@ module.exports = { v:1,
                           a:{ "class":"all-is-well-box" },
                           f:[ "No errors detected :D" ] } ],
                       x:{ r:[ "errors.length" ],
-                        s:"_0>0" } } ] } ] },
+                        s:"_0>0" } } ] },
+                " ",
+                { t:7,
+                  e:"div",
+                  a:{ "class":"stats" },
+                  f:[ { t:7,
+                      e:"small",
+                      f:[ "Last Render: ",
+                        { t:2,
+                          x:{ r:[ "lastRenderTime" ],
+                            s:"_0.toFixed(2)" } },
+                        "ms" ] } ] } ] },
             " ",
             { t:7,
               e:"div",
@@ -720,7 +731,7 @@ module.exports = function () {
             processedTune = done;
 
             console.log("done", done);
-            if (window) console.log("TOOK " + (window.performance.now() - ractive.get("timeAtStart")) + " milliseconds");
+            if (window) ractive.set("lastRenderTime", window.performance.now() - ractive.get("timeAtStart"));
         });
 
         function completelyRerenderScore() {

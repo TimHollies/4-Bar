@@ -318,10 +318,20 @@ p {
 
 //for highlighting notes?
 .selected-note {
-  fill: rgb(255,0,0);  
+  fill: rgb(211, 104, 14);//rgb(255,0,0);  
   transition: fill .5s ease-in-out;
 }
 
 .noteHead {
   transition: fill .1s ease-in-out;
+}
+
+.stats {
+  flex: 0 24px;
+  padding-left: 16px;
+  background-color: rgb(84, 84, 84);
+  color: white;
+  font-weight: bold;
+  line-height: 24px;
+  font-family: monospace;
 }

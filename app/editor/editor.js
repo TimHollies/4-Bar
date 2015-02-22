@@ -220,7 +220,7 @@ module.exports = function() {
             processedTune = done;
 
             console.log("done", done);
-            if(window)console.log(`TOOK ${window.performance.now() - ractive.get('timeAtStart')} milliseconds`);
+            if(window)ractive.set("lastRenderTime", window.performance.now() - ractive.get('timeAtStart'));
         });
 
         function completelyRerenderScore() {

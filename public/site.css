@@ -3060,10 +3060,19 @@ p {
   100% {
     transform: rotate(-359deg); } }
 .selected-note {
-  fill: red;
+  fill: #d3680e;
   transition: fill .5s ease-in-out; }
 
 .noteHead {
   transition: fill .1s ease-in-out; }
+
+.stats {
+  flex: 0 24px;
+  padding-left: 16px;
+  background-color: #545454;
+  color: white;
+  font-weight: bold;
+  line-height: 24px;
+  font-family: monospace; }
 
 /*# sourceMappingURL=site.css.map */
