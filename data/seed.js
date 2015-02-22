@@ -42,9 +42,11 @@ function loadTune(i) {
            // var title = getTitle.exec(tune)[1];
 
             //console.log("  - Adding: " + title);
+            
+            var dispatcher = require("../engine/dispatcher");
 
-            var parser = engine.parser(),
-            layout = engine.layout();
+            var parser = engine.parser(dispatcher),
+            layout = engine.layout(dispatcher);
 
             //var logger = console.log;
             //console.log = function(a) {};
@@ -78,7 +80,7 @@ function loadTune(i) {
             deferred.resolve("hurray");
 
             } catch(exception) {
-                console.log("Failed to get " + i);
+                console.log("Failed to get " + i, exception);
                 deferred.resolve("ah");
             }
 

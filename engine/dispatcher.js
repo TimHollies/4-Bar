@@ -74,5 +74,6 @@ module.exports = {
     on: on,
     off: off,
     send: send,
+    fire: send,
     after: after
 };
