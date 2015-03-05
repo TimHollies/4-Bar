@@ -20,5 +20,6 @@ module.exports = {
     queryString: require('query-string'),
     sizzle: require('sizzle'),
     domready: require('domready'),
-    sortable: require('sortablejs')
+    sortable: require('sortablejs'),
+    drop: require('node_modules/drop/drop')
 };

@@ -2,7 +2,7 @@
     <div class="header row" intro='fade' on-mouseup="app_mouseup">
 
         <div class="back-button" on-click="navigate_back">
-            <p><i class="fa fa-arrow-left"></i></p>
+            <p><i class="fa fa-chevron-left"></i></p>
         </div>
         <div class="central-menu">
             <h3 class="tune-title">{{title}}</h3>
@@ -11,7 +11,7 @@
         </div>
         {{>userbox}}
         {{#if !loggedIn}}
-        <p>Your tune cannot be saved unless you are logged in</p>
+        <!--<p>Your tune cannot be saved unless you are logged in</p>-->
         {{/if}}
     </div>
     <div class="row toolbar" intro='fade'>

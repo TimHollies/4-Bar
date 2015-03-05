@@ -3,7 +3,8 @@ var
     router = express.Router();
     monk = require('monk'),
     db = monk('localhost/webabc'),
-    ObjectID = require('mongodb').ObjectID;
+    ObjectID = require('mongodb').ObjectID,
+    _ = require('lodash');
 
 var PAGING_SIZE = 40;
 
@@ -25,9 +26,16 @@ router.get('/tunes', function(req, res) {
         conditions['name'] = { 
             "$regex": new RegExp(req.query.name, "i") 
         };
-        //conditions["$text"] = {
-        //    $search: req.query.name
-        //};
+    }
+
+    if(req.query.disallowkeys !== undefined && req.query.disallowkeys.length > 0) {
+        
+        var diskeys = req.query.disallowkeys.split(",");
+        console.log("WOOP", diskeys);
+
+        conditions['settings.key.note'] = { 
+            "$nin": diskeys
+        };
     }
 
     collection.find(conditions, 
@@ -69,8 +77,14 @@ router.post('/tunes/publish', function(req, res) {
 });
 
 router.get('/tunebooks', function(req, res) {
-    if (req.user === undefined) res.send("");
+
     res.type('json');
+
+    if (req.user === undefined) {
+        res.send({});
+        return;
+    } 
+    
 
     var collection = db.get("tunebooks");
 
@@ -116,11 +130,13 @@ router.get('/tunebook/:id', function(req, res) {
 });
 
 router.get('/user', function(req, res) {
+    res.type('json');
+    console.log("GETTING USER", req.user);
     if (req.user === undefined) {
-        res.send("");
+        res.send({ failed: true });
         return;
     } 
-    res.type('json');
+    
     res.send(req.user);
 });
 

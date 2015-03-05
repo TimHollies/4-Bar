@@ -1,6 +1,7 @@
 var
     express = require('express'),
     wkhtmltopdf = require('wkhtmltopdf');
+    //engine = require("../engine/engine");
    // clientSideRoutes = require('./config.route'),
     //_ = require('lodash');
 
@@ -20,7 +21,27 @@ module.exports = function(root) {
     }); 
 
     router.get('/pdf', function(req, res) {
-        wkhtmltopdf('<h1>Test</h1><p>Hello world</p>', { pageSize: 'letter' }).pipe(res);
+        console.log("body", req.query.tune);
+
+        var dispatcher = require("../engine/dispatcher");
+
+        var parser = engine.parser(dispatcher),
+        layout = engine.layout(dispatcher),
+        render = engine.render(dispatcher, true);
+
+        var diffed = engine.diff({
+             newValue: req.query.tune,
+            oldValue: ""
+        });
+
+        var parsed = diffed.map(parser);
+        var done = parsed.reduce(layout, 0);
+
+        var datastring = render(done);
+
+        console.log("GENERATED HTML", datastring);
+
+        wkhtmltopdf(datastring, { pageSize: 'letter' }).pipe(res);
     });
 
     router.use(express['static'](root + '/public'));

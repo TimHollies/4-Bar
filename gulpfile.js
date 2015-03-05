@@ -24,7 +24,8 @@ var aliasify = require('aliasify').configure({
         "scripts": ".\\engine\\scripts",
         "engine": ".\\engine",
         "app": ".\\app",
-        "vendor": ".\\engine\\vendor.js"
+        "vendor": ".\\engine\\vendor.js",
+        "node_modules": ".\\node_modules"
     },
     configDir: __dirname,
     verbose: false

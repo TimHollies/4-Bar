@@ -24,6 +24,11 @@ module.exports = {
                 return response.json()
             }).then(function(data) {
 
+                if(data.failed === true) {
+                    loggedIn = false;
+                    return;
+                }
+
                 console.log("CURRENT USER", data);
 
                 ractive.set("loggedIn", true);

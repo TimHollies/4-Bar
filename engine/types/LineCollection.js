@@ -42,6 +42,6 @@ var LineCollection = function(id, raw, action) {
 };
 
 module.exports = {
-    LineCollection,
-    AbcLine
+    LineCollection: LineCollection,
+    AbcLine: AbcLine
 };

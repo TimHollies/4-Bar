@@ -54,6 +54,12 @@ domready(function () {
         fetch("/api/user").then(function (response) {
             return response.json();
         }).then(function (data) {
+            if (data.failed === true) {
+                loggedIn = false;
+                return;
+            }
+
+
             console.log("CURRENT USER", data);
 
             ractive.set("loggedIn", true);
@@ -82,6 +88,7 @@ domready(function () {
     };
 
     page.serverMap("/auth/google");
+    page.serverMap("/pdf");
     page.serverMap("/logout");
 
     page("*", function (context) {
@@ -112,7 +119,7 @@ module.exports = { v:1,
                   e:"p",
                   f:[ { t:7,
                       e:"i",
-                      a:{ "class":"fa fa-arrow-left" } } ] } ] },
+                      a:{ "class":"fa fa-chevron-left" } } ] } ] },
             " ",
             { t:7,
               e:"div",
@@ -137,9 +144,7 @@ module.exports = { v:1,
               n:50,
               x:{ r:[ "loggedIn" ],
                 s:"!_0" },
-              f:[ { t:7,
-                  e:"p",
-                  f:[ "Your tune cannot be saved unless you are logged in" ] } ] } ] },
+              f:[  ] } ] },
         " ",
         { t:7,
           e:"div",
@@ -537,14 +542,13 @@ ABCLayout = engine.layout,
     Combokeys = require('./../../engine/vendor.js').combokeys,
     AbcLine = require('./../../engine/types/LineCollection').AbcLine,
     Divvy = require('./../../engine/scripts/divvy/divvy.js'),
-    tunePlayer = require('./../../engine/audio/myplayer');
+    TunePlayer = require('./../../engine/audio/myplayer');
 
 require('./../../engine/scripts/transitions/ractive.transitions.fade');
 require('./../../engine/scripts/transitions/ractive.transitions.fly');
 
-var emptyTuneName = "Untitled Tune";
 
-window.siz = siz;
+var emptyTuneName = "Untitled Tune";
 
 var textFile = null,
     makeTextFile = function (text) {
@@ -569,9 +573,10 @@ module.exports = function () {
     var onInit = function () {
         var ractive = this;
 
-        var parser = ABCParser(ractive),
+        var parser = ABCParser(ractive, 0),
             layout = ABCLayout(ractive),
-            renderer = ABCRenderer(ractive);
+            renderer = ABCRenderer(ractive),
+            tunePlayer = TunePlayer(ractive);
 
         var transposeAmount = 0;
 
@@ -581,9 +586,11 @@ module.exports = function () {
         var parameters = queryString.parse(ractive.get("url").querystring);
 
         ractive.set("errors", errors);
+        ractive.set("playing", false);
 
         ractive.set("showingTranspositionDropdown", false);
         ractive.set("selectedTransposition", "No Transposition");
+        ractive.set("currentTranspositionValue", 0);
 
         /*var divvy = new Divvy({
              el: document.getElementById("editor-section"), // this is a reference to the container DOM element
@@ -632,17 +639,26 @@ module.exports = function () {
                 var intValue = parseInt(event.node.attributes.val.value);
                 transposeAmount = intValue;
                 ractive.fire("transpose_change", intValue);
+                ractive.set("currentTranspositionValue", intValue);
+                parser = ABCParser(ractive, intValue);
+
+                var currentTuneVal = ractive.get("editor").getValue();
+                ractive.get("editor").setValue("");
+                ractive.get("editor").setValue(currentTuneVal);
 
                 ractive.set("selectedTransposition", event.node.innerText);
                 ractive.set("showingTranspositionDropdown", false);
             },
             "toggle-play-tune": function () {
                 //AudioEngine.play(AudioRenderer(processedTune));
-                tunePlayer(AudioRenderer(processedTune));
+                tunePlayer.playTune(AudioRenderer(processedTune));
                 ractive.set("playing", true);
             },
             "toggle-stop-tune": function () {
-                AudioEngine.stop();
+                tunePlayer.stopTune();
+                ractive.set("playing", false);
+            },
+            "play-tune-end": function () {
                 ractive.set("playing", false);
             },
             download_abc: function () {
@@ -727,30 +743,8 @@ module.exports = function () {
             if (window) ractive.set("lastRenderTime", window.performance.now() - ractive.get("timeAtStart"));
         });
 
-        function completelyRerenderScore() {
-            siz("#canvas")[0].innerHTML = "";
-            errors = [];
-            ractive.set("errors", errors);
-
-            parser = ABCParser(transposeAmount);
-            layout = ABCLayout();
-            renderer = ABCRenderer();
-
-            var done = diff({
-                newValue: ractive.get("inputValue"),
-                oldValue: ""
-            }).map(parser).reduce(layout, 0);
-
-            renderer(done);
-
-            processedTune = done;
-            console.log("done", done);
-        }
-
-        //dispatcher.after("transpose_change", completelyRerenderScore);
-
-        var oldStart = -1,
-            oldStop = -1;
+        // var oldStart = -1,
+        //     oldStop = -1;
 
         if (parameters.tuneid) {
             fetch("/api/tune/" + parameters.tuneid).then(function (response) {
@@ -894,7 +888,7 @@ module.exports = { v:1,
                     " ",
                     { t:7,
                       e:"p",
-                      f:[ "Choose a tune from the right or one of the options below!" ] },
+                      f:[ "Choose a tune from the right or one of the options below." ] },
                     " ",
                     { t:7,
                       e:"div",
@@ -1397,7 +1391,8 @@ module.exports = { v:1,
 var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'),
     fly = require('./../../engine/scripts/transitions/ractive.transitions.fly'),
     toastr = require('./../../engine/vendor.js').toastr,
-    ractive = require('./../../engine/vendor.js').ractive;
+    ractive = require('./../../engine/vendor.js').ractive,
+    _ = require("lodash");
 
 
 var template = require("./home.html");
@@ -1422,7 +1417,20 @@ module.exports = function (ractive, context, page, urlcontext, user) {
             updated_search: function (event, data) {
                 console.log("EVENT", event.context.search_filter);
 
-                fetch("/api/tunes?name=" + event.context.search_filter).then(function (response) {
+                var keynoteData = ractive.get("keynote");
+                var keynoteFilter = "disallowkeys=";
+
+                _.forOwn(keynoteData, function (val, key) {
+                    if (!val) {
+                        if (key.length === 1) {
+                            keynoteFilter += key[0] + ",";
+                        } else {
+                            keynoteFilter += key[0] + "^,";
+                        }
+                    }
+                });
+
+                fetch("/api/tunes?name=" + event.context.search_filter + "&" + keynoteFilter).then(function (response) {
                     return response.json();
                 }).then(function (data) {
                     console.log("DONE", data);
@@ -1445,6 +1453,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
         ractive.on("toggle-note", function (event) {
             var note = event.node.attributes.note.value;
             ractive.set("keynote." + note, !ractive.get("keynote." + note));
+            ractive.fire("updated_search", event);
         });
 
         ractive.on("toggle-mode", function (event) {
@@ -1453,7 +1462,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
         });
 
         ractive.on({
-            "clear-all-keys": function () {
+            "clear-all-keys": function (event) {
                 ractive.set("keynote", {
                     A: false,
                     "A#": false,
@@ -1468,8 +1477,9 @@ module.exports = function (ractive, context, page, urlcontext, user) {
                     G: false,
                     "G#": false
                 });
+                ractive.fire("updated_search", event);
             },
-            "select-all-keys": function () {
+            "select-all-keys": function (event) {
                 ractive.set("keynote", {
                     A: true,
                     "A#": true,
@@ -1484,6 +1494,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
                     G: true,
                     "G#": true
                 });
+                ractive.fire("updated_search", event);
             },
             "clear-all-modes": function () {
                 ractive.set("keymode", {
@@ -1580,7 +1591,7 @@ module.exports = function (ractive, context, page, urlcontext, user) {
     return ractive;
 };
 
-},{"./../../engine/scripts/transitions/ractive.transitions.fade":38,"./../../engine/scripts/transitions/ractive.transitions.fly":39,"./../../engine/vendor.js":46,"./home.html":4}],6:[function(require,module,exports){
+},{"./../../engine/scripts/transitions/ractive.transitions.fade":38,"./../../engine/scripts/transitions/ractive.transitions.fly":39,"./../../engine/vendor.js":46,"./home.html":4,"lodash":101}],6:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:4,
       n:50,
@@ -2879,6 +2890,7 @@ module.exports = { v:1,
       e:"section",
       a:{ "class":"page-view",
         id:"view-viewer" },
+      v:{ mouseover:"mouse-over-window" },
       f:[ { t:7,
           e:"div",
           a:{ "class":"header row coloured" },
@@ -2915,23 +2927,58 @@ module.exports = { v:1,
                     " ",
                     { t:7,
                       e:"div",
-                      a:{ style:" float: right; position: static; margin-top: -42px;" },
+                      a:{ "class":"viewer-play-container" },
                       f:[ { t:4,
                           n:50,
                           r:"playing",
                           f:[ { t:7,
                               e:"i",
                               v:{ click:"toggle-stop-tune" },
-                              a:{ "class":"fa fa-stop",
+                              a:{ "class":"playback-control fa fa-stop",
                                 style:"cursor: pointer" } } ] },
                         { t:4,
                           n:51,
                           f:[ { t:7,
                               e:"i",
                               v:{ click:"toggle-play-tune" },
-                              a:{ "class":"fa fa-play",
+                              a:{ "class":[ "playback-control play-button fa fa-play ",
+                                  { t:4,
+                                    n:50,
+                                    x:{ r:[ "playbackReady" ],
+                                      s:"!_0" },
+                                    f:[ "inactive" ] } ],
                                 style:"cursor: pointer" } } ],
-                          r:"playing" } ] },
+                          r:"playing" },
+                        " ",
+                        { t:7,
+                          e:"i",
+                          v:{ click:"toggle-repeat-tune" },
+                          a:{ "class":[ "playback-control fa fa-refresh repeat-button ",
+                              { t:4,
+                                n:50,
+                                r:"repeatingTune",
+                                f:[ "active" ] },
+                              { t:4,
+                                n:51,
+                                f:[ "inactive" ],
+                                r:"repeatingTune" } ],
+                            style:"cursor: pointer" } },
+                        " ",
+                        { t:7,
+                          e:"input",
+                          a:{ type:"number",
+                            style:"width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;",
+                            "class":"playback-control",
+                            value:[ { t:2,
+                                r:"playTempo" } ],
+                            disabled:[ { t:2,
+                                r:"playing" } ],
+                            min:"30",
+                            max:"240" } },
+                        " ",
+                        { t:7,
+                          e:"small",
+                          f:[ "bpm" ] } ] },
                     " ",
                     { t:7,
                       e:"h2",
@@ -2969,7 +3016,59 @@ module.exports = { v:1,
                         " ",
                         { t:7,
                           e:"i",
-                          a:{ "class":"fa fa-download" } } ] } ] } ] },
+                          v:{ mouseover:"download_tune_options" },
+                          a:{ "class":"fa fa-download",
+                            id:"download-button" } },
+                        " ",
+                        { t:7,
+                          e:"div",
+                          a:{ "class":"download popover-menu",
+                            style:[ { t:4,
+                                n:50,
+                                x:{ r:[ "downloadOptionsOpen" ],
+                                  s:"!_0" },
+                                f:[ "display:none" ] } ] },
+                          f:[ { t:7,
+                              e:"div",
+                              v:{ click:"download-abc" },
+                              a:{ "class":"download-type start" },
+                              f:[ { t:7,
+                                  e:"div",
+                                  a:{ "class":"icon" },
+                                  f:[ { t:7,
+                                      e:"i",
+                                      a:{ "class":"fa fa-file-text-o" } } ] },
+                                { t:7,
+                                  e:"div",
+                                  f:[ "ABC" ] } ] },
+                            " ",
+                            { t:7,
+                              e:"div",
+                              v:{ click:"download-midi" },
+                              a:{ "class":"download-type" },
+                              f:[ { t:7,
+                                  e:"div",
+                                  a:{ "class":"icon" },
+                                  f:[ { t:7,
+                                      e:"i",
+                                      a:{ "class":"fa fa-file-audio-o" } } ] },
+                                { t:7,
+                                  e:"div",
+                                  f:[ "MIDI" ] } ] },
+                            " ",
+                            { t:7,
+                              e:"div",
+                              v:{ click:"download-pdf" },
+                              a:{ "class":"download-type end" },
+                              f:[ { t:7,
+                                  e:"div",
+                                  a:{ "class":"icon" },
+                                  f:[ { t:7,
+                                      e:"i",
+                                      a:{ "class":"fa fa-file-pdf-o" } } ] },
+                                { t:7,
+                                  e:"div",
+                                  f:[ "PDF" ] } ] } ] } ] } ] } ] },
             " ",
             { t:7,
               e:"div",
@@ -2987,6 +3086,7 @@ var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'
     fly = require('./../../engine/scripts/transitions/ractive.transitions.fly'),
     screenfull = require('./../../engine/vendor.js').screenfull,
     queryString = require('./../../engine/vendor.js').queryString,
+    Drop = require('./../../engine/vendor.js').drop,
     engine = require('./../../engine/engine'),
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
@@ -2994,24 +3094,30 @@ var fade = require('./../../engine/scripts/transitions/ractive.transitions.fade'
     ABCLayout = engine.layout,
     AudioRenderer = require('./../../engine/audio_render'),
     AudioEngine = require('./../../engine/audio/audio'),
-    tunePlayer = require('./../../engine/audio/myplayer');
-
+    TunePlayer = require('./../../engine/audio/myplayer');
 
 var template = require("./viewer.html");
 
 module.exports = function (r) {
+    var downloadOptionsTether = null;
+
     var onInit = function () {
         var ractive = this;
 
         var parameters = queryString.parse(ractive.get("url").querystring);
 
+        ractive.set("playbackReady", false);
+
         var parser = ABCParser(ractive),
             layout = ABCLayout(ractive),
-            renderer = ABCRenderer(ractive);
+            renderer = ABCRenderer(ractive),
+            tunePlayer = TunePlayer(ractive);
 
         ractive.set("playing", false);
-
-        var tuneStopper = null;
+        ractive.set("repeatingTune", false);
+        ractive.set("currentTranspositionValue", 0);
+        ractive.set("playTempo", 120);
+        ractive.set("downloadOptionsOpen", false);
 
         ractive.on({
             show_fullscreen: function show_fullscreen() {
@@ -3042,15 +3148,45 @@ module.exports = function (r) {
                 ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get("tune")._id);
             },
             "toggle-stop-tune": function () {
-                if (tuneStopper !== null) tuneStopper();
+                tunePlayer.stopTune();
                 ractive.set("playing", false);
             },
+            "play-tune-end": function () {
+                if (ractive.get("repeatingTune")) {
+                    tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
+                } else {
+                    ractive.set("playing", false);
+                }
+            },
             "toggle-play-tune": function () {
-                //AudioEngine.play();
+                if (!ractive.get("playbackReady")) return;
 
-                tuneStopper = tunePlayer(AudioRenderer(doneThing));
-
+                tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
                 ractive.set("playing", true);
+            },
+            "toggle-repeat-tune": function () {
+                ractive.set("repeatingTune", !ractive.get("repeatingTune"));
+            },
+            "play-tune-ready": function () {
+                ractive.set("playbackReady", true);
+            },
+            download_tune_options: function () {
+                ractive.set("downloadOptionsOpen", true);
+                downloadOptionsTether.position();
+                return false;
+            },
+            "mouse-over-window": function () {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-abc": function () {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-midi": function () {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-pdf": function () {
+                window.location.href = "/pdf?tune=" + encodeURIComponent(ractive.get("tune").raw);
+                ractive.set("downloadOptionsOpen", false);
             }
         });
 
@@ -3099,10 +3235,21 @@ module.exports = function (r) {
         };
     };
 
+    var onRender = function () {
+        downloadOptionsTether = new Drop({
+            target: document.querySelector("#download-button"),
+            element: document.querySelector(".download.popover-menu"),
+            attachment: "top center",
+            targetAttachment: "bottom center",
+            offset: "0px 35px"
+        });
+    };
+
     var ractive = Ractive.extend({
         isolated: false,
         template: template,
-        oninit: onInit
+        oninit: onInit,
+        onrender: onRender
     });
 
     return ractive;
@@ -3324,7 +3471,7 @@ module.exports = {
 };
 // MIDIjs.message_callback("Error: Cannot retrieve patch file " + path + filename);
 
-},{"../dispatcher":27,"./midi":22,"base64-js":49,"lodash":100}],22:[function(require,module,exports){
+},{"../dispatcher":27,"./midi":22,"base64-js":49,"lodash":101}],22:[function(require,module,exports){
 "use strict";
 
 /*jslint es5: true, laxbreak: true */
@@ -3811,138 +3958,126 @@ var Timer = require("clockmaker").Timer;
 var siz = require("Sizzle");
 
 var note = {};
+var loadedNoteData = false;
 
 var notes = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
 var context = new AudioContext();
 
-fetch("/pat/acoustic_grand_piano-mp3.json").then(function (response) {
-  return response.json();
-}).then(function (res) {
-  _.forOwn(res, function (val, key) {
-    var base64 = val.split(",")[1];
-    var buffer = Base64.decode(base64);
-    context.decodeAudioData(buffer, function (decodedData) {
-      note[key] = decodedData;
-    });
-  });
-});
+
 
 var RhythmSample = {};
 
-RhythmSample.play = function (tuneData) {
+RhythmSample.play = function (dispatcher) {
+  if (!loadedNoteData) {
+    fetch("/pat/acoustic_grand_piano-mp3.json").then(function (response) {
+      return response.json();
+    }).then(function (res) {
+      _.forOwn(res, function (val, key) {
+        var base64 = val.split(",")[1];
+        var buffer = Base64.decode(base64);
+        context.decodeAudioData(buffer, function (decodedData) {
+          note[key] = decodedData;
+        });
+      });
+
+      dispatcher.set("playbackReady", true);
+      loadedNoteData = true;
+    });
+  } else {
+    dispatcher.set("playbackReady", true);
+  }
+
+
+
   var sources = [];
 
-  function playSound(buffer, time, length) {
-    var source = context.createBufferSource();
-    var gainNode = context.createGain();
-    gainNode.gain.linearRampToValueAtTime(0.5, time + length);
-    gainNode.gain.linearRampToValueAtTime(0, time + length + 0.5);
-    source.buffer = buffer;
-    // Connect the source to the gain node.
-    source.connect(gainNode);
-    // Connect the gain node to the destination.
-    gainNode.connect(context.destination);
-    if (!source.start) source.start = source.noteOn;
-    source.start(time);
+  var timer = null;
+  var lastHighlightedNote = null;
 
-    sources.push(source);
-  }
+  var playTune = function (tuneData) {
+    var tempo = arguments[1] === undefined ? 120 : arguments[1];
 
-  var kick = note.A4;
-  var snare = note.A5;
-  var hihat = note.C4;
 
-  // We'll start playing the rhythm 100 milliseconds from "now"
-  var startTime = context.currentTime + 0.1;
-  var tempo = 80; // BPM (beats per minute)
-  var eighthNoteTime = 60 / tempo / 2;
 
-  var offset = 0;
 
-  // Play 2 bars of the following:
-  for (var bar = 0; bar < tuneData.length; bar++) {
-    var octave = Math.floor((tuneData[bar][0] - 24) / 12);
-    var noteId = tuneData[bar][0] - 24 - octave * 12;
+    function playSound(buffer, time, length) {
+      var source = context.createBufferSource();
+      var gainNode = context.createGain();
+      gainNode.gain.linearRampToValueAtTime(0.5, time + length);
+      gainNode.gain.linearRampToValueAtTime(0, time + length + 0.5);
+      source.buffer = buffer;
+      // Connect the source to the gain node.
+      source.connect(gainNode);
+      // Connect the gain node to the destination.
+      gainNode.connect(context.destination);
+      if (!source.start) source.start = source.noteOn;
+      source.start(time);
 
-    playSound(note[notes[noteId] + (octave + 1)], startTime + offset, tuneData[bar][1] / 120);
-    offset += tuneData[bar][1] / 120;
-    /*var time = startTime + bar * 8 * eighthNoteTime;
-    console.log("TIME", time)
-    // Play the bass (kick) drum on beats 1, 5
-    playSound(kick, time);
-    playSound(kick, time + 4 * eighthNoteTime);
-      // Play the snare drum on beats 3, 7
-    playSound(snare, time + 2 * eighthNoteTime);
-    playSound(snare, time + 6 * eighthNoteTime);
-      // Play the hi-hat every eighthh note.
-    for (var i = 0; i < 8; ++i) {
-      playSound(hihat, time + i * eighthNoteTime);
-    }*/
-  }
-
-  var currentPosition = 0;
-  var firstNote = siz(".tune-body .noteHead")[0];
-  firstNote.classList.add("selected-note");
-  var lastHighlightedNote = firstNote;
-  var timer = new Timer(function (timer) {
-    currentPosition++;
-    //console.log("woo note", tuneData[currentPosition][2]);
-
-    if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove("selected-note");
-    var thisNote = document.getElementById("note_" + tuneData[currentPosition][2]);
-    thisNote.classList.add("selected-note");
-    lastHighlightedNote = thisNote;
-
-    if (currentPosition >= tuneData.length) {
-      timer.stop();
-      return;
+      sources.push(source);
     }
-    timer.setDelay(tuneData[currentPosition][1] * 1000 / 120);
-  }, tuneData[0], {
-    repeat: true
-  }).start();
 
-  return function () {
+    var kick = note.A4;
+    var snare = note.A5;
+    var hihat = note.C4;
+
+    // We'll start playing the rhythm 100 milliseconds from "now"
+    var startTime = context.currentTime + 0.1;
+
+    var offset = 0;
+
+    // Play 2 bars of the following:
+    for (var bar = 0; bar < tuneData.length; bar++) {
+      var octave = Math.floor((tuneData[bar][0] - 24) / 12);
+      var noteId = tuneData[bar][0] - 24 - octave * 12;
+
+      playSound(note[notes[noteId] + (octave + 1)], startTime + offset, tuneData[bar][1] / tempo);
+      offset += tuneData[bar][1] / tempo;
+    }
+
+    var currentPosition = 0;
+    var firstNote = siz(".tune-body .noteHead")[0];
+    firstNote.classList.add("selected-note");
+    lastHighlightedNote = firstNote;
+    timer = new Timer(function (timer) {
+      //console.log("woo note", tuneData[currentPosition][2]);
+
+      if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove("selected-note");
+      var thisNote = document.getElementById("note_" + tuneData[currentPosition][2]);
+      thisNote.classList.add("selected-note");
+      lastHighlightedNote = thisNote;
+      if (currentPosition >= tuneData.length - 1) {
+        timer.stop();
+        dispatcher.fire("play-tune-end");
+        window.setTimeout(function () {
+          if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove("selected-note");
+        }, tuneData[currentPosition][1] * 1000 / tempo);
+      }
+      timer.setDelay(tuneData[currentPosition][1] * 1000 / tempo);
+
+      currentPosition++;
+    }, tuneData[0], {
+      repeat: true
+    }).start();
+  };
+
+  var stopTune = function () {
     timer.stop();
     if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove("selected-note");
     sources.forEach(function (source) {
       source.stop();
     });
   };
+
+  return {
+    playTune: playTune,
+    stopTune: stopTune
+  };
 };
 
-var playTune = function (tuneData) {
+module.exports = RhythmSample.play;
 
-
-
-  console.log(tuneData);
-
-  var currentPosition = 0;
-  /*
-    console.log(buffer);
-  
-  
-    var offset = 0;
-    for(var i = 0; i<1; i++) {
-  
-      var source = context.createBufferSource(); // creates a sound source
-      //var gainNode = context.createGain();
-      source.connect(context.destination);
-        //gainNode.gain.linearRampToValueAtTime(0, 0.2);
-      source.buffer = note;                    // tell the source which sound to play
-      //gainNode.connect();       // connect the source to the context's destination (the speakers)
-      source.start(offset);
-      offset += tuneData[i][1] * 10;
-    }
-                            // play the source now
-                            */
-  return RhythmSample.play(tuneData);
-};
-
-module.exports = playTune;
-
-},{"Sizzle":47,"base64-arraybuffer":48,"clockmaker":51,"lodash":100}],24:[function(require,module,exports){
+},{"Sizzle":47,"base64-arraybuffer":48,"clockmaker":51,"lodash":101}],24:[function(require,module,exports){
 "use strict";
 
 var data_tables = require("./data_tables.js");
@@ -3960,8 +4095,8 @@ var audioRender = function (tune) {
 	}, []);
 
 	var i = 0,
-	    repeating = false,
-	    repeatLocation = -1,
+	    repeating = true,
+	    repeatLocation = 0,
 	    totalLength = 0;
 
 	while (i < allSymbols.length) {
@@ -4025,7 +4160,6 @@ module.exports = audioRender;
 "use strict";
 
 var data_tables = {},
-    dispatcher = require("./dispatcher"),
     zazate = require("zazate.js"),
     _ = require("lodash");
 
@@ -4420,7 +4554,7 @@ data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];
 
 module.exports = data_tables;
 
-},{"./dispatcher":27,"lodash":100,"zazate.js":156}],26:[function(require,module,exports){
+},{"lodash":101,"zazate.js":157}],26:[function(require,module,exports){
 "use strict";
 
 var enums = require("./types"),
@@ -4553,7 +4687,7 @@ module.exports = {
 };
 //console.log("No subscribers for " + eventName, data);
 
-},{"lodash":100}],28:[function(require,module,exports){
+},{"lodash":101}],28:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -4591,6 +4725,8 @@ var ABCLayout = function (dispatcher) {
         },
         title: "Untitled Tune"
     };
+
+    var forceFullRedraw = false;
 
 
     var currentRenderNoteId = 0;
@@ -4686,40 +4822,42 @@ var ABCLayout = function (dispatcher) {
     };
 
     var handleDataLineSwitch = {
-        title: function title(data) {
+        title: function (data) {
             tuneSettings.title = data;
             dispatcher.fire("change_tune_title", data);
         },
 
-        rhythm: function rhythm(data) {
+        rhythm: function (data) {
             tuneSettings.rhythm = data;
             dispatcher.fire("change_rhythm", data);
         },
 
-        key: function key(data) {
+        key: function (data) {
             tuneSettings.key = data;
+            console.log("CHANGED KEY");
+            forceFullRedraw = true;
             dispatcher.fire("change_key", data);
         },
 
-        timesig: function timesig(data) {
+        timesig: function (data) {
             tuneSettings.measure = data;
             dispatcher.fire("change_timesig", data);
         },
 
-        notelength: function notelength(data) {
+        notelength: function (data) {
             tuneSettings.noteLength = data;
             dispatcher.fire("change_notelength", data);
         },
 
-        number: function number(data) {
+        number: function (data) {
             tuneSettings.number = data;
         },
 
-        transcriber: function transcriber(data) {
+        transcriber: function (data) {
             tuneSettings.transcriber = data;
         },
 
-        source: function source(data) {
+        source: function (data) {
             tuneSettings.source = data;
         } };
 
@@ -4729,7 +4867,7 @@ var ABCLayout = function (dispatcher) {
     }
 
     var handleAction = {
-        ADD: function ADD(lineCollection) {
+        ADD: function (lineCollection) {
 
 
             var layoutedLines = lineCollection.lines.map(function (line) {
@@ -4745,7 +4883,7 @@ var ABCLayout = function (dispatcher) {
         },
 
 
-        DEL: function DEL(lineCollection) {
+        DEL: function (lineCollection) {
             if (lineCollection.lines.length > 0) {
                 var removed_lines = parsedLines.splice(lineCollection.lines[0].id, lineCollection.lines.length);
 
@@ -4769,17 +4907,22 @@ var ABCLayout = function (dispatcher) {
             changedLines = changedLines.concat(oldScoreLines.changedLines);
         }
 
-        return {
+        var returnData = {
             tuneSettings: tuneSettings,
             parsedLines: parsedLines,
-            changedLines: changedLines
+            changedLines: changedLines,
+            forceFullRedraw: forceFullRedraw || oldScoreLines.forceFullRedraw
         };
+
+        if (forceFullRedraw) forceFullRedraw = false;
+
+        return returnData;
     };
 };
 
 module.exports = ABCLayout;
 
-},{"./data_tables":25,"./dispatcher":27,"./springs":40,"./types":41,"./types/AbcBeam":42,"lodash":100}],30:[function(require,module,exports){
+},{"./data_tables":25,"./dispatcher":27,"./springs":40,"./types":41,"./types/AbcBeam":42,"lodash":101}],30:[function(require,module,exports){
 "use strict";
 
 var _ = require("lodash"),
@@ -5160,7 +5303,7 @@ module.exports = function (dispatcher, input, lineId) {
     return output;
 };
 
-},{"./dispatcher":27,"lex":99,"lodash":100}],31:[function(require,module,exports){
+},{"./dispatcher":27,"lex":100,"lodash":101}],31:[function(require,module,exports){
 "use strict";
 
 var lexer = require("./lexer.js"),
@@ -5602,7 +5745,7 @@ var ABCParser = function (dispatcher, transposeAmount) {
 
 module.exports = ABCParser;
 
-},{"./data_tables.js":25,"./dispatcher":27,"./lexer.js":30,"./types":41,"./types/AbcChord":43,"./types/AbcSymbol":44,"lodash":100}],32:[function(require,module,exports){
+},{"./data_tables.js":25,"./dispatcher":27,"./lexer.js":30,"./types":41,"./types/AbcChord":43,"./types/AbcSymbol":44,"lodash":101}],32:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg"),
@@ -5613,126 +5756,123 @@ var s = require("virtual-dom/virtual-hyperscript/svg"),
     patch = require("virtual-dom/patch"),
     stringify = require("virtual-dom-stringify");
 
-var ABCRenderer = function () {
-        var previousNodeTree = null,
-            settings = null,
-            nextLineStartsWithEnding = false,
-            cachedLines = [],
-            renderElement = null;
+var ABCRenderer = function (ractive, returnString) {
+    if (returnString === undefined) returnString = false;
 
-        var renderLine = function (line, drawnLineIndex, lineIndex) {
-                var lineGroup = s("g#line-" + lineIndex, {
-                        transform: "translate(100," + (32 + drawnLineIndex * 96) + ")",
-                        "class": "svgTuneLine"
-                });
+    var previousNodeTree = null,
+        settings = null,
+        nextLineStartsWithEnding = false,
+        cachedLines = [],
+        renderElement = null;
 
-                var leadInGroup = s("g");
-                lineGroup.children.push(draw.stave(), leadInGroup);
+    var renderLine = function (line, drawnLineIndex, lineIndex) {
+        var lineGroup = s("g#line-" + lineIndex, {
+            transform: "translate(100," + (32 + drawnLineIndex * 96) + ")",
+            "class": "svgTuneLine"
+        });
 
-                var clef = draw.treble_clef();
-                var keySig = draw.keysig(settings.key, clef.width, line.id);
+        var leadInGroup = s("g");
+        lineGroup.children.push(draw.stave(), leadInGroup);
 
-                if (keySig === false) return;
+        var clef = draw.treble_clef();
+        var keySig = draw.keysig(settings.key, clef.width, line.id, ractive.get("currentTranspositionValue"));
 
-                leadInGroup.children.push(clef.node, keySig.node);
+        if (keySig === false) return;
 
-                var leadInWidth = clef.width + keySig.width;
+        leadInGroup.children.push(clef.node, keySig.node);
 
-                if (drawnLineIndex === 0) {
-                        var timeSig = draw.timesig(settings.measure.top, settings.measure.bottom, clef.width + keySig.width);
-                        leadInGroup.children.push(timeSig.node);
-                        leadInWidth += timeSig.width;
+        var leadInWidth = clef.width + keySig.width;
+
+        if (drawnLineIndex === 0) {
+            var timeSig = draw.timesig(settings.measure.top, settings.measure.bottom, clef.width + keySig.width);
+            leadInGroup.children.push(timeSig.node);
+            leadInWidth += timeSig.width;
+        }
+
+        var symbolsGroup = s("g", { transform: "translate(" + leadInWidth + ",0)" });
+
+
+        var noteAreaWidth = 800 - leadInWidth;
+
+        var springLength = noteAreaWidth - line.totalFixedWidth;
+        var springMod = springLength / line.totalSpringConstant;
+
+        var xPos = 0;
+
+        for (var i = 0; i < line.symbols.length; i++) {
+            line.symbols[i].renderedXPos = xPos;
+            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos, noteAreaWidth));
+            xPos += line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant;
+        }
+
+        for (var i = 0; i < line.endings.length; i++) {
+            symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
+        }
+
+        for (var i = 0; i < line.tuplets.length; i++) {
+            symbolsGroup.children.push(draw.tuplets(line.tuplets[i], noteAreaWidth));
+        }
+
+        if (nextLineStartsWithEnding) {
+            symbolsGroup.children.push(draw.varientEndings({
+                name: "",
+                start: {
+                    xp: 0
+                },
+                end: line.firstEndingEnder
+            }, noteAreaWidth, true));
+        }
+
+        nextLineStartsWithEnding = line.endWithEndingBar;
+
+        lineGroup.children.push(symbolsGroup);
+
+        return lineGroup;
+    };
+
+    return function (tuneData) {
+        settings = tuneData.tuneSettings;
+
+        var doc = s("svg#tuneSVGCanvas", {
+            viewBox: "0 0 1000 800",
+            width: "100%" }),
+            nextLineStartsWithEnding = false;
+
+        var drawnLines = 0;
+        tuneData.parsedLines.forEach(function (line, i) {
+            if (line.type === "drawable") {
+                if (tuneData.forceFullRedraw !== true && (tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding)) {
+                    doc.children.push(cachedLines[i]);
+                } else {
+                    var vRenderedLine = renderLine(line, drawnLines, i);
+                    doc.children.push(vRenderedLine);
+                    cachedLines[i] = vRenderedLine;
                 }
+                drawnLines++;
+            }
+        });
 
-                var symbolsGroup = s("g", { transform: "translate(" + leadInWidth + ",0)" });
+        var topDiv = h("div.render-div", [h("div.tune-header", [h("h2", [settings.title]), h("p.abc-tune-rhythm", [settings.rhythm])]), h("div.tune-body", [doc])]);
 
+        if (!returnString) {
+            renderElement = createElement(topDiv);
+            document.getElementById("canvas").innerHTML = "";
+            document.getElementById("canvas").appendChild(renderElement);
 
-                var noteAreaWidth = 800 - leadInWidth;
+            var svgs = document.getElementById("tuneSVGCanvas");
+            var canvasElement = document.getElementById("canvas");
 
-                var springLength = noteAreaWidth - line.totalFixedWidth;
-                var springMod = springLength / line.totalSpringConstant;
-
-                var xPos = 0;
-
-                for (var i = 0; i < line.symbols.length; i++) {
-                        line.symbols[i].renderedXPos = xPos;
-                        symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos, /*line.symbols[i].xp * noteAreaWidth*/noteAreaWidth));
-                        xPos += line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant;
-                }
-
-                for (var i = 0; i < line.endings.length; i++) {
-                        symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
-                }
-
-                for (var i = 0; i < line.tuplets.length; i++) {
-                        symbolsGroup.children.push(draw.tuplets(line.tuplets[i], noteAreaWidth));
-                }
-
-                if (nextLineStartsWithEnding) {
-                        symbolsGroup.children.push(draw.varientEndings({
-                                name: "",
-                                start: {
-                                        xp: 0
-                                },
-                                end: line.firstEndingEnder
-                        }, noteAreaWidth, true));
-                }
-
-                nextLineStartsWithEnding = line.endWithEndingBar;
-
-                lineGroup.children.push(symbolsGroup);
-
-                return lineGroup;
-        };
-
-        return function (tuneData) {
-                settings = tuneData.tuneSettings;
-
-                var doc = s("svg#tuneSVGCanvas", {
-                        viewBox: "0 0 1000 800",
-                        width: "100%" }),
-                    nextLineStartsWithEnding = false;
-
-                var drawnLines = 0;
-                tuneData.parsedLines.forEach(function (line, i) {
-                        if (line.type === "drawable") {
-                                if (tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding) {
-                                        doc.children.push(cachedLines[i]);
-                                } else {
-                                        var vRenderedLine = renderLine(line, drawnLines, i);
-                                        doc.children.push(vRenderedLine);
-                                        cachedLines[i] = vRenderedLine;
-                                }
-                                drawnLines++;
-                        }
-                });
-
-                var topDiv = h("div.render-div", [h("div.tune-header", [h("h2", [settings.title]), h("p.abc-tune-rhythm", [settings.rhythm])]), h("div.tune-body", [doc])]);
-
-                //if(previousNodeTree === null) {
-                renderElement = createElement(topDiv);
-                document.getElementById("canvas").innerHTML = "";
-                document.getElementById("canvas").appendChild(renderElement);
-                //} else {
-                //document.getElementById("canvas").innerHTML = '';
-                //document.getElementById("canvas").appendChild(createElement(topDiv));
-                //    var patchData = diff(previousNodeTree, topDiv);
-                //     renderElement = patch(renderElement, patchData);    
-                //     document.getElementById("canvas").innerHTML = '';
-                //     document.getElementById("canvas").appendChild(renderElement);      
-                // }
-
-                var svgs = document.getElementById("tuneSVGCanvas");
-                var canvasElement = document.getElementById("canvas");
-
-                var scrollDist = canvasElement.scrollTop;
-                svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
-                canvasElement.scrollTop = scrollDist;
+            var scrollDist = canvasElement.scrollTop;
+            svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
+            canvasElement.scrollTop = scrollDist;
 
 
 
-                previousNodeTree = topDiv;
-        };
+            previousNodeTree = topDiv;
+        } else {
+            return stringify(topDiv);
+        }
+    };
 };
 
 
@@ -5740,7 +5880,7 @@ var ABCRenderer = function () {
 module.exports = ABCRenderer;
 //height: "100%"
 
-},{"./rendering/stave_symbols.js":35,"virtual-dom-stringify":109,"virtual-dom/create-element":123,"virtual-dom/diff":124,"virtual-dom/h":125,"virtual-dom/patch":127,"virtual-dom/virtual-hyperscript/svg":139}],33:[function(require,module,exports){
+},{"./rendering/stave_symbols.js":35,"virtual-dom-stringify":110,"virtual-dom/create-element":124,"virtual-dom/diff":125,"virtual-dom/h":126,"virtual-dom/patch":128,"virtual-dom/virtual-hyperscript/svg":140}],33:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg"),
@@ -5762,7 +5902,7 @@ module.exports = {
     }
 };
 
-},{"virtual-dom/create-element":123,"virtual-dom/h":125,"virtual-dom/virtual-hyperscript/svg":139}],34:[function(require,module,exports){
+},{"virtual-dom/create-element":124,"virtual-dom/h":126,"virtual-dom/virtual-hyperscript/svg":140}],34:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -6761,7 +6901,7 @@ drawing_functions.beam = function (beam, group, noteAreaWidth) {
  * @param  {[type]} keysig [description]
  * @return {[type]}        [description]
  */
-drawing_functions.keysig = function (keysig, xoffset, lineId) {
+drawing_functions.keysig = function (keysig, xoffset, lineId, transpose) {
     var keySigGroup = s("g");
     var undefined;
 
@@ -6910,7 +7050,7 @@ module.exports = drawing_functions;
      fill: 'black'
  });*/
 
-},{"../data_tables":25,"../dispatcher":27,"./glyphs":34,"lodash":100,"randomcolor":104,"virtual-dom/virtual-hyperscript/svg":139}],36:[function(require,module,exports){
+},{"../data_tables":25,"../dispatcher":27,"./glyphs":34,"lodash":101,"randomcolor":105,"virtual-dom/virtual-hyperscript/svg":140}],36:[function(require,module,exports){
 "use strict";
 
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
@@ -8372,7 +8512,7 @@ var AbcChord = function (text) {
 module.exports = {
     AbcChord: AbcChord };
 
-},{"zazate.js":156}],44:[function(require,module,exports){
+},{"zazate.js":157}],44:[function(require,module,exports){
 "use strict";
 
 ////////////
@@ -8504,10 +8644,11 @@ module.exports = {
     queryString: require("query-string"),
     sizzle: require("sizzle"),
     domready: require("domready"),
-    sortable: require("sortablejs")
+    sortable: require("sortablejs"),
+    drop: require('./../node_modules/drop/drop')
 };
 
-},{"codemirror":53,"codemirror/addon/lint/lint":52,"combokeys":86,"diff":89,"domready":90,"filesaver.js":162,"isomorphic-fetch":98,"lex":99,"lodash":100,"page":101,"query-string":102,"ractive/ractive":103,"screenfull":105,"sizzle":106,"sortablejs":107,"zazate.js":156}],47:[function(require,module,exports){
+},{"./../node_modules/drop/drop":91,"codemirror":53,"codemirror/addon/lint/lint":52,"combokeys":86,"diff":89,"domready":90,"filesaver.js":163,"isomorphic-fetch":99,"lex":100,"lodash":101,"page":102,"query-string":103,"ractive/ractive":104,"screenfull":106,"sizzle":107,"sortablejs":108,"zazate.js":157}],47:[function(require,module,exports){
 /*!
  * Sizzle CSS Selector Engine v2.1.1
  * http://sizzlejs.com/
@@ -20310,7 +20451,7 @@ function DataSet(elem) {
     return store.hash
 }
 
-},{"./create-hash.js":87,"individual":95,"weakmap-shim/create-store":151}],89:[function(require,module,exports){
+},{"./create-hash.js":87,"individual":96,"weakmap-shim/create-store":152}],89:[function(require,module,exports){
 /* See LICENSE file for terms of use */
 
 /*
@@ -20714,6 +20855,1828 @@ if (typeof module !== 'undefined') {
 });
 
 },{}],91:[function(require,module,exports){
+/*! drop 0.5.4 */
+/*! tether 0.6.5 */
+
+
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory(require,exports,module);
+  } else {
+    root.Tether = factory();
+  }
+}(this, function(require,exports,module) {
+
+(function() {
+  var Evented, addClass, defer, deferred, extend, flush, getBounds, getOffsetParent, getOrigin, getScrollBarSize, getScrollParent, hasClass, node, removeClass, uniqueId, updateClasses, zeroPosCache,
+    __hasProp = {}.hasOwnProperty,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    __slice = [].slice;
+
+  if (this.Tether == null) {
+    this.Tether = {
+      modules: []
+    };
+  }
+
+  getScrollParent = function(el) {
+    var parent, position, scrollParent, style, _ref;
+    position = getComputedStyle(el).position;
+    if (position === 'fixed') {
+      return el;
+    }
+    scrollParent = void 0;
+    parent = el;
+    while (parent = parent.parentNode) {
+      try {
+        style = getComputedStyle(parent);
+      } catch (_error) {}
+      if (style == null) {
+        return parent;
+      }
+      if (/(auto|scroll)/.test(style['overflow'] + style['overflow-y'] + style['overflow-x'])) {
+        if (position !== 'absolute' || ((_ref = style['position']) === 'relative' || _ref === 'absolute' || _ref === 'fixed')) {
+          return parent;
+        }
+      }
+    }
+    return document.body;
+  };
+
+  uniqueId = (function() {
+    var id;
+    id = 0;
+    return function() {
+      return id++;
+    };
+  })();
+
+  zeroPosCache = {};
+
+  getOrigin = function(doc) {
+    var id, k, node, v, _ref;
+    node = doc._tetherZeroElement;
+    if (node == null) {
+      node = doc.createElement('div');
+      node.setAttribute('data-tether-id', uniqueId());
+      extend(node.style, {
+        top: 0,
+        left: 0,
+        position: 'absolute'
+      });
+      doc.body.appendChild(node);
+      doc._tetherZeroElement = node;
+    }
+    id = node.getAttribute('data-tether-id');
+    if (zeroPosCache[id] == null) {
+      zeroPosCache[id] = {};
+      _ref = node.getBoundingClientRect();
+      for (k in _ref) {
+        v = _ref[k];
+        zeroPosCache[id][k] = v;
+      }
+      defer(function() {
+        return zeroPosCache[id] = void 0;
+      });
+    }
+    return zeroPosCache[id];
+  };
+
+  node = null;
+
+  getBounds = function(el) {
+    var box, doc, docEl, k, origin, v, _ref;
+    if (el === document) {
+      doc = document;
+      el = document.documentElement;
+    } else {
+      doc = el.ownerDocument;
+    }
+    docEl = doc.documentElement;
+    box = {};
+    _ref = el.getBoundingClientRect();
+    for (k in _ref) {
+      v = _ref[k];
+      box[k] = v;
+    }
+    origin = getOrigin(doc);
+    box.top -= origin.top;
+    box.left -= origin.left;
+    if (box.width == null) {
+      box.width = document.body.scrollWidth - box.left - box.right;
+    }
+    if (box.height == null) {
+      box.height = document.body.scrollHeight - box.top - box.bottom;
+    }
+    box.top = box.top - docEl.clientTop;
+    box.left = box.left - docEl.clientLeft;
+    box.right = doc.body.clientWidth - box.width - box.left;
+    box.bottom = doc.body.clientHeight - box.height - box.top;
+    return box;
+  };
+
+  getOffsetParent = function(el) {
+    return el.offsetParent || document.documentElement;
+  };
+
+  getScrollBarSize = function() {
+    var inner, outer, width, widthContained, widthScroll;
+    inner = document.createElement('div');
+    inner.style.width = '100%';
+    inner.style.height = '200px';
+    outer = document.createElement('div');
+    extend(outer.style, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden',
+      width: '200px',
+      height: '150px',
+      overflow: 'hidden'
+    });
+    outer.appendChild(inner);
+    document.body.appendChild(outer);
+    widthContained = inner.offsetWidth;
+    outer.style.overflow = 'scroll';
+    widthScroll = inner.offsetWidth;
+    if (widthContained === widthScroll) {
+      widthScroll = outer.clientWidth;
+    }
+    document.body.removeChild(outer);
+    width = widthContained - widthScroll;
+    return {
+      width: width,
+      height: width
+    };
+  };
+
+  extend = function(out) {
+    var args, key, obj, val, _i, _len, _ref;
+    if (out == null) {
+      out = {};
+    }
+    args = [];
+    Array.prototype.push.apply(args, arguments);
+    _ref = args.slice(1);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      obj = _ref[_i];
+      if (obj) {
+        for (key in obj) {
+          if (!__hasProp.call(obj, key)) continue;
+          val = obj[key];
+          out[key] = val;
+        }
+      }
+    }
+    return out;
+  };
+
+  removeClass = function(el, name) {
+    var cls, _i, _len, _ref, _results;
+    if (el.classList != null) {
+      _ref = name.split(' ');
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cls = _ref[_i];
+        if (cls.trim()) {
+          _results.push(el.classList.remove(cls));
+        }
+      }
+      return _results;
+    } else {
+      return el.className = el.className.replace(new RegExp("(^| )" + (name.split(' ').join('|')) + "( |$)", 'gi'), ' ');
+    }
+  };
+
+  addClass = function(el, name) {
+    var cls, _i, _len, _ref, _results;
+    if (el.classList != null) {
+      _ref = name.split(' ');
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cls = _ref[_i];
+        if (cls.trim()) {
+          _results.push(el.classList.add(cls));
+        }
+      }
+      return _results;
+    } else {
+      removeClass(el, name);
+      return el.className += " " + name;
+    }
+  };
+
+  hasClass = function(el, name) {
+    if (el.classList != null) {
+      return el.classList.contains(name);
+    } else {
+      return new RegExp("(^| )" + name + "( |$)", 'gi').test(el.className);
+    }
+  };
+
+  updateClasses = function(el, add, all) {
+    var cls, _i, _j, _len, _len1, _results;
+    for (_i = 0, _len = all.length; _i < _len; _i++) {
+      cls = all[_i];
+      if (__indexOf.call(add, cls) < 0) {
+        if (hasClass(el, cls)) {
+          removeClass(el, cls);
+        }
+      }
+    }
+    _results = [];
+    for (_j = 0, _len1 = add.length; _j < _len1; _j++) {
+      cls = add[_j];
+      if (!hasClass(el, cls)) {
+        _results.push(addClass(el, cls));
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  deferred = [];
+
+  defer = function(fn) {
+    return deferred.push(fn);
+  };
+
+  flush = function() {
+    var fn, _results;
+    _results = [];
+    while (fn = deferred.pop()) {
+      _results.push(fn());
+    }
+    return _results;
+  };
+
+  Evented = (function() {
+    function Evented() {}
+
+    Evented.prototype.on = function(event, handler, ctx, once) {
+      var _base;
+      if (once == null) {
+        once = false;
+      }
+      if (this.bindings == null) {
+        this.bindings = {};
+      }
+      if ((_base = this.bindings)[event] == null) {
+        _base[event] = [];
+      }
+      return this.bindings[event].push({
+        handler: handler,
+        ctx: ctx,
+        once: once
+      });
+    };
+
+    Evented.prototype.once = function(event, handler, ctx) {
+      return this.on(event, handler, ctx, true);
+    };
+
+    Evented.prototype.off = function(event, handler) {
+      var i, _ref, _results;
+      if (((_ref = this.bindings) != null ? _ref[event] : void 0) == null) {
+        return;
+      }
+      if (handler == null) {
+        return delete this.bindings[event];
+      } else {
+        i = 0;
+        _results = [];
+        while (i < this.bindings[event].length) {
+          if (this.bindings[event][i].handler === handler) {
+            _results.push(this.bindings[event].splice(i, 1));
+          } else {
+            _results.push(i++);
+          }
+        }
+        return _results;
+      }
+    };
+
+    Evented.prototype.trigger = function() {
+      var args, ctx, event, handler, i, once, _ref, _ref1, _results;
+      event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      if ((_ref = this.bindings) != null ? _ref[event] : void 0) {
+        i = 0;
+        _results = [];
+        while (i < this.bindings[event].length) {
+          _ref1 = this.bindings[event][i], handler = _ref1.handler, ctx = _ref1.ctx, once = _ref1.once;
+          handler.apply(ctx != null ? ctx : this, args);
+          if (once) {
+            _results.push(this.bindings[event].splice(i, 1));
+          } else {
+            _results.push(i++);
+          }
+        }
+        return _results;
+      }
+    };
+
+    return Evented;
+
+  })();
+
+  this.Tether.Utils = {
+    getScrollParent: getScrollParent,
+    getBounds: getBounds,
+    getOffsetParent: getOffsetParent,
+    extend: extend,
+    addClass: addClass,
+    removeClass: removeClass,
+    hasClass: hasClass,
+    updateClasses: updateClasses,
+    defer: defer,
+    flush: flush,
+    uniqueId: uniqueId,
+    Evented: Evented,
+    getScrollBarSize: getScrollBarSize
+  };
+
+}).call(this);
+
+(function() {
+  var MIRROR_LR, MIRROR_TB, OFFSET_MAP, Tether, addClass, addOffset, attachmentToOffset, autoToFixedAttachment, defer, extend, flush, getBounds, getOffsetParent, getOuterSize, getScrollBarSize, getScrollParent, getSize, now, offsetToPx, parseAttachment, parseOffset, position, removeClass, tethers, transformKey, updateClasses, within, _Tether, _ref,
+    __slice = [].slice,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  if (this.Tether == null) {
+    throw new Error("You must include the utils.js file before tether.js");
+  }
+
+  Tether = this.Tether;
+
+  _ref = Tether.Utils, getScrollParent = _ref.getScrollParent, getSize = _ref.getSize, getOuterSize = _ref.getOuterSize, getBounds = _ref.getBounds, getOffsetParent = _ref.getOffsetParent, extend = _ref.extend, addClass = _ref.addClass, removeClass = _ref.removeClass, updateClasses = _ref.updateClasses, defer = _ref.defer, flush = _ref.flush, getScrollBarSize = _ref.getScrollBarSize;
+
+  within = function(a, b, diff) {
+    if (diff == null) {
+      diff = 1;
+    }
+    return (a + diff >= b && b >= a - diff);
+  };
+
+  transformKey = (function() {
+    var el, key, _i, _len, _ref1;
+    el = document.createElement('div');
+    _ref1 = ['transform', 'webkitTransform', 'OTransform', 'MozTransform', 'msTransform'];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      key = _ref1[_i];
+      if (el.style[key] !== void 0) {
+        return key;
+      }
+    }
+  })();
+
+  tethers = [];
+
+  position = function() {
+    var tether, _i, _len;
+    for (_i = 0, _len = tethers.length; _i < _len; _i++) {
+      tether = tethers[_i];
+      tether.position(false);
+    }
+    return flush();
+  };
+
+  now = function() {
+    var _ref1;
+    return (_ref1 = typeof performance !== "undefined" && performance !== null ? typeof performance.now === "function" ? performance.now() : void 0 : void 0) != null ? _ref1 : +(new Date);
+  };
+
+  (function() {
+    var event, lastCall, lastDuration, pendingTimeout, tick, _i, _len, _ref1, _results;
+    lastCall = null;
+    lastDuration = null;
+    pendingTimeout = null;
+    tick = function() {
+      if ((lastDuration != null) && lastDuration > 16) {
+        lastDuration = Math.min(lastDuration - 16, 250);
+        pendingTimeout = setTimeout(tick, 250);
+        return;
+      }
+      if ((lastCall != null) && (now() - lastCall) < 10) {
+        return;
+      }
+      if (pendingTimeout != null) {
+        clearTimeout(pendingTimeout);
+        pendingTimeout = null;
+      }
+      lastCall = now();
+      position();
+      return lastDuration = now() - lastCall;
+    };
+    _ref1 = ['resize', 'scroll', 'touchmove'];
+    _results = [];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      event = _ref1[_i];
+      _results.push(window.addEventListener(event, tick));
+    }
+    return _results;
+  })();
+
+  MIRROR_LR = {
+    center: 'center',
+    left: 'right',
+    right: 'left'
+  };
+
+  MIRROR_TB = {
+    middle: 'middle',
+    top: 'bottom',
+    bottom: 'top'
+  };
+
+  OFFSET_MAP = {
+    top: 0,
+    left: 0,
+    middle: '50%',
+    center: '50%',
+    bottom: '100%',
+    right: '100%'
+  };
+
+  autoToFixedAttachment = function(attachment, relativeToAttachment) {
+    var left, top;
+    left = attachment.left, top = attachment.top;
+    if (left === 'auto') {
+      left = MIRROR_LR[relativeToAttachment.left];
+    }
+    if (top === 'auto') {
+      top = MIRROR_TB[relativeToAttachment.top];
+    }
+    return {
+      left: left,
+      top: top
+    };
+  };
+
+  attachmentToOffset = function(attachment) {
+    var _ref1, _ref2;
+    return {
+      left: (_ref1 = OFFSET_MAP[attachment.left]) != null ? _ref1 : attachment.left,
+      top: (_ref2 = OFFSET_MAP[attachment.top]) != null ? _ref2 : attachment.top
+    };
+  };
+
+  addOffset = function() {
+    var left, offsets, out, top, _i, _len, _ref1;
+    offsets = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    out = {
+      top: 0,
+      left: 0
+    };
+    for (_i = 0, _len = offsets.length; _i < _len; _i++) {
+      _ref1 = offsets[_i], top = _ref1.top, left = _ref1.left;
+      if (typeof top === 'string') {
+        top = parseFloat(top, 10);
+      }
+      if (typeof left === 'string') {
+        left = parseFloat(left, 10);
+      }
+      out.top += top;
+      out.left += left;
+    }
+    return out;
+  };
+
+  offsetToPx = function(offset, size) {
+    if (typeof offset.left === 'string' && offset.left.indexOf('%') !== -1) {
+      offset.left = parseFloat(offset.left, 10) / 100 * size.width;
+    }
+    if (typeof offset.top === 'string' && offset.top.indexOf('%') !== -1) {
+      offset.top = parseFloat(offset.top, 10) / 100 * size.height;
+    }
+    return offset;
+  };
+
+  parseAttachment = parseOffset = function(value) {
+    var left, top, _ref1;
+    _ref1 = value.split(' '), top = _ref1[0], left = _ref1[1];
+    return {
+      top: top,
+      left: left
+    };
+  };
+
+  _Tether = (function() {
+    _Tether.modules = [];
+
+    function _Tether(options) {
+      this.position = __bind(this.position, this);
+      var module, _i, _len, _ref1, _ref2;
+      tethers.push(this);
+      this.history = [];
+      this.setOptions(options, false);
+      _ref1 = Tether.modules;
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        module = _ref1[_i];
+        if ((_ref2 = module.initialize) != null) {
+          _ref2.call(this);
+        }
+      }
+      this.position();
+    }
+
+    _Tether.prototype.getClass = function(key) {
+      var _ref1, _ref2;
+      if ((_ref1 = this.options.classes) != null ? _ref1[key] : void 0) {
+        return this.options.classes[key];
+      } else if (((_ref2 = this.options.classes) != null ? _ref2[key] : void 0) !== false) {
+        if (this.options.classPrefix) {
+          return "" + this.options.classPrefix + "-" + key;
+        } else {
+          return key;
+        }
+      } else {
+        return '';
+      }
+    };
+
+    _Tether.prototype.setOptions = function(options, position) {
+      var defaults, key, _i, _len, _ref1, _ref2;
+      this.options = options;
+      if (position == null) {
+        position = true;
+      }
+      defaults = {
+        offset: '0 0',
+        targetOffset: '0 0',
+        targetAttachment: 'auto auto',
+        classPrefix: 'tether'
+      };
+      this.options = extend(defaults, this.options);
+      _ref1 = this.options, this.element = _ref1.element, this.target = _ref1.target, this.targetModifier = _ref1.targetModifier;
+      if (this.target === 'viewport') {
+        this.target = document.body;
+        this.targetModifier = 'visible';
+      } else if (this.target === 'scroll-handle') {
+        this.target = document.body;
+        this.targetModifier = 'scroll-handle';
+      }
+      _ref2 = ['element', 'target'];
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        key = _ref2[_i];
+        if (this[key] == null) {
+          throw new Error("Tether Error: Both element and target must be defined");
+        }
+        if (this[key].jquery != null) {
+          this[key] = this[key][0];
+        } else if (typeof this[key] === 'string') {
+          this[key] = document.querySelector(this[key]);
+        }
+      }
+      addClass(this.element, this.getClass('element'));
+      addClass(this.target, this.getClass('target'));
+      if (!this.options.attachment) {
+        throw new Error("Tether Error: You must provide an attachment");
+      }
+      this.targetAttachment = parseAttachment(this.options.targetAttachment);
+      this.attachment = parseAttachment(this.options.attachment);
+      this.offset = parseOffset(this.options.offset);
+      this.targetOffset = parseOffset(this.options.targetOffset);
+      if (this.scrollParent != null) {
+        this.disable();
+      }
+      if (this.targetModifier === 'scroll-handle') {
+        this.scrollParent = this.target;
+      } else {
+        this.scrollParent = getScrollParent(this.target);
+      }
+      if (this.options.enabled !== false) {
+        return this.enable(position);
+      }
+    };
+
+    _Tether.prototype.getTargetBounds = function() {
+      var bounds, fitAdj, hasBottomScroll, height, out, scrollBottom, scrollPercentage, style, target;
+      if (this.targetModifier != null) {
+        switch (this.targetModifier) {
+          case 'visible':
+            if (this.target === document.body) {
+              return {
+                top: pageYOffset,
+                left: pageXOffset,
+                height: innerHeight,
+                width: innerWidth
+              };
+            } else {
+              bounds = getBounds(this.target);
+              out = {
+                height: bounds.height,
+                width: bounds.width,
+                top: bounds.top,
+                left: bounds.left
+              };
+              out.height = Math.min(out.height, bounds.height - (pageYOffset - bounds.top));
+              out.height = Math.min(out.height, bounds.height - ((bounds.top + bounds.height) - (pageYOffset + innerHeight)));
+              out.height = Math.min(innerHeight, out.height);
+              out.height -= 2;
+              out.width = Math.min(out.width, bounds.width - (pageXOffset - bounds.left));
+              out.width = Math.min(out.width, bounds.width - ((bounds.left + bounds.width) - (pageXOffset + innerWidth)));
+              out.width = Math.min(innerWidth, out.width);
+              out.width -= 2;
+              if (out.top < pageYOffset) {
+                out.top = pageYOffset;
+              }
+              if (out.left < pageXOffset) {
+                out.left = pageXOffset;
+              }
+              return out;
+            }
+            break;
+          case 'scroll-handle':
+            target = this.target;
+            if (target === document.body) {
+              target = document.documentElement;
+              bounds = {
+                left: pageXOffset,
+                top: pageYOffset,
+                height: innerHeight,
+                width: innerWidth
+              };
+            } else {
+              bounds = getBounds(target);
+            }
+            style = getComputedStyle(target);
+            hasBottomScroll = target.scrollWidth > target.clientWidth || 'scroll' === [style.overflow, style.overflowX] || this.target !== document.body;
+            scrollBottom = 0;
+            if (hasBottomScroll) {
+              scrollBottom = 15;
+            }
+            height = bounds.height - parseFloat(style.borderTopWidth) - parseFloat(style.borderBottomWidth) - scrollBottom;
+            out = {
+              width: 15,
+              height: height * 0.975 * (height / target.scrollHeight),
+              left: bounds.left + bounds.width - parseFloat(style.borderLeftWidth) - 15
+            };
+            fitAdj = 0;
+            if (height < 408 && this.target === document.body) {
+              fitAdj = -0.00011 * Math.pow(height, 2) - 0.00727 * height + 22.58;
+            }
+            if (this.target !== document.body) {
+              out.height = Math.max(out.height, 24);
+            }
+            scrollPercentage = this.target.scrollTop / (target.scrollHeight - height);
+            out.top = scrollPercentage * (height - out.height - fitAdj) + bounds.top + parseFloat(style.borderTopWidth);
+            if (this.target === document.body) {
+              out.height = Math.max(out.height, 24);
+            }
+            return out;
+        }
+      } else {
+        return getBounds(this.target);
+      }
+    };
+
+    _Tether.prototype.clearCache = function() {
+      return this._cache = {};
+    };
+
+    _Tether.prototype.cache = function(k, getter) {
+      if (this._cache == null) {
+        this._cache = {};
+      }
+      if (this._cache[k] == null) {
+        this._cache[k] = getter.call(this);
+      }
+      return this._cache[k];
+    };
+
+    _Tether.prototype.enable = function(position) {
+      if (position == null) {
+        position = true;
+      }
+      addClass(this.target, this.getClass('enabled'));
+      addClass(this.element, this.getClass('enabled'));
+      this.enabled = true;
+      if (this.scrollParent !== document) {
+        this.scrollParent.addEventListener('scroll', this.position);
+      }
+      if (position) {
+        return this.position();
+      }
+    };
+
+    _Tether.prototype.disable = function() {
+      removeClass(this.target, this.getClass('enabled'));
+      removeClass(this.element, this.getClass('enabled'));
+      this.enabled = false;
+      if (this.scrollParent != null) {
+        return this.scrollParent.removeEventListener('scroll', this.position);
+      }
+    };
+
+    _Tether.prototype.destroy = function() {
+      var i, tether, _i, _len, _results;
+      this.disable();
+      _results = [];
+      for (i = _i = 0, _len = tethers.length; _i < _len; i = ++_i) {
+        tether = tethers[i];
+        if (tether === this) {
+          tethers.splice(i, 1);
+          break;
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    _Tether.prototype.updateAttachClasses = function(elementAttach, targetAttach) {
+      var add, all, side, sides, _i, _j, _len, _len1, _ref1,
+        _this = this;
+      if (elementAttach == null) {
+        elementAttach = this.attachment;
+      }
+      if (targetAttach == null) {
+        targetAttach = this.targetAttachment;
+      }
+      sides = ['left', 'top', 'bottom', 'right', 'middle', 'center'];
+      if ((_ref1 = this._addAttachClasses) != null ? _ref1.length : void 0) {
+        this._addAttachClasses.splice(0, this._addAttachClasses.length);
+      }
+      add = this._addAttachClasses != null ? this._addAttachClasses : this._addAttachClasses = [];
+      if (elementAttach.top) {
+        add.push("" + (this.getClass('element-attached')) + "-" + elementAttach.top);
+      }
+      if (elementAttach.left) {
+        add.push("" + (this.getClass('element-attached')) + "-" + elementAttach.left);
+      }
+      if (targetAttach.top) {
+        add.push("" + (this.getClass('target-attached')) + "-" + targetAttach.top);
+      }
+      if (targetAttach.left) {
+        add.push("" + (this.getClass('target-attached')) + "-" + targetAttach.left);
+      }
+      all = [];
+      for (_i = 0, _len = sides.length; _i < _len; _i++) {
+        side = sides[_i];
+        all.push("" + (this.getClass('element-attached')) + "-" + side);
+      }
+      for (_j = 0, _len1 = sides.length; _j < _len1; _j++) {
+        side = sides[_j];
+        all.push("" + (this.getClass('target-attached')) + "-" + side);
+      }
+      return defer(function() {
+        if (_this._addAttachClasses == null) {
+          return;
+        }
+        updateClasses(_this.element, _this._addAttachClasses, all);
+        updateClasses(_this.target, _this._addAttachClasses, all);
+        return _this._addAttachClasses = void 0;
+      });
+    };
+
+    _Tether.prototype.position = function(flushChanges) {
+      var elementPos, elementStyle, height, left, manualOffset, manualTargetOffset, module, next, offset, offsetBorder, offsetParent, offsetParentSize, offsetParentStyle, offsetPosition, ret, scrollLeft, scrollTop, scrollbarSize, side, targetAttachment, targetOffset, targetPos, targetSize, top, width, _i, _j, _len, _len1, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6,
+        _this = this;
+      if (flushChanges == null) {
+        flushChanges = true;
+      }
+      if (!this.enabled) {
+        return;
+      }
+      this.clearCache();
+      targetAttachment = autoToFixedAttachment(this.targetAttachment, this.attachment);
+      this.updateAttachClasses(this.attachment, targetAttachment);
+      elementPos = this.cache('element-bounds', function() {
+        return getBounds(_this.element);
+      });
+      width = elementPos.width, height = elementPos.height;
+      if (width === 0 && height === 0 && (this.lastSize != null)) {
+        _ref1 = this.lastSize, width = _ref1.width, height = _ref1.height;
+      } else {
+        this.lastSize = {
+          width: width,
+          height: height
+        };
+      }
+      targetSize = targetPos = this.cache('target-bounds', function() {
+        return _this.getTargetBounds();
+      });
+      offset = offsetToPx(attachmentToOffset(this.attachment), {
+        width: width,
+        height: height
+      });
+      targetOffset = offsetToPx(attachmentToOffset(targetAttachment), targetSize);
+      manualOffset = offsetToPx(this.offset, {
+        width: width,
+        height: height
+      });
+      manualTargetOffset = offsetToPx(this.targetOffset, targetSize);
+      offset = addOffset(offset, manualOffset);
+      targetOffset = addOffset(targetOffset, manualTargetOffset);
+      left = targetPos.left + targetOffset.left - offset.left;
+      top = targetPos.top + targetOffset.top - offset.top;
+      _ref2 = Tether.modules;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        module = _ref2[_i];
+        ret = module.position.call(this, {
+          left: left,
+          top: top,
+          targetAttachment: targetAttachment,
+          targetPos: targetPos,
+          attachment: this.attachment,
+          elementPos: elementPos,
+          offset: offset,
+          targetOffset: targetOffset,
+          manualOffset: manualOffset,
+          manualTargetOffset: manualTargetOffset,
+          scrollbarSize: scrollbarSize
+        });
+        if ((ret == null) || typeof ret !== 'object') {
+          continue;
+        } else if (ret === false) {
+          return false;
+        } else {
+          top = ret.top, left = ret.left;
+        }
+      }
+      next = {
+        page: {
+          top: top,
+          left: left
+        },
+        viewport: {
+          top: top - pageYOffset,
+          bottom: pageYOffset - top - height + innerHeight,
+          left: left - pageXOffset,
+          right: pageXOffset - left - width + innerWidth
+        }
+      };
+      if (document.body.scrollWidth > window.innerWidth) {
+        scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
+        next.viewport.bottom -= scrollbarSize.height;
+      }
+      if (document.body.scrollHeight > window.innerHeight) {
+        scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
+        next.viewport.right -= scrollbarSize.width;
+      }
+      if (((_ref3 = document.body.style.position) !== '' && _ref3 !== 'static') || ((_ref4 = document.body.parentElement.style.position) !== '' && _ref4 !== 'static')) {
+        next.page.bottom = document.body.scrollHeight - top - height;
+        next.page.right = document.body.scrollWidth - left - width;
+      }
+      if (((_ref5 = this.options.optimizations) != null ? _ref5.moveElement : void 0) !== false && (this.targetModifier == null)) {
+        offsetParent = this.cache('target-offsetparent', function() {
+          return getOffsetParent(_this.target);
+        });
+        offsetPosition = this.cache('target-offsetparent-bounds', function() {
+          return getBounds(offsetParent);
+        });
+        offsetParentStyle = getComputedStyle(offsetParent);
+        elementStyle = getComputedStyle(this.element);
+        offsetParentSize = offsetPosition;
+        offsetBorder = {};
+        _ref6 = ['Top', 'Left', 'Bottom', 'Right'];
+        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+          side = _ref6[_j];
+          offsetBorder[side.toLowerCase()] = parseFloat(offsetParentStyle["border" + side + "Width"]);
+        }
+        offsetPosition.right = document.body.scrollWidth - offsetPosition.left - offsetParentSize.width + offsetBorder.right;
+        offsetPosition.bottom = document.body.scrollHeight - offsetPosition.top - offsetParentSize.height + offsetBorder.bottom;
+        if (next.page.top >= (offsetPosition.top + offsetBorder.top) && next.page.bottom >= offsetPosition.bottom) {
+          if (next.page.left >= (offsetPosition.left + offsetBorder.left) && next.page.right >= offsetPosition.right) {
+            scrollTop = offsetParent.scrollTop;
+            scrollLeft = offsetParent.scrollLeft;
+            next.offset = {
+              top: next.page.top - offsetPosition.top + scrollTop - offsetBorder.top,
+              left: next.page.left - offsetPosition.left + scrollLeft - offsetBorder.left
+            };
+          }
+        }
+      }
+      this.move(next);
+      this.history.unshift(next);
+      if (this.history.length > 3) {
+        this.history.pop();
+      }
+      if (flushChanges) {
+        flush();
+      }
+      return true;
+    };
+
+    _Tether.prototype.move = function(position) {
+      var css, elVal, found, key, moved, offsetParent, point, same, transcribe, type, val, write, writeCSS, _i, _len, _ref1, _ref2,
+        _this = this;
+      if (this.element.parentNode == null) {
+        return;
+      }
+      same = {};
+      for (type in position) {
+        same[type] = {};
+        for (key in position[type]) {
+          found = false;
+          _ref1 = this.history;
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            point = _ref1[_i];
+            if (!within((_ref2 = point[type]) != null ? _ref2[key] : void 0, position[type][key])) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            same[type][key] = true;
+          }
+        }
+      }
+      css = {
+        top: '',
+        left: '',
+        right: '',
+        bottom: ''
+      };
+      transcribe = function(same, pos) {
+        var xPos, yPos, _ref3;
+        if (((_ref3 = _this.options.optimizations) != null ? _ref3.gpu : void 0) !== false) {
+          if (same.top) {
+            css.top = 0;
+            yPos = pos.top;
+          } else {
+            css.bottom = 0;
+            yPos = -pos.bottom;
+          }
+          if (same.left) {
+            css.left = 0;
+            xPos = pos.left;
+          } else {
+            css.right = 0;
+            xPos = -pos.right;
+          }
+          css[transformKey] = "translateX(" + (Math.round(xPos)) + "px) translateY(" + (Math.round(yPos)) + "px)";
+          if (transformKey !== 'msTransform') {
+            return css[transformKey] += " translateZ(0)";
+          }
+        } else {
+          if (same.top) {
+            css.top = "" + pos.top + "px";
+          } else {
+            css.bottom = "" + pos.bottom + "px";
+          }
+          if (same.left) {
+            return css.left = "" + pos.left + "px";
+          } else {
+            return css.right = "" + pos.right + "px";
+          }
+        }
+      };
+      moved = false;
+      if ((same.page.top || same.page.bottom) && (same.page.left || same.page.right)) {
+        css.position = 'absolute';
+        transcribe(same.page, position.page);
+      } else if ((same.viewport.top || same.viewport.bottom) && (same.viewport.left || same.viewport.right)) {
+        css.position = 'fixed';
+        transcribe(same.viewport, position.viewport);
+      } else if ((same.offset != null) && same.offset.top && same.offset.left) {
+        css.position = 'absolute';
+        offsetParent = this.cache('target-offsetparent', function() {
+          return getOffsetParent(_this.target);
+        });
+        if (getOffsetParent(this.element) !== offsetParent) {
+          defer(function() {
+            _this.element.parentNode.removeChild(_this.element);
+            return offsetParent.appendChild(_this.element);
+          });
+        }
+        transcribe(same.offset, position.offset);
+        moved = true;
+      } else {
+        css.position = 'absolute';
+        transcribe({
+          top: true,
+          left: true
+        }, position.page);
+      }
+      if (!moved && this.element.parentNode.tagName !== 'BODY') {
+        this.element.parentNode.removeChild(this.element);
+        document.body.appendChild(this.element);
+      }
+      writeCSS = {};
+      write = false;
+      for (key in css) {
+        val = css[key];
+        elVal = this.element.style[key];
+        if (elVal !== '' && val !== '' && (key === 'top' || key === 'left' || key === 'bottom' || key === 'right')) {
+          elVal = parseFloat(elVal);
+          val = parseFloat(val);
+        }
+        if (elVal !== val) {
+          write = true;
+          writeCSS[key] = css[key];
+        }
+      }
+      if (write) {
+        return defer(function() {
+          return extend(_this.element.style, writeCSS);
+        });
+      }
+    };
+
+    return _Tether;
+
+  })();
+
+  Tether.position = position;
+
+  this.Tether = extend(_Tether, Tether);
+
+}).call(this);
+
+(function() {
+  var BOUNDS_FORMAT, MIRROR_ATTACH, defer, extend, getBoundingRect, getBounds, getOuterSize, getSize, updateClasses, _ref,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+  _ref = this.Tether.Utils, getOuterSize = _ref.getOuterSize, getBounds = _ref.getBounds, getSize = _ref.getSize, extend = _ref.extend, updateClasses = _ref.updateClasses, defer = _ref.defer;
+
+  MIRROR_ATTACH = {
+    left: 'right',
+    right: 'left',
+    top: 'bottom',
+    bottom: 'top',
+    middle: 'middle'
+  };
+
+  BOUNDS_FORMAT = ['left', 'top', 'right', 'bottom'];
+
+  getBoundingRect = function(tether, to) {
+    var i, pos, side, size, style, _i, _len;
+    if (to === 'scrollParent') {
+      to = tether.scrollParent;
+    } else if (to === 'window') {
+      to = [pageXOffset, pageYOffset, innerWidth + pageXOffset, innerHeight + pageYOffset];
+    }
+    if (to === document) {
+      to = to.documentElement;
+    }
+    if (to.nodeType != null) {
+      pos = size = getBounds(to);
+      style = getComputedStyle(to);
+      to = [pos.left, pos.top, size.width + pos.left, size.height + pos.top];
+      for (i = _i = 0, _len = BOUNDS_FORMAT.length; _i < _len; i = ++_i) {
+        side = BOUNDS_FORMAT[i];
+        side = side[0].toUpperCase() + side.substr(1);
+        if (side === 'Top' || side === 'Left') {
+          to[i] += parseFloat(style["border" + side + "Width"]);
+        } else {
+          to[i] -= parseFloat(style["border" + side + "Width"]);
+        }
+      }
+    }
+    return to;
+  };
+
+  this.Tether.modules.push({
+    position: function(_arg) {
+      var addClasses, allClasses, attachment, bounds, changeAttachX, changeAttachY, cls, constraint, eAttachment, height, left, oob, oobClass, p, pin, pinned, pinnedClass, removeClass, side, tAttachment, targetAttachment, targetHeight, targetSize, targetWidth, to, top, width, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
+        _this = this;
+      top = _arg.top, left = _arg.left, targetAttachment = _arg.targetAttachment;
+      if (!this.options.constraints) {
+        return true;
+      }
+      removeClass = function(prefix) {
+        var side, _i, _len, _results;
+        _this.removeClass(prefix);
+        _results = [];
+        for (_i = 0, _len = BOUNDS_FORMAT.length; _i < _len; _i++) {
+          side = BOUNDS_FORMAT[_i];
+          _results.push(_this.removeClass("" + prefix + "-" + side));
+        }
+        return _results;
+      };
+      _ref1 = this.cache('element-bounds', function() {
+        return getBounds(_this.element);
+      }), height = _ref1.height, width = _ref1.width;
+      if (width === 0 && height === 0 && (this.lastSize != null)) {
+        _ref2 = this.lastSize, width = _ref2.width, height = _ref2.height;
+      }
+      targetSize = this.cache('target-bounds', function() {
+        return _this.getTargetBounds();
+      });
+      targetHeight = targetSize.height;
+      targetWidth = targetSize.width;
+      tAttachment = {};
+      eAttachment = {};
+      allClasses = [this.getClass('pinned'), this.getClass('out-of-bounds')];
+      _ref3 = this.options.constraints;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        constraint = _ref3[_i];
+        if (constraint.outOfBoundsClass) {
+          allClasses.push(constraint.outOfBoundsClass);
+        }
+        if (constraint.pinnedClass) {
+          allClasses.push(constraint.pinnedClass);
+        }
+      }
+      for (_j = 0, _len1 = allClasses.length; _j < _len1; _j++) {
+        cls = allClasses[_j];
+        _ref4 = ['left', 'top', 'right', 'bottom'];
+        for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
+          side = _ref4[_k];
+          allClasses.push("" + cls + "-" + side);
+        }
+      }
+      addClasses = [];
+      tAttachment = extend({}, targetAttachment);
+      eAttachment = extend({}, this.attachment);
+      _ref5 = this.options.constraints;
+      for (_l = 0, _len3 = _ref5.length; _l < _len3; _l++) {
+        constraint = _ref5[_l];
+        to = constraint.to, attachment = constraint.attachment, pin = constraint.pin;
+        if (attachment == null) {
+          attachment = '';
+        }
+        if (__indexOf.call(attachment, ' ') >= 0) {
+          _ref6 = attachment.split(' '), changeAttachY = _ref6[0], changeAttachX = _ref6[1];
+        } else {
+          changeAttachX = changeAttachY = attachment;
+        }
+        bounds = getBoundingRect(this, to);
+        if (changeAttachY === 'target' || changeAttachY === 'both') {
+          if (top < bounds[1] && tAttachment.top === 'top') {
+            top += targetHeight;
+            tAttachment.top = 'bottom';
+          }
+          if (top + height > bounds[3] && tAttachment.top === 'bottom') {
+            top -= targetHeight;
+            tAttachment.top = 'top';
+          }
+        }
+        if (changeAttachY === 'together') {
+          if (top < bounds[1] && tAttachment.top === 'top') {
+            if (eAttachment.top === 'bottom') {
+              top += targetHeight;
+              tAttachment.top = 'bottom';
+              top += height;
+              eAttachment.top = 'top';
+            } else if (eAttachment.top === 'top') {
+              top += targetHeight;
+              tAttachment.top = 'bottom';
+              top -= height;
+              eAttachment.top = 'bottom';
+            }
+          }
+          if (top + height > bounds[3] && tAttachment.top === 'bottom') {
+            if (eAttachment.top === 'top') {
+              top -= targetHeight;
+              tAttachment.top = 'top';
+              top -= height;
+              eAttachment.top = 'bottom';
+            } else if (eAttachment.top === 'bottom') {
+              top -= targetHeight;
+              tAttachment.top = 'top';
+              top += height;
+              eAttachment.top = 'top';
+            }
+          }
+          if (tAttachment.top === 'middle') {
+            if (top + height > bounds[3] && eAttachment.top === 'top') {
+              top -= height;
+              eAttachment.top = 'bottom';
+            } else if (top < bounds[1] && eAttachment.top === 'bottom') {
+              top += height;
+              eAttachment.top = 'top';
+            }
+          }
+        }
+        if (changeAttachX === 'target' || changeAttachX === 'both') {
+          if (left < bounds[0] && tAttachment.left === 'left') {
+            left += targetWidth;
+            tAttachment.left = 'right';
+          }
+          if (left + width > bounds[2] && tAttachment.left === 'right') {
+            left -= targetWidth;
+            tAttachment.left = 'left';
+          }
+        }
+        if (changeAttachX === 'together') {
+          if (left < bounds[0] && tAttachment.left === 'left') {
+            if (eAttachment.left === 'right') {
+              left += targetWidth;
+              tAttachment.left = 'right';
+              left += width;
+              eAttachment.left = 'left';
+            } else if (eAttachment.left === 'left') {
+              left += targetWidth;
+              tAttachment.left = 'right';
+              left -= width;
+              eAttachment.left = 'right';
+            }
+          } else if (left + width > bounds[2] && tAttachment.left === 'right') {
+            if (eAttachment.left === 'left') {
+              left -= targetWidth;
+              tAttachment.left = 'left';
+              left -= width;
+              eAttachment.left = 'right';
+            } else if (eAttachment.left === 'right') {
+              left -= targetWidth;
+              tAttachment.left = 'left';
+              left += width;
+              eAttachment.left = 'left';
+            }
+          } else if (tAttachment.left === 'center') {
+            if (left + width > bounds[2] && eAttachment.left === 'left') {
+              left -= width;
+              eAttachment.left = 'right';
+            } else if (left < bounds[0] && eAttachment.left === 'right') {
+              left += width;
+              eAttachment.left = 'left';
+            }
+          }
+        }
+        if (changeAttachY === 'element' || changeAttachY === 'both') {
+          if (top < bounds[1] && eAttachment.top === 'bottom') {
+            top += height;
+            eAttachment.top = 'top';
+          }
+          if (top + height > bounds[3] && eAttachment.top === 'top') {
+            top -= height;
+            eAttachment.top = 'bottom';
+          }
+        }
+        if (changeAttachX === 'element' || changeAttachX === 'both') {
+          if (left < bounds[0] && eAttachment.left === 'right') {
+            left += width;
+            eAttachment.left = 'left';
+          }
+          if (left + width > bounds[2] && eAttachment.left === 'left') {
+            left -= width;
+            eAttachment.left = 'right';
+          }
+        }
+        if (typeof pin === 'string') {
+          pin = (function() {
+            var _len4, _m, _ref7, _results;
+            _ref7 = pin.split(',');
+            _results = [];
+            for (_m = 0, _len4 = _ref7.length; _m < _len4; _m++) {
+              p = _ref7[_m];
+              _results.push(p.trim());
+            }
+            return _results;
+          })();
+        } else if (pin === true) {
+          pin = ['top', 'left', 'right', 'bottom'];
+        }
+        pin || (pin = []);
+        pinned = [];
+        oob = [];
+        if (top < bounds[1]) {
+          if (__indexOf.call(pin, 'top') >= 0) {
+            top = bounds[1];
+            pinned.push('top');
+          } else {
+            oob.push('top');
+          }
+        }
+        if (top + height > bounds[3]) {
+          if (__indexOf.call(pin, 'bottom') >= 0) {
+            top = bounds[3] - height;
+            pinned.push('bottom');
+          } else {
+            oob.push('bottom');
+          }
+        }
+        if (left < bounds[0]) {
+          if (__indexOf.call(pin, 'left') >= 0) {
+            left = bounds[0];
+            pinned.push('left');
+          } else {
+            oob.push('left');
+          }
+        }
+        if (left + width > bounds[2]) {
+          if (__indexOf.call(pin, 'right') >= 0) {
+            left = bounds[2] - width;
+            pinned.push('right');
+          } else {
+            oob.push('right');
+          }
+        }
+        if (pinned.length) {
+          pinnedClass = (_ref7 = this.options.pinnedClass) != null ? _ref7 : this.getClass('pinned');
+          addClasses.push(pinnedClass);
+          for (_m = 0, _len4 = pinned.length; _m < _len4; _m++) {
+            side = pinned[_m];
+            addClasses.push("" + pinnedClass + "-" + side);
+          }
+        }
+        if (oob.length) {
+          oobClass = (_ref8 = this.options.outOfBoundsClass) != null ? _ref8 : this.getClass('out-of-bounds');
+          addClasses.push(oobClass);
+          for (_n = 0, _len5 = oob.length; _n < _len5; _n++) {
+            side = oob[_n];
+            addClasses.push("" + oobClass + "-" + side);
+          }
+        }
+        if (__indexOf.call(pinned, 'left') >= 0 || __indexOf.call(pinned, 'right') >= 0) {
+          eAttachment.left = tAttachment.left = false;
+        }
+        if (__indexOf.call(pinned, 'top') >= 0 || __indexOf.call(pinned, 'bottom') >= 0) {
+          eAttachment.top = tAttachment.top = false;
+        }
+        if (tAttachment.top !== targetAttachment.top || tAttachment.left !== targetAttachment.left || eAttachment.top !== this.attachment.top || eAttachment.left !== this.attachment.left) {
+          this.updateAttachClasses(eAttachment, tAttachment);
+        }
+      }
+      defer(function() {
+        updateClasses(_this.target, addClasses, allClasses);
+        return updateClasses(_this.element, addClasses, allClasses);
+      });
+      return {
+        top: top,
+        left: left
+      };
+    }
+  });
+
+}).call(this);
+
+(function() {
+  var defer, getBounds, updateClasses, _ref;
+
+  _ref = this.Tether.Utils, getBounds = _ref.getBounds, updateClasses = _ref.updateClasses, defer = _ref.defer;
+
+  this.Tether.modules.push({
+    position: function(_arg) {
+      var abutted, addClasses, allClasses, bottom, height, left, right, side, sides, targetPos, top, width, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref1, _ref2, _ref3, _ref4, _ref5,
+        _this = this;
+      top = _arg.top, left = _arg.left;
+      _ref1 = this.cache('element-bounds', function() {
+        return getBounds(_this.element);
+      }), height = _ref1.height, width = _ref1.width;
+      targetPos = this.getTargetBounds();
+      bottom = top + height;
+      right = left + width;
+      abutted = [];
+      if (top <= targetPos.bottom && bottom >= targetPos.top) {
+        _ref2 = ['left', 'right'];
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          side = _ref2[_i];
+          if ((_ref3 = targetPos[side]) === left || _ref3 === right) {
+            abutted.push(side);
+          }
+        }
+      }
+      if (left <= targetPos.right && right >= targetPos.left) {
+        _ref4 = ['top', 'bottom'];
+        for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
+          side = _ref4[_j];
+          if ((_ref5 = targetPos[side]) === top || _ref5 === bottom) {
+            abutted.push(side);
+          }
+        }
+      }
+      allClasses = [];
+      addClasses = [];
+      sides = ['left', 'top', 'right', 'bottom'];
+      allClasses.push(this.getClass('abutted'));
+      for (_k = 0, _len2 = sides.length; _k < _len2; _k++) {
+        side = sides[_k];
+        allClasses.push("" + (this.getClass('abutted')) + "-" + side);
+      }
+      if (abutted.length) {
+        addClasses.push(this.getClass('abutted'));
+      }
+      for (_l = 0, _len3 = abutted.length; _l < _len3; _l++) {
+        side = abutted[_l];
+        addClasses.push("" + (this.getClass('abutted')) + "-" + side);
+      }
+      defer(function() {
+        updateClasses(_this.target, addClasses, allClasses);
+        return updateClasses(_this.element, addClasses, allClasses);
+      });
+      return true;
+    }
+  });
+
+}).call(this);
+
+(function() {
+  this.Tether.modules.push({
+    position: function(_arg) {
+      var left, result, shift, shiftLeft, shiftTop, top, _ref;
+      top = _arg.top, left = _arg.left;
+      if (!this.options.shift) {
+        return;
+      }
+      result = function(val) {
+        if (typeof val === 'function') {
+          return val.call(this, {
+            top: top,
+            left: left
+          });
+        } else {
+          return val;
+        }
+      };
+      shift = result(this.options.shift);
+      if (typeof shift === 'string') {
+        shift = shift.split(' ');
+        shift[1] || (shift[1] = shift[0]);
+        shiftTop = shift[0], shiftLeft = shift[1];
+        shiftTop = parseFloat(shiftTop, 10);
+        shiftLeft = parseFloat(shiftLeft, 10);
+      } else {
+        _ref = [shift.top, shift.left], shiftTop = _ref[0], shiftLeft = _ref[1];
+      }
+      top += shiftTop;
+      left += shiftLeft;
+      return {
+        top: top,
+        left: left
+      };
+    }
+  });
+
+}).call(this);
+
+return this.Tether;
+
+}));
+
+(function() {
+  var Evented, MIRROR_ATTACH, addClass, allDrops, clickEvents, createContext, end, extend, hasClass, name, removeClass, removeFromArray, sortAttach, tempEl, touchDevice, transitionEndEvent, transitionEndEvents, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+  _ref = Tether.Utils, extend = _ref.extend, addClass = _ref.addClass, removeClass = _ref.removeClass, hasClass = _ref.hasClass, Evented = _ref.Evented;
+
+  touchDevice = 'ontouchstart' in document.documentElement;
+
+  clickEvents = ['click'];
+
+  if (touchDevice) {
+    clickEvents.push('touchstart');
+  }
+
+  transitionEndEvents = {
+    'WebkitTransition': 'webkitTransitionEnd',
+    'MozTransition': 'transitionend',
+    'OTransition': 'otransitionend',
+    'transition': 'transitionend'
+  };
+
+  transitionEndEvent = '';
+
+  for (name in transitionEndEvents) {
+    end = transitionEndEvents[name];
+    tempEl = document.createElement('p');
+    if (tempEl.style[name] !== void 0) {
+      transitionEndEvent = end;
+    }
+  }
+
+  sortAttach = function(str) {
+    var first, second, _ref1, _ref2;
+    _ref1 = str.split(' '), first = _ref1[0], second = _ref1[1];
+    if (first === 'left' || first === 'right') {
+      _ref2 = [second, first], first = _ref2[0], second = _ref2[1];
+    }
+    return [first, second].join(' ');
+  };
+
+  MIRROR_ATTACH = {
+    left: 'right',
+    right: 'left',
+    top: 'bottom',
+    bottom: 'top',
+    middle: 'middle',
+    center: 'center'
+  };
+
+  allDrops = {};
+
+  removeFromArray = function(arr, item) {
+    var index, _results;
+    _results = [];
+    while ((index = arr.indexOf(item)) !== -1) {
+      _results.push(arr.splice(index, 1));
+    }
+    return _results;
+  };
+
+  createContext = function(options) {
+    var DropInstance, defaultOptions, drop, _name;
+    if (options == null) {
+      options = {};
+    }
+    drop = function() {
+      return (function(func, args, ctor) {
+        ctor.prototype = func.prototype;
+        var child = new ctor, result = func.apply(child, args);
+        return Object(result) === result ? result : child;
+      })(DropInstance, arguments, function(){});
+    };
+    extend(drop, {
+      createContext: createContext,
+      drops: [],
+      defaults: {}
+    });
+    defaultOptions = {
+      classPrefix: 'drop',
+      defaults: {
+        position: 'bottom left',
+        openOn: 'click',
+        constrainToScrollParent: true,
+        constrainToWindow: true,
+        classes: '',
+        remove: false,
+        tetherOptions: {}
+      }
+    };
+    extend(drop, defaultOptions, options);
+    extend(drop.defaults, defaultOptions.defaults, options.defaults);
+    if (allDrops[_name = drop.classPrefix] == null) {
+      allDrops[_name] = [];
+    }
+    drop.updateBodyClasses = function() {
+      var anyOpen, _drop, _i, _len, _ref1;
+      anyOpen = false;
+      _ref1 = allDrops[drop.classPrefix];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        _drop = _ref1[_i];
+        if (!(_drop.isOpened())) {
+          continue;
+        }
+        anyOpen = true;
+        break;
+      }
+      if (anyOpen) {
+        return addClass(document.body, "" + drop.classPrefix + "-open");
+      } else {
+        return removeClass(document.body, "" + drop.classPrefix + "-open");
+      }
+    };
+    DropInstance = (function(_super) {
+      __extends(DropInstance, _super);
+
+      function DropInstance(options) {
+        this.options = options;
+        this.options = extend({}, drop.defaults, this.options);
+        this.target = this.options.target;
+        if (this.target == null) {
+          throw new Error('Drop Error: You must provide a target.');
+        }
+        if (this.options.classes) {
+          addClass(this.target, this.options.classes);
+        }
+        drop.drops.push(this);
+        allDrops[drop.classPrefix].push(this);
+        this._boundEvents = [];
+        this.setupElements();
+        this.setupEvents();
+        this.setupTether();
+      }
+
+      DropInstance.prototype._on = function(element, event, handler) {
+        this._boundEvents.push({
+          element: element,
+          event: event,
+          handler: handler
+        });
+        return element.addEventListener(event, handler);
+      };
+
+      DropInstance.prototype.setupElements = function() {
+        var _this = this;
+        this.drop = document.createElement('div');
+        addClass(this.drop, drop.classPrefix);
+        if (this.options.classes) {
+          addClass(this.drop, this.options.classes);
+        }
+        this.content = document.createElement('div');
+        addClass(this.content, "" + drop.classPrefix + "-content");
+        if (typeof this.options.content === 'function') {
+          this.content.innerHTML = this.options.content.call(this, this);
+          this.on('open', function() {
+            return _this.content.innerHTML = _this.options.content.call(_this, _this);
+          });
+        } else if (typeof this.options.content === 'object') {
+          this.content.appendChild(this.options.content);
+        } else {
+          this.content.innerHTML = this.options.content;
+        }
+        return this.drop.appendChild(this.content);
+      };
+
+      DropInstance.prototype.setupTether = function() {
+        var constraints, dropAttach;
+        dropAttach = this.options.position.split(' ');
+        dropAttach[0] = MIRROR_ATTACH[dropAttach[0]];
+        dropAttach = dropAttach.join(' ');
+        constraints = [];
+        if (this.options.constrainToScrollParent) {
+          constraints.push({
+            to: 'scrollParent',
+            pin: 'top, bottom',
+            attachment: 'together none'
+          });
+        } else {
+          constraints.push({
+            to: 'scrollParent'
+          });
+        }
+        if (this.options.constrainToWindow !== false) {
+          constraints.push({
+            to: 'window',
+            attachment: 'together'
+          });
+        } else {
+          constraints.push({
+            to: 'window'
+          });
+        }
+        options = {
+          element: this.drop,
+          target: this.target,
+          attachment: sortAttach(dropAttach),
+          targetAttachment: sortAttach(this.options.position),
+          classPrefix: drop.classPrefix,
+          offset: '0 0',
+          targetOffset: '0 0',
+          enabled: false,
+          constraints: constraints
+        };
+        if (this.options.tetherOptions !== false) {
+          return this.tether = new Tether(extend({}, options, this.options.tetherOptions));
+        }
+      };
+
+      DropInstance.prototype.setupEvents = function() {
+        var clickEvent, closeHandler, events, onUs, openHandler, out, outTimeout, over, _i, _len,
+          _this = this;
+        if (!this.options.openOn) {
+          return;
+        }
+        if (this.options.openOn === 'always') {
+          setTimeout(this.open.bind(this));
+          return;
+        }
+        events = this.options.openOn.split(' ');
+        if (__indexOf.call(events, 'click') >= 0) {
+          openHandler = function(event) {
+            _this.toggle();
+            return event.preventDefault();
+          };
+          closeHandler = function(event) {
+            if (!_this.isOpened()) {
+              return;
+            }
+            if (event.target === _this.drop || _this.drop.contains(event.target)) {
+              return;
+            }
+            if (event.target === _this.target || _this.target.contains(event.target)) {
+              return;
+            }
+            return _this.close();
+          };
+          for (_i = 0, _len = clickEvents.length; _i < _len; _i++) {
+            clickEvent = clickEvents[_i];
+            this._on(this.target, clickEvent, openHandler);
+            this._on(document, clickEvent, closeHandler);
+          }
+        }
+        if (__indexOf.call(events, 'hover') >= 0) {
+          onUs = false;
+          over = function() {
+            onUs = true;
+            return _this.open();
+          };
+          outTimeout = null;
+          out = function() {
+            onUs = false;
+            if (outTimeout != null) {
+              clearTimeout(outTimeout);
+            }
+            return outTimeout = setTimeout(function() {
+              if (!onUs) {
+                _this.close();
+              }
+              return outTimeout = null;
+            }, 50);
+          };
+          this._on(this.target, 'mouseover', over);
+          this._on(this.drop, 'mouseover', over);
+          this._on(this.target, 'mouseout', out);
+          return this._on(this.drop, 'mouseout', out);
+        }
+      };
+
+      DropInstance.prototype.isOpened = function() {
+        return hasClass(this.drop, "" + drop.classPrefix + "-open");
+      };
+
+      DropInstance.prototype.toggle = function() {
+        if (this.isOpened()) {
+          return this.close();
+        } else {
+          return this.open();
+        }
+      };
+
+      DropInstance.prototype.open = function() {
+        var _ref1, _ref2,
+          _this = this;
+        if (this.isOpened()) {
+          return;
+        }
+        if (!this.drop.parentNode) {
+          document.body.appendChild(this.drop);
+        }
+        if ((_ref1 = this.tether) != null) {
+          _ref1.enable();
+        }
+        addClass(this.drop, "" + drop.classPrefix + "-open");
+        addClass(this.drop, "" + drop.classPrefix + "-open-transitionend");
+        setTimeout(function() {
+          return addClass(_this.drop, "" + drop.classPrefix + "-after-open");
+        });
+        if ((_ref2 = this.tether) != null) {
+          _ref2.position();
+        }
+        this.trigger('open');
+        return drop.updateBodyClasses();
+      };
+
+      DropInstance.prototype.close = function() {
+        var handler, _ref1,
+          _this = this;
+        if (!this.isOpened()) {
+          return;
+        }
+        removeClass(this.drop, "" + drop.classPrefix + "-open");
+        removeClass(this.drop, "" + drop.classPrefix + "-after-open");
+        this.drop.addEventListener(transitionEndEvent, handler = function() {
+          if (!hasClass(_this.drop, "" + drop.classPrefix + "-open")) {
+            removeClass(_this.drop, "" + drop.classPrefix + "-open-transitionend");
+          }
+          return _this.drop.removeEventListener(transitionEndEvent, handler);
+        });
+        this.trigger('close');
+        if ((_ref1 = this.tether) != null) {
+          _ref1.disable();
+        }
+        drop.updateBodyClasses();
+        if (this.options.remove) {
+          return this.remove();
+        }
+      };
+
+      DropInstance.prototype.remove = function() {
+        var _ref1;
+        this.close();
+        return (_ref1 = this.drop.parentNode) != null ? _ref1.removeChild(this.drop) : void 0;
+      };
+
+      DropInstance.prototype.position = function() {
+        var _ref1;
+        if (this.isOpened()) {
+          return (_ref1 = this.tether) != null ? _ref1.position() : void 0;
+        }
+      };
+
+      DropInstance.prototype.destroy = function() {
+        var element, event, handler, _i, _len, _ref1, _ref2, _ref3;
+        this.remove();
+        if ((_ref1 = this.tether) != null) {
+          _ref1.destroy();
+        }
+        _ref2 = this._boundEvents;
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          _ref3 = _ref2[_i], element = _ref3.element, event = _ref3.event, handler = _ref3.handler;
+          element.removeEventListener(event, handler);
+        }
+        this._boundEvents = [];
+        this.tether = null;
+        this.drop = null;
+        this.content = null;
+        this.target = null;
+        removeFromArray(allDrops[drop.classPrefix], this);
+        return removeFromArray(drop.drops, this);
+      };
+
+      return DropInstance;
+
+    })(Evented);
+    return drop;
+  };
+
+  window.Drop = createContext();
+
+  document.addEventListener('DOMContentLoaded', function() {
+    return Drop.updateBodyClasses();
+  });
+
+}).call(this);
+
+},{}],92:[function(require,module,exports){
 module.exports = function(obj) {
     if (typeof obj === 'string') return camelCase(obj);
     return walk(obj);
@@ -20774,7 +22737,7 @@ function reduce (xs, f, acc) {
     return acc;
 }
 
-},{}],92:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 var nargs = /\{([0-9a-zA-Z]+)\}/g
 var slice = Array.prototype.slice
 
@@ -20810,7 +22773,7 @@ function template(string) {
     })
 }
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 module.exports = extend
 
 function extend(target) {
@@ -20827,7 +22790,7 @@ function extend(target) {
     return target
 }
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 var camelize = require("camelize")
 var template = require("string-template")
 var extend = require("xtend/mutable")
@@ -20877,7 +22840,7 @@ function TypedError(args) {
 }
 
 
-},{"camelize":91,"string-template":92,"xtend/mutable":93}],95:[function(require,module,exports){
+},{"camelize":92,"string-template":93,"xtend/mutable":94}],96:[function(require,module,exports){
 (function (global){
 var root = typeof window !== 'undefined' ?
     window : typeof global !== 'undefined' ?
@@ -20900,14 +22863,14 @@ function Individual(key, value) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 module.exports = isObject
 
 function isObject(x) {
     return typeof x === "object" && x !== null
 }
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 (function() {
   'use strict';
 
@@ -21249,10 +23212,10 @@ function isObject(x) {
   self.fetch.polyfill = true
 })();
 
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 module.exports = require('whatwg-fetch');
 
-},{"whatwg-fetch":97}],99:[function(require,module,exports){
+},{"whatwg-fetch":98}],100:[function(require,module,exports){
 if (typeof module === "object" && typeof module.exports === "object") module.exports = Lexer;
 
 Lexer.defunct = function (char) {
@@ -21399,7 +23362,7 @@ function Lexer(defunct) {
     }
 }
 
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -28189,7 +30152,7 @@ function Lexer(defunct) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 
 ;(function(){
 
@@ -28635,7 +30598,7 @@ function Lexer(defunct) {
 
 })();
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 /*!
 	query-string
 	Parse and stringify URL query strings
@@ -28703,7 +30666,7 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 /*
 	ractive.js v0.6.1
 	2014-10-25 - commit 3a576eb3 
@@ -43052,7 +45015,7 @@ function Lexer(defunct) {
 
 }( typeof window !== 'undefined' ? window : this ) );
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 ;(function(root, factory) {
 
   // Support AMD
@@ -43414,7 +45377,7 @@ function Lexer(defunct) {
 
   return randomColor;
 }));
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 /*!
 * screenfull
 * v1.2.0 - 2014-04-29
@@ -43571,9 +45534,9 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],106:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],107:[function(require,module,exports){
+},{"dup":47}],108:[function(require,module,exports){
 /**!
  * Sortable
  * @author	RubaXa   <trash@rubaxa.org>
@@ -44587,7 +46550,7 @@ arguments[4][47][0].apply(exports,arguments)
 	return Sortable;
 });
 
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 module.exports = [
   'area',
   'base',
@@ -44607,7 +46570,7 @@ module.exports = [
   'wbr'
 ];
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 var he = require('he');
 var isVNode = require('virtual-dom/vnode/is-vnode');
 var isVText = require('virtual-dom/vnode/is-vtext');
@@ -44746,7 +46709,7 @@ function merge (a, b) {
   return a;
 };
 
-},{"./self-closing-tags":108,"he":110,"html-attributes":111,"param-case":117,"svg-attributes":118,"virtual-dom/vnode/is-thunk":119,"virtual-dom/vnode/is-vnode":120,"virtual-dom/vnode/is-vtext":121}],110:[function(require,module,exports){
+},{"./self-closing-tags":109,"he":111,"html-attributes":112,"param-case":118,"svg-attributes":119,"virtual-dom/vnode/is-thunk":120,"virtual-dom/vnode/is-vnode":121,"virtual-dom/vnode/is-vtext":122}],111:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/he v0.5.0 by @mathias | MIT license */
 ;(function(root) {
@@ -45080,7 +47043,7 @@ function merge (a, b) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],111:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 /*!
  * html-attributes
  * https://github.com/alexmingoia/html-attributes
@@ -45219,7 +47182,7 @@ module.exports = {
   "wrap": "wrap"
 };
 
-},{}],112:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 /**
  * Special language-specific overrides.
  *
@@ -45275,7 +47238,7 @@ module.exports = function (str, locale) {
   return str.toLowerCase()
 }
 
-},{}],113:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 var lowerCase = require('lower-case')
 
 var NON_WORD_REGEXP = require('./vendor/non-word-regexp')
@@ -45317,16 +47280,16 @@ module.exports = function (str, locale, replacement) {
   return lowerCase(str, locale)
 }
 
-},{"./vendor/camel-case-regexp":114,"./vendor/non-word-regexp":115,"./vendor/trailing-digit-regexp":116,"lower-case":112}],114:[function(require,module,exports){
+},{"./vendor/camel-case-regexp":115,"./vendor/non-word-regexp":116,"./vendor/trailing-digit-regexp":117,"lower-case":113}],115:[function(require,module,exports){
 module.exports = /([\u0061-\u007A\u00B5\u00DF-\u00F6\u00F8-\u00FF\u0101\u0103\u0105\u0107\u0109\u010B\u010D\u010F\u0111\u0113\u0115\u0117\u0119\u011B\u011D\u011F\u0121\u0123\u0125\u0127\u0129\u012B\u012D\u012F\u0131\u0133\u0135\u0137\u0138\u013A\u013C\u013E\u0140\u0142\u0144\u0146\u0148\u0149\u014B\u014D\u014F\u0151\u0153\u0155\u0157\u0159\u015B\u015D\u015F\u0161\u0163\u0165\u0167\u0169\u016B\u016D\u016F\u0171\u0173\u0175\u0177\u017A\u017C\u017E-\u0180\u0183\u0185\u0188\u018C\u018D\u0192\u0195\u0199-\u019B\u019E\u01A1\u01A3\u01A5\u01A8\u01AA\u01AB\u01AD\u01B0\u01B4\u01B6\u01B9\u01BA\u01BD-\u01BF\u01C6\u01C9\u01CC\u01CE\u01D0\u01D2\u01D4\u01D6\u01D8\u01DA\u01DC\u01DD\u01DF\u01E1\u01E3\u01E5\u01E7\u01E9\u01EB\u01ED\u01EF\u01F0\u01F3\u01F5\u01F9\u01FB\u01FD\u01FF\u0201\u0203\u0205\u0207\u0209\u020B\u020D\u020F\u0211\u0213\u0215\u0217\u0219\u021B\u021D\u021F\u0221\u0223\u0225\u0227\u0229\u022B\u022D\u022F\u0231\u0233-\u0239\u023C\u023F\u0240\u0242\u0247\u0249\u024B\u024D\u024F-\u0293\u0295-\u02AF\u0371\u0373\u0377\u037B-\u037D\u0390\u03AC-\u03CE\u03D0\u03D1\u03D5-\u03D7\u03D9\u03DB\u03DD\u03DF\u03E1\u03E3\u03E5\u03E7\u03E9\u03EB\u03ED\u03EF-\u03F3\u03F5\u03F8\u03FB\u03FC\u0430-\u045F\u0461\u0463\u0465\u0467\u0469\u046B\u046D\u046F\u0471\u0473\u0475\u0477\u0479\u047B\u047D\u047F\u0481\u048B\u048D\u048F\u0491\u0493\u0495\u0497\u0499\u049B\u049D\u049F\u04A1\u04A3\u04A5\u04A7\u04A9\u04AB\u04AD\u04AF\u04B1\u04B3\u04B5\u04B7\u04B9\u04BB\u04BD\u04BF\u04C2\u04C4\u04C6\u04C8\u04CA\u04CC\u04CE\u04CF\u04D1\u04D3\u04D5\u04D7\u04D9\u04DB\u04DD\u04DF\u04E1\u04E3\u04E5\u04E7\u04E9\u04EB\u04ED\u04EF\u04F1\u04F3\u04F5\u04F7\u04F9\u04FB\u04FD\u04FF\u0501\u0503\u0505\u0507\u0509\u050B\u050D\u050F\u0511\u0513\u0515\u0517\u0519\u051B\u051D\u051F\u0521\u0523\u0525\u0527\u0561-\u0587\u1D00-\u1D2B\u1D6B-\u1D77\u1D79-\u1D9A\u1E01\u1E03\u1E05\u1E07\u1E09\u1E0B\u1E0D\u1E0F\u1E11\u1E13\u1E15\u1E17\u1E19\u1E1B\u1E1D\u1E1F\u1E21\u1E23\u1E25\u1E27\u1E29\u1E2B\u1E2D\u1E2F\u1E31\u1E33\u1E35\u1E37\u1E39\u1E3B\u1E3D\u1E3F\u1E41\u1E43\u1E45\u1E47\u1E49\u1E4B\u1E4D\u1E4F\u1E51\u1E53\u1E55\u1E57\u1E59\u1E5B\u1E5D\u1E5F\u1E61\u1E63\u1E65\u1E67\u1E69\u1E6B\u1E6D\u1E6F\u1E71\u1E73\u1E75\u1E77\u1E79\u1E7B\u1E7D\u1E7F\u1E81\u1E83\u1E85\u1E87\u1E89\u1E8B\u1E8D\u1E8F\u1E91\u1E93\u1E95-\u1E9D\u1E9F\u1EA1\u1EA3\u1EA5\u1EA7\u1EA9\u1EAB\u1EAD\u1EAF\u1EB1\u1EB3\u1EB5\u1EB7\u1EB9\u1EBB\u1EBD\u1EBF\u1EC1\u1EC3\u1EC5\u1EC7\u1EC9\u1ECB\u1ECD\u1ECF\u1ED1\u1ED3\u1ED5\u1ED7\u1ED9\u1EDB\u1EDD\u1EDF\u1EE1\u1EE3\u1EE5\u1EE7\u1EE9\u1EEB\u1EED\u1EEF\u1EF1\u1EF3\u1EF5\u1EF7\u1EF9\u1EFB\u1EFD\u1EFF-\u1F07\u1F10-\u1F15\u1F20-\u1F27\u1F30-\u1F37\u1F40-\u1F45\u1F50-\u1F57\u1F60-\u1F67\u1F70-\u1F7D\u1F80-\u1F87\u1F90-\u1F97\u1FA0-\u1FA7\u1FB0-\u1FB4\u1FB6\u1FB7\u1FBE\u1FC2-\u1FC4\u1FC6\u1FC7\u1FD0-\u1FD3\u1FD6\u1FD7\u1FE0-\u1FE7\u1FF2-\u1FF4\u1FF6\u1FF7\u210A\u210E\u210F\u2113\u212F\u2134\u2139\u213C\u213D\u2146-\u2149\u214E\u2184\u2C30-\u2C5E\u2C61\u2C65\u2C66\u2C68\u2C6A\u2C6C\u2C71\u2C73\u2C74\u2C76-\u2C7B\u2C81\u2C83\u2C85\u2C87\u2C89\u2C8B\u2C8D\u2C8F\u2C91\u2C93\u2C95\u2C97\u2C99\u2C9B\u2C9D\u2C9F\u2CA1\u2CA3\u2CA5\u2CA7\u2CA9\u2CAB\u2CAD\u2CAF\u2CB1\u2CB3\u2CB5\u2CB7\u2CB9\u2CBB\u2CBD\u2CBF\u2CC1\u2CC3\u2CC5\u2CC7\u2CC9\u2CCB\u2CCD\u2CCF\u2CD1\u2CD3\u2CD5\u2CD7\u2CD9\u2CDB\u2CDD\u2CDF\u2CE1\u2CE3\u2CE4\u2CEC\u2CEE\u2CF3\u2D00-\u2D25\u2D27\u2D2D\uA641\uA643\uA645\uA647\uA649\uA64B\uA64D\uA64F\uA651\uA653\uA655\uA657\uA659\uA65B\uA65D\uA65F\uA661\uA663\uA665\uA667\uA669\uA66B\uA66D\uA681\uA683\uA685\uA687\uA689\uA68B\uA68D\uA68F\uA691\uA693\uA695\uA697\uA723\uA725\uA727\uA729\uA72B\uA72D\uA72F-\uA731\uA733\uA735\uA737\uA739\uA73B\uA73D\uA73F\uA741\uA743\uA745\uA747\uA749\uA74B\uA74D\uA74F\uA751\uA753\uA755\uA757\uA759\uA75B\uA75D\uA75F\uA761\uA763\uA765\uA767\uA769\uA76B\uA76D\uA76F\uA771-\uA778\uA77A\uA77C\uA77F\uA781\uA783\uA785\uA787\uA78C\uA78E\uA791\uA793\uA7A1\uA7A3\uA7A5\uA7A7\uA7A9\uA7FA\uFB00-\uFB06\uFB13-\uFB17\uFF41-\uFF5A])([\u0041-\u005A\u00C0-\u00D6\u00D8-\u00DE\u0100\u0102\u0104\u0106\u0108\u010A\u010C\u010E\u0110\u0112\u0114\u0116\u0118\u011A\u011C\u011E\u0120\u0122\u0124\u0126\u0128\u012A\u012C\u012E\u0130\u0132\u0134\u0136\u0139\u013B\u013D\u013F\u0141\u0143\u0145\u0147\u014A\u014C\u014E\u0150\u0152\u0154\u0156\u0158\u015A\u015C\u015E\u0160\u0162\u0164\u0166\u0168\u016A\u016C\u016E\u0170\u0172\u0174\u0176\u0178\u0179\u017B\u017D\u0181\u0182\u0184\u0186\u0187\u0189-\u018B\u018E-\u0191\u0193\u0194\u0196-\u0198\u019C\u019D\u019F\u01A0\u01A2\u01A4\u01A6\u01A7\u01A9\u01AC\u01AE\u01AF\u01B1-\u01B3\u01B5\u01B7\u01B8\u01BC\u01C4\u01C7\u01CA\u01CD\u01CF\u01D1\u01D3\u01D5\u01D7\u01D9\u01DB\u01DE\u01E0\u01E2\u01E4\u01E6\u01E8\u01EA\u01EC\u01EE\u01F1\u01F4\u01F6-\u01F8\u01FA\u01FC\u01FE\u0200\u0202\u0204\u0206\u0208\u020A\u020C\u020E\u0210\u0212\u0214\u0216\u0218\u021A\u021C\u021E\u0220\u0222\u0224\u0226\u0228\u022A\u022C\u022E\u0230\u0232\u023A\u023B\u023D\u023E\u0241\u0243-\u0246\u0248\u024A\u024C\u024E\u0370\u0372\u0376\u0386\u0388-\u038A\u038C\u038E\u038F\u0391-\u03A1\u03A3-\u03AB\u03CF\u03D2-\u03D4\u03D8\u03DA\u03DC\u03DE\u03E0\u03E2\u03E4\u03E6\u03E8\u03EA\u03EC\u03EE\u03F4\u03F7\u03F9\u03FA\u03FD-\u042F\u0460\u0462\u0464\u0466\u0468\u046A\u046C\u046E\u0470\u0472\u0474\u0476\u0478\u047A\u047C\u047E\u0480\u048A\u048C\u048E\u0490\u0492\u0494\u0496\u0498\u049A\u049C\u049E\u04A0\u04A2\u04A4\u04A6\u04A8\u04AA\u04AC\u04AE\u04B0\u04B2\u04B4\u04B6\u04B8\u04BA\u04BC\u04BE\u04C0\u04C1\u04C3\u04C5\u04C7\u04C9\u04CB\u04CD\u04D0\u04D2\u04D4\u04D6\u04D8\u04DA\u04DC\u04DE\u04E0\u04E2\u04E4\u04E6\u04E8\u04EA\u04EC\u04EE\u04F0\u04F2\u04F4\u04F6\u04F8\u04FA\u04FC\u04FE\u0500\u0502\u0504\u0506\u0508\u050A\u050C\u050E\u0510\u0512\u0514\u0516\u0518\u051A\u051C\u051E\u0520\u0522\u0524\u0526\u0531-\u0556\u10A0-\u10C5\u10C7\u10CD\u1E00\u1E02\u1E04\u1E06\u1E08\u1E0A\u1E0C\u1E0E\u1E10\u1E12\u1E14\u1E16\u1E18\u1E1A\u1E1C\u1E1E\u1E20\u1E22\u1E24\u1E26\u1E28\u1E2A\u1E2C\u1E2E\u1E30\u1E32\u1E34\u1E36\u1E38\u1E3A\u1E3C\u1E3E\u1E40\u1E42\u1E44\u1E46\u1E48\u1E4A\u1E4C\u1E4E\u1E50\u1E52\u1E54\u1E56\u1E58\u1E5A\u1E5C\u1E5E\u1E60\u1E62\u1E64\u1E66\u1E68\u1E6A\u1E6C\u1E6E\u1E70\u1E72\u1E74\u1E76\u1E78\u1E7A\u1E7C\u1E7E\u1E80\u1E82\u1E84\u1E86\u1E88\u1E8A\u1E8C\u1E8E\u1E90\u1E92\u1E94\u1E9E\u1EA0\u1EA2\u1EA4\u1EA6\u1EA8\u1EAA\u1EAC\u1EAE\u1EB0\u1EB2\u1EB4\u1EB6\u1EB8\u1EBA\u1EBC\u1EBE\u1EC0\u1EC2\u1EC4\u1EC6\u1EC8\u1ECA\u1ECC\u1ECE\u1ED0\u1ED2\u1ED4\u1ED6\u1ED8\u1EDA\u1EDC\u1EDE\u1EE0\u1EE2\u1EE4\u1EE6\u1EE8\u1EEA\u1EEC\u1EEE\u1EF0\u1EF2\u1EF4\u1EF6\u1EF8\u1EFA\u1EFC\u1EFE\u1F08-\u1F0F\u1F18-\u1F1D\u1F28-\u1F2F\u1F38-\u1F3F\u1F48-\u1F4D\u1F59\u1F5B\u1F5D\u1F5F\u1F68-\u1F6F\u1FB8-\u1FBB\u1FC8-\u1FCB\u1FD8-\u1FDB\u1FE8-\u1FEC\u1FF8-\u1FFB\u2102\u2107\u210B-\u210D\u2110-\u2112\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u2130-\u2133\u213E\u213F\u2145\u2183\u2C00-\u2C2E\u2C60\u2C62-\u2C64\u2C67\u2C69\u2C6B\u2C6D-\u2C70\u2C72\u2C75\u2C7E-\u2C80\u2C82\u2C84\u2C86\u2C88\u2C8A\u2C8C\u2C8E\u2C90\u2C92\u2C94\u2C96\u2C98\u2C9A\u2C9C\u2C9E\u2CA0\u2CA2\u2CA4\u2CA6\u2CA8\u2CAA\u2CAC\u2CAE\u2CB0\u2CB2\u2CB4\u2CB6\u2CB8\u2CBA\u2CBC\u2CBE\u2CC0\u2CC2\u2CC4\u2CC6\u2CC8\u2CCA\u2CCC\u2CCE\u2CD0\u2CD2\u2CD4\u2CD6\u2CD8\u2CDA\u2CDC\u2CDE\u2CE0\u2CE2\u2CEB\u2CED\u2CF2\uA640\uA642\uA644\uA646\uA648\uA64A\uA64C\uA64E\uA650\uA652\uA654\uA656\uA658\uA65A\uA65C\uA65E\uA660\uA662\uA664\uA666\uA668\uA66A\uA66C\uA680\uA682\uA684\uA686\uA688\uA68A\uA68C\uA68E\uA690\uA692\uA694\uA696\uA722\uA724\uA726\uA728\uA72A\uA72C\uA72E\uA732\uA734\uA736\uA738\uA73A\uA73C\uA73E\uA740\uA742\uA744\uA746\uA748\uA74A\uA74C\uA74E\uA750\uA752\uA754\uA756\uA758\uA75A\uA75C\uA75E\uA760\uA762\uA764\uA766\uA768\uA76A\uA76C\uA76E\uA779\uA77B\uA77D\uA77E\uA780\uA782\uA784\uA786\uA78B\uA78D\uA790\uA792\uA7A0\uA7A2\uA7A4\uA7A6\uA7A8\uA7AA\uFF21-\uFF3A\u0030-\u0039\u00B2\u00B3\u00B9\u00BC-\u00BE\u0660-\u0669\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u09F4-\u09F9\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0B72-\u0B77\u0BE6-\u0BF2\u0C66-\u0C6F\u0C78-\u0C7E\u0CE6-\u0CEF\u0D66-\u0D75\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F33\u1040-\u1049\u1090-\u1099\u1369-\u137C\u16EE-\u16F0\u17E0-\u17E9\u17F0-\u17F9\u1810-\u1819\u1946-\u194F\u19D0-\u19DA\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\u2070\u2074-\u2079\u2080-\u2089\u2150-\u2182\u2185-\u2189\u2460-\u249B\u24EA-\u24FF\u2776-\u2793\u2CFD\u3007\u3021-\u3029\u3038-\u303A\u3192-\u3195\u3220-\u3229\u3248-\u324F\u3251-\u325F\u3280-\u3289\u32B1-\u32BF\uA620-\uA629\uA6E6-\uA6EF\uA830-\uA835\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9\uFF10-\uFF19])/g
 
-},{}],115:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 module.exports = /[^\u0041-\u005A\u0061-\u007A\u00AA\u00B5\u00BA\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u08A0\u08A2-\u08AC\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0977\u0979-\u097F\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58\u0C59\u0C60\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D60\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191C\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19C1-\u19C7\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1CE9-\u1CEC\u1CEE-\u1CF1\u1CF5\u1CF6\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FCC\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA697\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA78E\uA790-\uA793\uA7A0-\uA7AA\uA7F8-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA80-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uABC0-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC\u0030-\u0039\u00B2\u00B3\u00B9\u00BC-\u00BE\u0660-\u0669\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u09F4-\u09F9\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0B72-\u0B77\u0BE6-\u0BF2\u0C66-\u0C6F\u0C78-\u0C7E\u0CE6-\u0CEF\u0D66-\u0D75\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F33\u1040-\u1049\u1090-\u1099\u1369-\u137C\u16EE-\u16F0\u17E0-\u17E9\u17F0-\u17F9\u1810-\u1819\u1946-\u194F\u19D0-\u19DA\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\u2070\u2074-\u2079\u2080-\u2089\u2150-\u2182\u2185-\u2189\u2460-\u249B\u24EA-\u24FF\u2776-\u2793\u2CFD\u3007\u3021-\u3029\u3038-\u303A\u3192-\u3195\u3220-\u3229\u3248-\u324F\u3251-\u325F\u3280-\u3289\u32B1-\u32BF\uA620-\uA629\uA6E6-\uA6EF\uA830-\uA835\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9\uFF10-\uFF19]+/g
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 module.exports = /([\u0030-\u0039\u00B2\u00B3\u00B9\u00BC-\u00BE\u0660-\u0669\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u09F4-\u09F9\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0B72-\u0B77\u0BE6-\u0BF2\u0C66-\u0C6F\u0C78-\u0C7E\u0CE6-\u0CEF\u0D66-\u0D75\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F33\u1040-\u1049\u1090-\u1099\u1369-\u137C\u16EE-\u16F0\u17E0-\u17E9\u17F0-\u17F9\u1810-\u1819\u1946-\u194F\u19D0-\u19DA\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\u2070\u2074-\u2079\u2080-\u2089\u2150-\u2182\u2185-\u2189\u2460-\u249B\u24EA-\u24FF\u2776-\u2793\u2CFD\u3007\u3021-\u3029\u3038-\u303A\u3192-\u3195\u3220-\u3229\u3248-\u324F\u3251-\u325F\u3280-\u3289\u32B1-\u32BF\uA620-\uA629\uA6E6-\uA6EF\uA830-\uA835\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9\uFF10-\uFF19])([^\u0030-\u0039\u00B2\u00B3\u00B9\u00BC-\u00BE\u0660-\u0669\u06F0-\u06F9\u07C0-\u07C9\u0966-\u096F\u09E6-\u09EF\u09F4-\u09F9\u0A66-\u0A6F\u0AE6-\u0AEF\u0B66-\u0B6F\u0B72-\u0B77\u0BE6-\u0BF2\u0C66-\u0C6F\u0C78-\u0C7E\u0CE6-\u0CEF\u0D66-\u0D75\u0E50-\u0E59\u0ED0-\u0ED9\u0F20-\u0F33\u1040-\u1049\u1090-\u1099\u1369-\u137C\u16EE-\u16F0\u17E0-\u17E9\u17F0-\u17F9\u1810-\u1819\u1946-\u194F\u19D0-\u19DA\u1A80-\u1A89\u1A90-\u1A99\u1B50-\u1B59\u1BB0-\u1BB9\u1C40-\u1C49\u1C50-\u1C59\u2070\u2074-\u2079\u2080-\u2089\u2150-\u2182\u2185-\u2189\u2460-\u249B\u24EA-\u24FF\u2776-\u2793\u2CFD\u3007\u3021-\u3029\u3038-\u303A\u3192-\u3195\u3220-\u3229\u3248-\u324F\u3251-\u325F\u3280-\u3289\u32B1-\u32BF\uA620-\uA629\uA6E6-\uA6EF\uA830-\uA835\uA8D0-\uA8D9\uA900-\uA909\uA9D0-\uA9D9\uAA50-\uAA59\uABF0-\uABF9\uFF10-\uFF19])/g
 
-},{}],117:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 var sentenceCase = require('sentence-case');
 
 /**
@@ -45340,7 +47303,7 @@ module.exports = function (string, locale) {
   return sentenceCase(string, locale, '-');
 };
 
-},{"sentence-case":113}],118:[function(require,module,exports){
+},{"sentence-case":114}],119:[function(require,module,exports){
 /*!
  * svg-attributes
  * https://github.com/alexmingoia/svg-attributes
@@ -45619,14 +47582,14 @@ module.exports = {
   "writingMode": "writing-mode"
 };
 
-},{}],119:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],120:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -45635,7 +47598,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":122}],121:[function(require,module,exports){
+},{"./version":123}],122:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -45644,25 +47607,25 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":122}],122:[function(require,module,exports){
+},{"./version":123}],123:[function(require,module,exports){
 module.exports = "1"
 
-},{}],123:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":129}],124:[function(require,module,exports){
+},{"./vdom/create-element.js":130}],125:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":150}],125:[function(require,module,exports){
+},{"./vtree/diff.js":151}],126:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":137}],126:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":138}],127:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -45682,12 +47645,12 @@ if (typeof document !== 'undefined') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"min-document":50}],127:[function(require,module,exports){
+},{"min-document":50}],128:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":132}],128:[function(require,module,exports){
+},{"./vdom/patch.js":133}],129:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -45783,7 +47746,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":142,"is-object":96}],129:[function(require,module,exports){
+},{"../vnode/is-vhook.js":143,"is-object":97}],130:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -45831,7 +47794,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":140,"../vnode/is-vnode.js":143,"../vnode/is-vtext.js":144,"../vnode/is-widget.js":145,"./apply-properties":128,"global/document":126}],130:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":141,"../vnode/is-vnode.js":144,"../vnode/is-vtext.js":145,"../vnode/is-widget.js":146,"./apply-properties":129,"global/document":127}],131:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -45918,7 +47881,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],131:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -46090,7 +48053,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":145,"../vnode/vpatch.js":148,"./apply-properties":128,"./create-element":129,"./update-widget":133}],132:[function(require,module,exports){
+},{"../vnode/is-widget.js":146,"../vnode/vpatch.js":149,"./apply-properties":129,"./create-element":130,"./update-widget":134}],133:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -46168,7 +48131,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":130,"./patch-op":131,"global/document":126,"x-is-array":153}],133:[function(require,module,exports){
+},{"./dom-index":131,"./patch-op":132,"global/document":127,"x-is-array":154}],134:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -46185,7 +48148,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":145}],134:[function(require,module,exports){
+},{"../vnode/is-widget.js":146}],135:[function(require,module,exports){
 var DataSet = require("data-set")
 
 module.exports = DataSetHook;
@@ -46205,7 +48168,7 @@ DataSetHook.prototype.hook = function (node, propertyName) {
     ds[propName] = this.value;
 };
 
-},{"data-set":88}],135:[function(require,module,exports){
+},{"data-set":88}],136:[function(require,module,exports){
 var DataSet = require("data-set")
 
 module.exports = DataSetHook;
@@ -46232,7 +48195,7 @@ DataSetHook.prototype.unhook = function(node, propertyName) {
     ds[propName] = undefined;
 }
 
-},{"data-set":88}],136:[function(require,module,exports){
+},{"data-set":88}],137:[function(require,module,exports){
 module.exports = SoftSetHook;
 
 function SoftSetHook(value) {
@@ -46249,7 +48212,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],137:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 var TypedError = require("error/typed")
 
 var VNode = require("../vnode/vnode.js")
@@ -46378,7 +48341,7 @@ function isChildren(x) {
     return typeof x === "string" || Array.isArray(x) || isChild(x)
 }
 
-},{"../vnode/is-thunk":141,"../vnode/is-vhook":142,"../vnode/is-vnode":143,"../vnode/is-vtext":144,"../vnode/is-widget":145,"../vnode/vnode.js":147,"../vnode/vtext.js":149,"./hooks/data-set-hook.js":134,"./hooks/ev-hook.js":135,"./hooks/soft-set-hook.js":136,"./parse-tag.js":138,"error/typed":94}],138:[function(require,module,exports){
+},{"../vnode/is-thunk":142,"../vnode/is-vhook":143,"../vnode/is-vnode":144,"../vnode/is-vtext":145,"../vnode/is-widget":146,"../vnode/vnode.js":148,"../vnode/vtext.js":150,"./hooks/data-set-hook.js":135,"./hooks/ev-hook.js":136,"./hooks/soft-set-hook.js":137,"./parse-tag.js":139,"error/typed":95}],139:[function(require,module,exports){
 var classIdSplit = /([\.#]?[a-zA-Z0-9_:-]+)/
 var notClassId = /^\.|#/
 
@@ -46429,7 +48392,7 @@ function parseTag(tag, props) {
     return tagName ? tagName.toLowerCase() : "div"
 }
 
-},{}],139:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 var h = require("./index.js")
 
 var BLACKLISTED_KEYS = {
@@ -46483,7 +48446,7 @@ function isChildren(x) {
     return typeof x === "string" || Array.isArray(x)
 }
 
-},{"./index.js":137}],140:[function(require,module,exports){
+},{"./index.js":138}],141:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -46525,9 +48488,9 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":141,"./is-vnode":143,"./is-vtext":144,"./is-widget":145}],141:[function(require,module,exports){
-arguments[4][119][0].apply(exports,arguments)
-},{"dup":119}],142:[function(require,module,exports){
+},{"./is-thunk":142,"./is-vnode":144,"./is-vtext":145,"./is-widget":146}],142:[function(require,module,exports){
+arguments[4][120][0].apply(exports,arguments)
+},{"dup":120}],143:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -46535,20 +48498,20 @@ function isHook(hook) {
         !hook.hasOwnProperty("hook")
 }
 
-},{}],143:[function(require,module,exports){
-arguments[4][120][0].apply(exports,arguments)
-},{"./version":146,"dup":120}],144:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 arguments[4][121][0].apply(exports,arguments)
-},{"./version":146,"dup":121}],145:[function(require,module,exports){
+},{"./version":147,"dup":121}],145:[function(require,module,exports){
+arguments[4][122][0].apply(exports,arguments)
+},{"./version":147,"dup":122}],146:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],146:[function(require,module,exports){
-arguments[4][122][0].apply(exports,arguments)
-},{"dup":122}],147:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
+arguments[4][123][0].apply(exports,arguments)
+},{"dup":123}],148:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -46622,7 +48585,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":141,"./is-vhook":142,"./is-vnode":143,"./is-widget":145,"./version":146}],148:[function(require,module,exports){
+},{"./is-thunk":142,"./is-vhook":143,"./is-vnode":144,"./is-widget":146,"./version":147}],149:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -46646,7 +48609,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":146}],149:[function(require,module,exports){
+},{"./version":147}],150:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -46658,7 +48621,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":146}],150:[function(require,module,exports){
+},{"./version":147}],151:[function(require,module,exports){
 var isArray = require("x-is-array")
 var isObject = require("is-object")
 
@@ -47036,7 +48999,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":140,"../vnode/is-thunk":141,"../vnode/is-vhook":142,"../vnode/is-vnode":143,"../vnode/is-vtext":144,"../vnode/is-widget":145,"../vnode/vpatch":148,"is-object":96,"x-is-array":153}],151:[function(require,module,exports){
+},{"../vnode/handle-thunk":141,"../vnode/is-thunk":142,"../vnode/is-vhook":143,"../vnode/is-vnode":144,"../vnode/is-vtext":145,"../vnode/is-widget":146,"../vnode/vpatch":149,"is-object":97,"x-is-array":154}],152:[function(require,module,exports){
 var hiddenStore = require('./hidden-store.js');
 
 module.exports = createStore;
@@ -47055,7 +49018,7 @@ function createStore() {
     };
 }
 
-},{"./hidden-store.js":152}],152:[function(require,module,exports){
+},{"./hidden-store.js":153}],153:[function(require,module,exports){
 module.exports = hiddenStore;
 
 function hiddenStore(obj, key) {
@@ -47073,7 +49036,7 @@ function hiddenStore(obj, key) {
     return store;
 }
 
-},{}],153:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -47083,7 +49046,7 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],154:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	diatonic = require('./diatonic.js'),
@@ -48437,7 +50400,7 @@ exports.determine_extended_chord5 = determine_extended_chord5;
 exports.determine_extended_chord6 = determine_extended_chord6;
 exports.determine_extended_chord7 = determine_extended_chord7;
 exports.determine_polychords = determine_polychords;
-},{"../node_modules/underscore":161,"./diatonic.js":155,"./intervals.js":157,"./notes.js":159}],155:[function(require,module,exports){
+},{"../node_modules/underscore":162,"./diatonic.js":156,"./intervals.js":158,"./notes.js":160}],156:[function(require,module,exports){
 var notes = require('./notes.js'),
 	_ = require('../node_modules/underscore');
 
@@ -48553,14 +50516,14 @@ exports._key_cache = _key_cache;
 exports.get_notes = get_notes;
 exports.int_to_note = int_to_note;
 exports.interval = interval;
-},{"../node_modules/underscore":161,"./notes.js":159}],156:[function(require,module,exports){
+},{"../node_modules/underscore":162,"./notes.js":160}],157:[function(require,module,exports){
 exports.diatonic = require('./diatonic.js');
 exports.notes = require('./notes.js');
 exports.intervals = require('./intervals.js');
 exports.chords = require('./chords.js');
 exports.scales = require('./scales.js');
 exports.meter = require('./meter.js');
-},{"./chords.js":154,"./diatonic.js":155,"./intervals.js":157,"./meter.js":158,"./notes.js":159,"./scales.js":160}],157:[function(require,module,exports){
+},{"./chords.js":155,"./diatonic.js":156,"./intervals.js":158,"./meter.js":159,"./notes.js":160,"./scales.js":161}],158:[function(require,module,exports){
 var notes = require('./notes.js'),
 	diatonic = require('./diatonic.js');
 	_ = require('../node_modules/underscore');
@@ -49012,7 +50975,7 @@ exports.is_consonant = is_consonant;
 exports.is_dissonant = is_dissonant;
 exports.is_perfect_consonant = is_perfect_consonant;
 exports.is_imperfect_consonant = is_imperfect_consonant;
-},{"../node_modules/underscore":161,"./diatonic.js":155,"./notes.js":159}],158:[function(require,module,exports){
+},{"../node_modules/underscore":162,"./diatonic.js":156,"./notes.js":160}],159:[function(require,module,exports){
 common_time = (4, 4);
 cut_time = (2, 2);
 
@@ -49054,7 +51017,7 @@ exports.is_valid = is_valid;
 exports.is_compound = is_compound;
 exports.is_asymmetrical = is_asymmetrical;
 exports.is_simple = is_simple;
-},{}],159:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	_ = require('../node_modules/underscore');
 
@@ -49196,7 +51159,7 @@ exports.augment = augment
 exports.diminish = diminish;
 exports.to_major = to_major;
 exports.to_minor = to_minor;
-},{"../node_modules/underscore":161,"./intervals.js":157}],160:[function(require,module,exports){
+},{"../node_modules/underscore":162,"./intervals.js":158}],161:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	get_notes = require('./diatonic.js').get_notes,
@@ -49412,7 +51375,7 @@ exports.chromatic = chromatic;
 exports.whole_note = whole_note;
 exports.diminished = diminished;
 exports.determine = determine;
-},{"../node_modules/underscore":161,"./diatonic.js":155,"./intervals.js":157,"./notes.js":159}],161:[function(require,module,exports){
+},{"../node_modules/underscore":162,"./diatonic.js":156,"./intervals.js":158,"./notes.js":160}],162:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -50690,7 +52653,7 @@ exports.determine = determine;
 
 }).call(this);
 
-},{}],162:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 /* FileSaver.js
  *  A saveAs() FileSaver implementation.
  *  2014-05-27

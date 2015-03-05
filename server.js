@@ -26,9 +26,9 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-app.use(session({
+/*app.use(session({
     secret: 'something'
-}));
+}));*/
 
 //Authentication
 
@@ -54,7 +54,12 @@ passport.use(new GoogleStrategy({
         callbackURL: "http://" + config.url + ":" + config.port + "/auth/google/callback"
     },
     function(accessToken, refreshToken, profile, done) {
+
         var usersDb = db.get("users");
+
+        console.log("DOING")
+
+        
         usersDb.findOne({
                 googleId: profile.id
             },
@@ -68,8 +73,10 @@ passport.use(new GoogleStrategy({
                     };
                     usersDb.insert(user);
                 }
+                console.log("DONE")
                 return done(e, user);
             });
+
     }
 ));
 
@@ -94,10 +101,16 @@ app.get('/auth/google',
     });
 
 app.get('/auth/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: '/'
-    }),
-    function(req, res) {
+    function(req, res, next) {
+        console.log("HERE!!", next)
+        try {
+            passport.authenticate('google', {
+                failureRedirect: '/'
+            })(req,res,next);
+        } catch(err) {
+            console.log("ERR", err);
+        }
+        console.log("DONE2")
         // Successful authentication, redirect home.
         res.redirect('/');
     });
@@ -118,6 +131,8 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
+// 
+/*
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
@@ -126,17 +141,17 @@ if (app.get('env') === 'development') {
             error: err
         });
     });
-}
+}*/
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
-});
+// app.use(function(err, req, res, next) {
+//     res.status(err.status || 500);
+//     res.render('error', {
+//         message: err.message,
+//         error: {}
+//     });
+// });
 
 //start the server
 

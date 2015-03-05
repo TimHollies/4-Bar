@@ -16,8 +16,8 @@ var audioRender = (tune) => {
 
 	var 
 		i = 0,
-		repeating = false,
-		repeatLocation = -1,
+		repeating = true,
+		repeatLocation = 0,
 		totalLength = 0;
 
 	while(i < allSymbols.length) {

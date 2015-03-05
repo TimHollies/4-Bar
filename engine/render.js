@@ -8,7 +8,9 @@ var s = require('virtual-dom/virtual-hyperscript/svg'),
     patch = require('virtual-dom/patch'),
     stringify = require('virtual-dom-stringify');
 
-var ABCRenderer = function () {
+var ABCRenderer = function (ractive, returnString) {
+
+    if(returnString === undefined)returnString = false;
 
     var
     previousNodeTree = null,
@@ -28,7 +30,7 @@ var ABCRenderer = function () {
         lineGroup.children.push(draw.stave(), leadInGroup);
 
         var clef = draw.treble_clef();
-        var keySig = draw.keysig(settings.key, clef.width, line.id);
+        var keySig = draw.keysig(settings.key, clef.width, line.id, ractive.get('currentTranspositionValue'));
 
         if(keySig === false) return;
 
@@ -55,7 +57,7 @@ var ABCRenderer = function () {
 
         for (let i = 0; i < line.symbols.length; i++) {
             line.symbols[i].renderedXPos = xPos;
-            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos/*line.symbols[i].xp * noteAreaWidth*/, noteAreaWidth));
+            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos, noteAreaWidth));
             xPos += (line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant);
         }
 
@@ -99,7 +101,7 @@ var ABCRenderer = function () {
         var drawnLines = 0;
         tuneData.parsedLines.forEach(function(line, i) {
             if(line.type === "drawable") {
-                if(tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding) {
+                if(tuneData.forceFullRedraw !== true && ( tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding ) ) {
                     doc.children.push(cachedLines[i]);
                 } else {
                     var vRenderedLine = renderLine(line, drawnLines, i);
@@ -118,29 +120,25 @@ var ABCRenderer = function () {
             h("div.tune-body", [doc])
             ]);
 
-        //if(previousNodeTree === null) {
+        if(!returnString) {
+
             renderElement = createElement(topDiv);
             document.getElementById("canvas").innerHTML = '';
             document.getElementById("canvas").appendChild(renderElement);
-        //} else {
-            //document.getElementById("canvas").innerHTML = '';
-            //document.getElementById("canvas").appendChild(createElement(topDiv));
-        //    var patchData = diff(previousNodeTree, topDiv);
-       //     renderElement = patch(renderElement, patchData);     
-       //     document.getElementById("canvas").innerHTML = '';
-       //     document.getElementById("canvas").appendChild(renderElement);       
-       // }
 
-        var svgs = document.getElementById("tuneSVGCanvas");
-        var canvasElement = document.getElementById("canvas");
+            var svgs = document.getElementById("tuneSVGCanvas");
+            var canvasElement = document.getElementById("canvas");
 
-        var scrollDist = canvasElement.scrollTop;
-        svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
-        canvasElement.scrollTop = scrollDist;
+            var scrollDist = canvasElement.scrollTop;
+            svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
+            canvasElement.scrollTop = scrollDist;
 
 
 
-        previousNodeTree = topDiv;    
+            previousNodeTree = topDiv;    
+        } else {
+            return stringify(topDiv);
+        }
     };
 };
 

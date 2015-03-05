@@ -21,6 +21,8 @@ var ABCLayout = function (dispatcher) {
         title: "Untitled Tune"
     };
 
+    var forceFullRedraw = false;
+
 
     var currentRenderNoteId = 0;
 
@@ -119,40 +121,42 @@ var ABCLayout = function (dispatcher) {
     }
 
     var handleDataLineSwitch = {
-        title(data) {
+        title: function(data) {
             tuneSettings.title = data;
             dispatcher.fire("change_tune_title", data);
         },
 
-        rhythm(data) {
+        rhythm: function(data) {
             tuneSettings.rhythm = data;
             dispatcher.fire("change_rhythm", data);
         },
 
-        key(data) {
+        key: function(data) {
             tuneSettings.key = data;
+            console.log("CHANGED KEY");
+            forceFullRedraw = true;
             dispatcher.fire("change_key", data);
         },
 
-        timesig(data) {
+        timesig: function(data) {
             tuneSettings.measure = data;
             dispatcher.fire("change_timesig", data);
         },
 
-        notelength(data) {
+        notelength: function(data) {
             tuneSettings.noteLength = data;
             dispatcher.fire("change_notelength", data);
         },
 
-        number(data) {
+        number: function(data) {
             tuneSettings.number = data;
         },
 
-        transcriber(data) {
+        transcriber: function(data) {
             tuneSettings.transcriber = data;
         },
 
-        source(data) {
+        source: function(data) {
             tuneSettings.source = data;
         },
     };
@@ -163,7 +167,7 @@ var ABCLayout = function (dispatcher) {
     }
 
     var handleAction = {
-        ADD ( lineCollection ) {
+        ADD: function ( lineCollection ) {
 
 
             var layoutedLines = lineCollection.lines.map(function(line) {
@@ -180,7 +184,7 @@ var ABCLayout = function (dispatcher) {
         },
 
         
-        DEL ( lineCollection ) {
+        DEL: function ( lineCollection ) {
 
             if (lineCollection.lines.length > 0) {
                 var removed_lines = parsedLines.splice(lineCollection.lines[0].id, lineCollection.lines.length);
@@ -206,11 +210,16 @@ var ABCLayout = function (dispatcher) {
             changedLines = changedLines.concat(oldScoreLines.changedLines);
         }
 
-        return  {
+        var returnData = {
             tuneSettings: tuneSettings,
             parsedLines: parsedLines,
-            changedLines
+            changedLines: changedLines,
+            forceFullRedraw: forceFullRedraw || oldScoreLines.forceFullRedraw
         };
+
+        if(forceFullRedraw)forceFullRedraw = false;
+
+        return returnData;
 
     }
 }

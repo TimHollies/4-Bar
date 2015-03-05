@@ -121,7 +121,7 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
                     colGroup.children.push(s("path", {
                             d: glyphs["scripts.roll"].d,
                             fill: "black",
-                            transform
+                            transform: transform
                         }));
                     break;
                 }
@@ -641,7 +641,7 @@ drawing_functions.beam = function(beam, group, noteAreaWidth) {
  * @param  {[type]} keysig [description]
  * @return {[type]}        [description]
  */
-drawing_functions.keysig = function(keysig, xoffset, lineId) {
+drawing_functions.keysig = function(keysig, xoffset, lineId, transpose) {
 
     var keySigGroup = s("g");
     var undefined;

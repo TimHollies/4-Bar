@@ -6,6 +6,7 @@ var
 
     screenfull = require('vendor').screenfull,
     queryString = require('vendor').queryString,
+    Drop = require('vendor').drop,
 
     engine = require('engine/engine'),
 
@@ -17,12 +18,13 @@ var
 
     AudioEngine = require('engine/audio/audio'),
 
-    tunePlayer = require('engine/audio/myplayer');
-
+    TunePlayer = require('engine/audio/myplayer');
 
 var template = require("./viewer.html");
 
 module.exports = function(r) {
+
+    var downloadOptionsTether = null;
 
     var onInit = function() {
 
@@ -30,13 +32,18 @@ module.exports = function(r) {
 
         var parameters = queryString.parse(ractive.get("url").querystring);
 
+        ractive.set("playbackReady", false);
+
         var parser = ABCParser(ractive),
-        layout = ABCLayout(ractive),
-        renderer = ABCRenderer(ractive);
+            layout = ABCLayout(ractive),
+            renderer = ABCRenderer(ractive),
+            tunePlayer = TunePlayer(ractive);
 
         ractive.set("playing", false);
-      
-        var tuneStopper = null;
+        ractive.set("repeatingTune", false);
+        ractive.set("currentTranspositionValue", 0);
+        ractive.set("playTempo", 120);
+        ractive.set("downloadOptionsOpen", false);
 
         ractive.on({
             show_fullscreen() {
@@ -67,16 +74,46 @@ module.exports = function(r) {
                 ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get('tune')._id);
             },
             "toggle-stop-tune": () => {
-                if(tuneStopper !== null)tuneStopper();
+                tunePlayer.stopTune();
                 ractive.set("playing", false);
+            },
+            "play-tune-end": function() {
+                if(ractive.get("repeatingTune")) {
+                    tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
+                } else {
+                    ractive.set("playing", false);
+                }                
             },
             "toggle-play-tune": () => {
 
-                //AudioEngine.play();
+                if(!ractive.get("playbackReady")) return;
 
-                tuneStopper = tunePlayer(AudioRenderer(doneThing));
-
+                tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
                 ractive.set("playing", true);
+            },
+            "toggle-repeat-tune": function() {
+                ractive.set("repeatingTune", !ractive.get("repeatingTune"));
+            },
+            "play-tune-ready": function() {
+                ractive.set("playbackReady", true)
+            },
+            "download_tune_options": function() {
+                ractive.set("downloadOptionsOpen", true);
+                downloadOptionsTether.position();
+                return false;
+            },
+            "mouse-over-window": function() {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-abc": function() {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-midi": function() {
+                ractive.set("downloadOptionsOpen", false);
+            },
+            "download-pdf": function() {
+                window.location.href = "/pdf?tune=" + encodeURIComponent(ractive.get("tune").raw);
+                ractive.set("downloadOptionsOpen", false);
             }
         });
 
@@ -130,10 +167,21 @@ module.exports = function(r) {
         }
     }
 
+    var onRender = function() {
+        downloadOptionsTether = new Drop({
+          target: document.querySelector('#download-button'),
+          element: document.querySelector('.download.popover-menu'),
+          attachment: 'top center',
+          targetAttachment: 'bottom center',
+          offset: "0px 35px"
+        });
+    }
+
     var ractive = Ractive.extend({
       isolated: false,
       template: template,
-      oninit: onInit
+      oninit: onInit,
+      onrender: onRender
     }); 
 
     return ractive;

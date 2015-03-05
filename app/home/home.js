@@ -4,7 +4,8 @@ var
     fade = require('scripts/transitions/ractive.transitions.fade'),
     fly = require('scripts/transitions/ractive.transitions.fly'),
     toastr = require('vendor').toastr,
-    ractive = require('vendor').ractive;
+    ractive = require('vendor').ractive,
+    _ = require('lodash');
 
 
 var template = require("./home.html");
@@ -31,7 +32,21 @@ module.exports = function(ractive, context, page, urlcontext, user) {
             'updated_search': function(event, data) {
                 console.log("EVENT", event.context.search_filter);
 
-                fetch("/api/tunes?name=" + event.context.search_filter)
+                var keynoteData = ractive.get("keynote");
+                var keynoteFilter = "disallowkeys=";
+
+                _.forOwn(keynoteData, function(val, key) {
+                    if(!val) {
+                        if(key.length === 1) {
+                            keynoteFilter += (key[0] + ",")
+                         } else {
+                            keynoteFilter += (key[0] + "^,")
+                         }
+                       
+                    }
+                });
+
+                fetch("/api/tunes?name=" + event.context.search_filter + "&" + keynoteFilter)
                 .then(function(response) {
                     return response.json()
                 })
@@ -56,6 +71,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         ractive.on('toggle-note', function(event) {
             var note = event.node.attributes.note.value;
             ractive.set("keynote." + note, !ractive.get("keynote." + note));
+            ractive.fire("updated_search", event);
         });
 
         ractive.on('toggle-mode', function(event) {
@@ -64,7 +80,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
         });
 
         ractive.on({
-            "clear-all-keys": function() {
+            "clear-all-keys": function(event) {
                 ractive.set("keynote", {
                     'A': false,
                     'A#': false,
@@ -79,8 +95,9 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                     'G': false,
                     'G#': false
                 });
+                ractive.fire("updated_search", event);
             },
-             "select-all-keys": function() {
+             "select-all-keys": function(event) {
                 ractive.set("keynote", {
                     'A': true,
                     'A#': true,
@@ -95,6 +112,7 @@ module.exports = function(ractive, context, page, urlcontext, user) {
                     'G': true,
                     'G#': true
                 });
+                ractive.fire("updated_search", event);
             },
             "clear-all-modes": function() {
                 ractive.set("keymode", {

@@ -23,6 +23,7 @@
     "debug": "~0.7.4",
     "diff": "~1.0.8",
     "domready": "^1.0.7",
+    "drop": "git://github.com/hubspot/drop",
     "es6-promise": "^2.0.1",
     "express": "~4.2.0",
     "express-session": "~1.0.0",

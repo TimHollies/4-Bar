@@ -58,6 +58,12 @@ domready(() => {
             return response.json()
         }).then(function(data) {
 
+            if(data.failed === true) {
+                loggedIn = false;
+                return;
+            }
+
+
             console.log("CURRENT USER", data);
 
             ractive.set("loggedIn", true);
@@ -87,6 +93,7 @@ domready(() => {
     }
 
     page.serverMap("/auth/google");
+    page.serverMap("/pdf");
     page.serverMap("/logout");
 
     page('*', function(context) {

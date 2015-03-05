@@ -1,7 +1,6 @@
 'use strict';
 
 var data_tables = {},
-    dispatcher = require('./dispatcher'),
     zazate = require('zazate.js'),
     _ = require('lodash');
 

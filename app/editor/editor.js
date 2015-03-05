@@ -27,14 +27,13 @@ var
     AbcLine = require('engine/types/LineCollection').AbcLine,
     Divvy = require('engine/scripts/divvy/divvy.js'),
 
-    tunePlayer = require('engine/audio/myplayer');
+    TunePlayer = require('engine/audio/myplayer');
 
 require('scripts/transitions/ractive.transitions.fade');
 require('scripts/transitions/ractive.transitions.fly');
 
-var emptyTuneName = "Untitled Tune"; 
 
-window.siz = siz;
+var emptyTuneName = "Untitled Tune"; 
 
 var textFile = null,
     makeTextFile = function(text) {
@@ -61,9 +60,10 @@ module.exports = function() {
 
         var ractive = this;
 
-        var parser = ABCParser(ractive),
+        var parser = ABCParser(ractive, 0),
             layout = ABCLayout(ractive),
-            renderer = ABCRenderer(ractive);
+            renderer = ABCRenderer(ractive),
+            tunePlayer = TunePlayer(ractive);
 
         var transposeAmount = 0;
 
@@ -73,9 +73,11 @@ module.exports = function() {
         var parameters = queryString.parse(ractive.get("url").querystring);
 
         ractive.set("errors", errors);
+        ractive.set("playing", false);
 
         ractive.set("showingTranspositionDropdown", false);
         ractive.set("selectedTransposition", "No Transposition");
+        ractive.set("currentTranspositionValue", 0);
 
        /*var divvy = new Divvy({
             el: document.getElementById("editor-section"), // this is a reference to the container DOM element
@@ -123,17 +125,26 @@ module.exports = function() {
                 var intValue = parseInt(event.node.attributes.val.value);
                 transposeAmount = intValue;
                 ractive.fire("transpose_change", intValue);
+                ractive.set("currentTranspositionValue", intValue);
+                parser = ABCParser(ractive, intValue);
 
+                var currentTuneVal = ractive.get('editor').getValue();
+                ractive.get('editor').setValue("");
+                ractive.get('editor').setValue(currentTuneVal);
+                
                 ractive.set("selectedTransposition", event.node.innerText);
                 ractive.set("showingTranspositionDropdown", false);
             },
             "toggle-play-tune": () => {
                 //AudioEngine.play(AudioRenderer(processedTune));
-                tunePlayer(AudioRenderer(processedTune));
+                tunePlayer.playTune(AudioRenderer(processedTune));
                 ractive.set("playing", true);
             },
             "toggle-stop-tune": () => {
-                AudioEngine.stop();
+                tunePlayer.stopTune();
+                ractive.set("playing", false);
+            },
+            "play-tune-end": function() {
                 ractive.set("playing", false);
             },
             "download_abc": function() {
@@ -216,35 +227,10 @@ module.exports = function() {
 
             console.log("done", done);
             if(window)ractive.set("lastRenderTime", window.performance.now() - ractive.get('timeAtStart'));
-        });
+        });     
 
-        function completelyRerenderScore() {
-
-            siz("#canvas")[0].innerHTML = "";
-            errors = [];
-            ractive.set("errors", errors);
-
-            parser = ABCParser(transposeAmount);
-            layout = ABCLayout();
-            renderer = ABCRenderer();
-
-            var done = diff({
-                newValue: ractive.get('inputValue'),
-                oldValue: ""
-            })
-            .map(parser)
-            .reduce(layout, 0);
-
-            renderer(done);
-
-            processedTune = done;
-            console.log("done", done);
-        }
-
-        //dispatcher.after("transpose_change", completelyRerenderScore);
-
-        var oldStart = -1,
-            oldStop = -1;
+        // var oldStart = -1,
+        //     oldStop = -1;
 
         if (parameters.tuneid) {
             fetch("/api/tune/" + parameters.tuneid)
