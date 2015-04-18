@@ -347,8 +347,6 @@ data_tables.gkm = data_tables.getKeyModifiers = function (key) {
     var middle = data_tables.mode_map[norm];
     var meh = parseInt(data_tables.keySig[key.note][middle]);
 
-    console.log(meh);
-
     if(meh > 0) {
         var range = _.range(-1, meh-1);
         return {

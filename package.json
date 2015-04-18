@@ -7,10 +7,11 @@
     "server": "forever start server.js",
     "style": "sass --watch assets/styles:public",
     "stop": "forever stop server.js",
-    "seed": "node --es_staging ./data/seed",
+    "seed": "node --es_staging ./seed",
     "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
+    "baconjs": "^0.7.53",
     "base64-arraybuffer": "^0.1.2",
     "base64-js": "0.0.8",
     "body-parser": "~1.0.0",

@@ -6,40 +6,36 @@ var siz = require('Sizzle');
 var note = {};
 var loadedNoteData = false;
 
-var notes = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+var notes = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 var context = new AudioContext();
-
-
 
 var RhythmSample = {
 };
 
 RhythmSample.play = function(dispatcher) {
 
-  if(!loadedNoteData){
-     fetch("/pat/acoustic_grand_piano-mp3.json")
+  if (!loadedNoteData) {
+    fetch('/pat/acoustic_grand_piano-mp3.json')
     .then(function(response) {
-      return response.json()
-    }).then(function(res) {
+          return response.json();
+        }).then(function(res) {
 
-      _.forOwn(res, function(val, key){
-        var base64 = val.split(",")[1];
-        var buffer = Base64.decode(base64);    
-        context.decodeAudioData(buffer, function(decodedData) {
-         note[key] = decodedData;
-       });
-      }); 
+          _.forOwn(res, function(val, key) {
+            var base64 = val.split(',')[1];
+            var buffer = Base64.decode(base64);
+            context.decodeAudioData(buffer, function(decodedData) {
+              note[key] = decodedData;
+            });
+          });
 
-      dispatcher.set("playbackReady", true);
-      loadedNoteData = true;
+          dispatcher.set('playbackReady', true);
+          loadedNoteData = true;
 
-    });
+        });
   } else {
-    dispatcher.set("playbackReady", true);
+    dispatcher.set('playbackReady', true);
   }
-
- 
 
   var sources = [];
 
@@ -48,13 +44,11 @@ RhythmSample.play = function(dispatcher) {
 
   var playTune = function(tuneData, tempo = 120) {
 
-
-
     function playSound(buffer, time, length) {
       var source = context.createBufferSource();
       var gainNode = context.createGain();
-      gainNode.gain.linearRampToValueAtTime(0.5, time+length);
-      gainNode.gain.linearRampToValueAtTime(0, time+length+0.5);
+      gainNode.gain.linearRampToValueAtTime(0.5, time + length);
+      gainNode.gain.linearRampToValueAtTime(0, time + length + 0.5);
       source.buffer = buffer;
       // Connect the source to the gain node.
       source.connect(gainNode);
@@ -79,42 +73,54 @@ RhythmSample.play = function(dispatcher) {
     // Play 2 bars of the following:
     for (var bar = 0; bar < tuneData.length; bar++) {
 
-      var octave = Math.floor((tuneData[bar][0]-24)/12);
+      var octave = Math.floor((tuneData[bar][0] - 24) / 12);
       var noteId = tuneData[bar][0] - 24 - (octave * 12);
 
-      playSound(note[notes[noteId] + (octave+1)], startTime + offset, tuneData[bar][1] /tempo);
-      offset += tuneData[bar][1] /tempo;
+      playSound(note[notes[noteId] + (octave + 1)], startTime + offset,
+          tuneData[bar][1] / tempo);
+
+      offset += tuneData[bar][1] / tempo;
 
     }
 
-      var currentPosition = 0;
-      var firstNote = siz(".tune-body .noteHead")[0];
-      firstNote.classList.add("selected-note");
-      lastHighlightedNote = firstNote;
-      timer = new Timer(function(timer) {
+    var currentPosition = 0;
+    var firstNote = siz('.tune-body .noteHead')[0];
+    firstNote.classList.add('selected-note');
+    lastHighlightedNote = firstNote;
+    timer = new Timer(function(timer) {
 
-        //console.log("woo note", tuneData[currentPosition][2]);
-        
-        if(lastHighlightedNote !== null)lastHighlightedNote.classList.remove("selected-note");
-        var thisNote = document.getElementById("note_" + tuneData[currentPosition][2]);
-        thisNote.classList.add("selected-note");
-        lastHighlightedNote = thisNote;
-        if(currentPosition >= tuneData.length - 1) {
-          timer.stop();
-          dispatcher.fire("play-tune-end");
-          window.setTimeout(function() { if(lastHighlightedNote !== null)lastHighlightedNote.classList.remove("selected-note");}, tuneData[currentPosition][1] * 1000 / tempo);
-        }
-        timer.setDelay(tuneData[currentPosition][1] * 1000 / tempo);
+      if (lastHighlightedNote !== null)
+        lastHighlightedNote.classList.remove('selected-note');
 
-        currentPosition++;
-      }, tuneData[0], {
-        repeat: true
-      }).start();
+      var thisNote =
+          document.getElementById('note_' + tuneData[currentPosition][2]);
+
+      thisNote.classList.add('selected-note');
+      lastHighlightedNote = thisNote;
+
+      if (currentPosition >= tuneData.length - 1) {
+        timer.stop();
+        dispatcher.fire('play-tune-end');
+        window.setTimeout(function() {
+          if (lastHighlightedNote !== null)
+            lastHighlightedNote.classList.remove('selected-note');
+
+        }, tuneData[currentPosition][1] * 1000 / tempo);
+      }
+
+      timer.setDelay(tuneData[currentPosition][1] * 1000 / tempo);
+      currentPosition++;
+
+    }, tuneData[0], {
+      repeat: true
+    }).start();
   };
 
   var stopTune = function() {
     timer.stop();
-    if(lastHighlightedNote !== null)lastHighlightedNote.classList.remove("selected-note");
+    if (lastHighlightedNote !== null)
+      lastHighlightedNote.classList.remove('selected-note');
+
     sources.forEach(function(source) {
       source.stop();
     });

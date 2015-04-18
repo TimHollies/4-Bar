@@ -771,8 +771,6 @@ drawing_functions.tuplets = function(currentTuplet, noteAreaWidth) {
         currentTuplet.notes[middle].beamOffsetFactor - 10 :
         currentTuplet.notes[middle].beamOffsetFactor + 10;
 
-    console.log("middle", currentTuplet.notes[middle]);
-
     var colGroup = s("g", {
         transform: `translate(${offset},${tupletNumberY})`
     });

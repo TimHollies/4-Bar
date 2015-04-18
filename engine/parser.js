@@ -4,7 +4,6 @@ var
     lexer = require('./lexer.js'),
     data_tables = require('./data_tables.js'),
     _ = require('lodash'),
-    enums = require('./types'),
     dispatcher = require('./dispatcher'),
 
     AbcNote = require("./types/AbcSymbol").AbcNote,

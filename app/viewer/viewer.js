@@ -15,6 +15,7 @@ var
     diff = engine.diff,
     ABCLayout = engine.layout,
     AudioRenderer = require('engine/audio_render'),
+    ABCRenderToDOM = require('engine/vdom2dom'),
 
     AudioEngine = require('engine/audio/audio'),
 
@@ -137,7 +138,8 @@ module.exports = function(r) {
 
                 doneThing = done;
 
-                renderer(done);
+                var vdom = renderer(done);
+                ABCRenderToDOM(vdom);
                 console.log("It WORKED!!", res);
 
 

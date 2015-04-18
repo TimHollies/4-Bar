@@ -9,13 +9,13 @@ var
     //dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
     ABCRenderer = engine.render,
+    ABCRenderToDOM = require('engine/vdom2dom'),
 
     AudioRenderer = require('engine/audio_render'),
     AudioEngine = require('engine/audio/audio'),
 
-    enums = require('engine/types'),
     customElements = require('engine/rendering/custom_elements'),
-    CodeMirrorABCMode = require('engine/abc_mode'),
+    CodeMirrorABCMode = require('scripts/abc_mode'),
     CodeMirror = require('vendor').codeMirror,
     CodeMirrorLint = require('vendor').codeMirrorLint,
     siz = require('vendor').sizzle,
@@ -25,7 +25,6 @@ var
     toastr = require('vendor').toastr,
     Combokeys = require('vendor').combokeys,
     AbcLine = require('engine/types/LineCollection').AbcLine,
-    Divvy = require('engine/scripts/divvy/divvy.js'),
 
     TunePlayer = require('engine/audio/myplayer');
 
@@ -78,16 +77,6 @@ module.exports = function() {
         ractive.set("showingTranspositionDropdown", false);
         ractive.set("selectedTransposition", "No Transposition");
         ractive.set("currentTranspositionValue", 0);
-
-       /*var divvy = new Divvy({
-            el: document.getElementById("editor-section"), // this is a reference to the container DOM element
-            columns: [     // or you can have rows instead
-                'left',
-                'right'
-            ]
-        });*/
-
-        
 
         ractive.on({
             "abc_error": (data) => {
@@ -221,16 +210,13 @@ module.exports = function() {
                 .reduce(layout, 0);
 
 
-            renderer(done);
+            var vdom = renderer(done);
+            ABCRenderToDOM(vdom);
 
             processedTune = done;
 
-            console.log("done", done);
             if(window)ractive.set("lastRenderTime", window.performance.now() - ractive.get('timeAtStart'));
         });     
-
-        // var oldStart = -1,
-        //     oldStop = -1;
 
         if (parameters.tuneid) {
             fetch("/api/tune/" + parameters.tuneid)
@@ -239,7 +225,7 @@ module.exports = function() {
             }).then(function(res) {
                 ractive.get('editor').setValue(res.raw);
             }).catch(function(ex) {
-                console.log('parsing failed', ex)
+                console.error('parsing failed', ex)
             });
         }
 

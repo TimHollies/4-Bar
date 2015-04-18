@@ -1,11 +1,9 @@
  var
-     enums = require('./types'),
      JsDiff = require('diff'),
      LineCollection = require('./types/LineCollection').LineCollection;
 
 
 var Diff = function(change) {
-    console.log(change.newValue);
 
      var diff = JsDiff.diffLines(change.oldValue, change.newValue);
 

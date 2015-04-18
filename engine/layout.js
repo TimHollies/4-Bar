@@ -1,10 +1,9 @@
 var 
-enums = require('./types'),
-data_tables = require('./data_tables'),
-_ = require('lodash'),
-dispatcher = require('./dispatcher'),
-AbcBeam = require('./types/AbcBeam'),
-springs = require('./springs');
+    data_tables = require('./data_tables'),
+    _ = require('lodash'),
+    dispatcher = require('./dispatcher'),
+    AbcBeam = require('./types/AbcBeam'),
+    springs = require('./springs');
 
 var ABCLayout = function (dispatcher) {
 
@@ -133,7 +132,6 @@ var ABCLayout = function (dispatcher) {
 
         key: function(data) {
             tuneSettings.key = data;
-            console.log("CHANGED KEY");
             forceFullRedraw = true;
             dispatcher.fire("change_key", data);
         },

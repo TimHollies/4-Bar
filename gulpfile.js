@@ -21,7 +21,7 @@ var livereload = require('gulp-livereload');
 
 var aliasify = require('aliasify').configure({
     aliases: {
-        "scripts": ".\\engine\\scripts",
+        "scripts": ".\\scripts",
         "engine": ".\\engine",
         "app": ".\\app",
         "vendor": ".\\engine\\vendor.js",

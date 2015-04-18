@@ -1,11 +1,6 @@
 'use strict';
-console.log("NOT READY");
 
 var consoleKeeper = console;
-
-//require.ensure('vendor', function() {
-
-console.log("ALMOST");
 
 var
     Ractive = require('vendor').Ractive,
@@ -16,11 +11,7 @@ var
 
 console = consoleKeeper;
 
-console.log("ALMOST");
-
 domready(() => {
-
-    console.log("READY");
 
     var components = {};
 
@@ -85,7 +76,7 @@ domready(() => {
         page(urlToNavigateTo);
     });
 
-    //forcs the request to go to the server rather than the client
+    //forces the request to go to the server rather than the client
     page.serverMap = function(url) {
         page(url, function(context) {
             window.location = url;
@@ -98,7 +89,6 @@ domready(() => {
 
     page('*', function(context) {
         console.log(context)
-        //route(context.pathname.substr(1), context);
         ractive.set("url", context);
     });
 

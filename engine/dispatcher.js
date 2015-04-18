@@ -9,10 +9,6 @@ var disconnectId = 0;
 
 function send(eventName, data) {
 
-    if (!subscribers.has(eventName)) {
-    	//console.log("No subscribers for " + eventName, data);
-    }
-
     _(subscribers.get(eventName)).forEach(function(sub) {
         sub.f(data);
     });

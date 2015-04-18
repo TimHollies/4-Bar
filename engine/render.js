@@ -1,23 +1,17 @@
+
 'use strict';
 
 var s = require('virtual-dom/virtual-hyperscript/svg'),
     h = require('virtual-dom/h'),
-    createElement = require('virtual-dom/create-element'),
-    draw = require('./rendering/stave_symbols.js'),
-    diff = require('virtual-dom/diff'),
-    patch = require('virtual-dom/patch'),
-    stringify = require('virtual-dom-stringify');
+    draw = require('./rendering/stave_symbols.js');
 
-var ABCRenderer = function (ractive, returnString) {
-
-    if(returnString === undefined)returnString = false;
+var ABCRenderer = function (ractive) {
 
     var
     previousNodeTree = null,
     settings = null,
     nextLineStartsWithEnding = false,
-    cachedLines = [],
-    renderElement = null;
+    cachedLines = [];
 
     var renderLine = function (line, drawnLineIndex, lineIndex) {        
 
@@ -120,7 +114,9 @@ var ABCRenderer = function (ractive, returnString) {
             h("div.tune-body", [doc])
             ]);
 
-        if(!returnString) {
+        return topDiv;
+
+       /* if(!returnString) {
 
             renderElement = createElement(topDiv);
             document.getElementById("canvas").innerHTML = '';
@@ -138,7 +134,7 @@ var ABCRenderer = function (ractive, returnString) {
             previousNodeTree = topDiv;    
         } else {
             return stringify(topDiv);
-        }
+        }*/
     };
 };
 
