@@ -32,6 +32,10 @@ domready(() => {
         components: components
     });
 
+    window.addEventListener("popstate", function() {
+        console.log("CHANGE");
+    });
+
     //user stuff
     var loggedIn = false,
         userData = {};

@@ -205,9 +205,10 @@ html, body, .container, .page-view {
     flex: 3;
     display: flex;
     flex-direction: column;
-      height: 100%;
+    //  height: 100%;
     .CodeMirror {
         font-size: larger;
+        flex: 1;
     }
 }
 

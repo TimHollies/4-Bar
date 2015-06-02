@@ -3,6 +3,7 @@ node_modules
 
 #vagrant
 .vagrant
+
 .sass-cache
 
 #bower

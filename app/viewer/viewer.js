@@ -69,9 +69,10 @@ module.exports = function(r) {
                 ractive.set("playing", false);
             },    
             "navigate_back": function() {
-                window.history.back();
+                window.history.back();                
             },
             "edit_tune": () => { 
+                if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
                 ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get('tune')._id);
             },
             "toggle-stop-tune": () => {
@@ -140,10 +141,6 @@ module.exports = function(r) {
 
                 var vdom = renderer(done);
                 ABCRenderToDOM(vdom);
-                console.log("It WORKED!!", res);
-
-
-
             });
         }
 
@@ -151,22 +148,9 @@ module.exports = function(r) {
             ractive.fire("transpose_change", parseInt(parameters.transpose));
         }
 
-        window.getTune = () => {
-            var tune = doneThing;
-
-            var outTune = [];
-
-            tune.scoreLines.forEach((line) => {
-
-                line.symbols
-                .filter((symbol) => symbol.type === "note")
-                .forEach((note) => {
-                    outTune.push([note.pitch + ((note.octave - 4) * 12), note.noteLength * 16])
-                });
-            });
-
-            return outTune;
-        }
+        window.addEventListener("popstate", function() {
+            if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
+        });
     }
 
     var onRender = function() {

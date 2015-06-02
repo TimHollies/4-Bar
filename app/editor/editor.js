@@ -236,6 +236,10 @@ module.exports = function() {
         if(parameters.transpose) {
             ractive.fire("transpose_change", parseInt(parameters.transpose));
         }       
+
+        window.addEventListener("popstate", function() {
+            if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
+        });
     }
 
     var onRender = function() {

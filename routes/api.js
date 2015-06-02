@@ -31,8 +31,6 @@ router.get('/tunes', function(req, res) {
     if(req.query.disallowkeys !== undefined && req.query.disallowkeys.length > 0) {
         
         var diskeys = req.query.disallowkeys.split(",");
-        console.log("WOOP", diskeys);
-
         conditions['settings.key.note'] = { 
             "$nin": diskeys
         };

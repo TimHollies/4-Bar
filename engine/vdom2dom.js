@@ -7,14 +7,29 @@ var createElement = require('virtual-dom/create-element');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var renderElement = null;
-
+var lastVDOMTree = null;
+var lastRenderElement = null;
+ 
 var vDom2DOM = function(vDOMTree) {
 
 	var canvasElement = document.getElementById("canvas");
 
-	renderElement = createElement(vDOMTree);
-    canvasElement.innerHTML = '';
-    canvasElement.appendChild(renderElement);
+	
+
+	if(false) {
+		let diffed = diff(lastVDOMTree, vDOMTree);
+		let ro = patch(lastRenderElement, diffed);
+
+		console.log(diffed, ro);
+
+	} else {
+		canvasElement.innerHTML = "";
+		renderElement = createElement(vDOMTree);
+		lastRenderElement = renderElement;
+		canvasElement.appendChild(renderElement);
+	}
+
+	lastVDOMTree = vDOMTree; 
 
     var svgs = document.getElementById("tuneSVGCanvas");    
 

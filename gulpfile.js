@@ -44,7 +44,7 @@ gulp.task('generate', function() {
 
     var routeConfig = require('./app/routes');
     _.forOwn(routeConfig, function(val, key) {
-        str += `{{#if url.pathname==="${key}"}}<${val.name}></${val.name}>{{/if}}\n`
+        str += "{{#if url.pathname==='" + key + "'}}<" + val.name + "></" + val.name + ">{{/if}}\n"
     });
  
     return file('index.gen.html', str, { src: true }).pipe(gulp.dest('app'));
