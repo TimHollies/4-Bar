@@ -20,5 +20,5 @@ module.exports = {
     sizzle: require('sizzle'),
     domready: require('domready'),
     sortable: require('sortablejs'),
-    drop: require('node_modules/drop/drop')
+    //drop: require('node_modules/drop/drop')
 }; 

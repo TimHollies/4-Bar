@@ -1,19 +1,11 @@
 <section class="page-view" id="view-editor">
-    <div class="header row" intro='fade' on-mouseup="app_mouseup">
-
-        <div class="back-button" on-click="navigate_back">
-            <p><i class="fa fa-chevron-left"></i></p>
-        </div>
-        <div class="central-menu">
-            <h3 class="tune-title">{{title}}</h3>
-            <br />
-            <div id="menuButtons"></div>
-        </div>
-        {{>userbox}}
-        {{#if !loggedIn}}
-        <!--<p>Your tune cannot be saved unless you are logged in</p>-->
-        {{/if}}
-    </div>
+    <!--<div class="header row" intro='fade' on-mouseup="app_mouseup">-->
+    <!--    <div class="central-menu">-->
+    <!--        <h3 class="tune-title">{{title}}</h3>-->
+    <!--        <br />-->
+    <!--        <div id="menuButtons"></div>-->
+    <!--    </div>-->
+    <!--</div>-->
     <div class="row toolbar" intro='fade'>
         <div class="toolbar-item">
 
@@ -41,6 +33,7 @@
 
         </div>
         <div class="toolbar-item">
+            <input type="number" style="width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;" class="playback-control" value="{{playTempo}}" disabled="{{playing}}" min="30" max="240"> <small>bpm</small>   
             {{#if playing}}
                 <i on-click="toggle-stop-tune" class="fa fa-stop" style="cursor: pointer"></i>
             {{else}}

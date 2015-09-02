@@ -17,8 +17,8 @@ switch (os.hostname()) {
         break;
     default:
         module.exports = {
-            url: "198.91.86.144",
-            port: "3000"
+            url: process.env.IP,
+            port: process.env.port
         };
         //throw new Error("Unknown host");
 }

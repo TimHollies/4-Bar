@@ -3,11 +3,11 @@
 
 var consoleKeeper = console;
 
-var Ractive = require('./../engine/vendor.js').Ractive,
+var Ractive = require('./.././engine/vendor.js').Ractive,
     routingConfig = require("./routes"),
-    page = require('./../engine/vendor.js').page,
-    _ = require('./../engine/vendor.js').lodash,
-    domready = require('./../engine/vendor.js').domready;
+    page = require('./.././engine/vendor.js').page,
+    _ = require('./.././engine/vendor.js').lodash,
+    domready = require('./.././engine/vendor.js').domready;
 
 console = consoleKeeper;
 
@@ -20,13 +20,13 @@ domready(function () {
 
     var ractive = new Ractive({
         el: "#stage",
-        template: require('./index.gen.html'),
+        template: require('./.././app/index.gen.html'),
         data: {
             url: ""
         },
         lazy: false,
         partials: {
-            userbox: require('./partials/userbox.html')
+            userbox: require('./.././app/partials/userbox.html')
         },
         components: components
     });
@@ -38,38 +38,6 @@ domready(function () {
     //user stuff
     var loggedIn = false,
         userData = {};
-
-    if (loggedIn) {
-        ractive.set("loggedIn", true);
-        ractive.set("user", userData);
-    } else {
-        ractive.set("loggedIn", false);
-
-
-        fetch("/api/user").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            if (data.failed === true) {
-                loggedIn = false;
-                return;
-            }
-
-
-            console.log("CURRENT USER", data);
-
-            ractive.set("loggedIn", true);
-            loggedIn = true;
-
-            ractive.set("user", data);
-            userData = data;
-        })["catch"](function (ex) {
-            console.log("parsing failed", ex);
-        });
-    }
-
-    ractive.on("*.log_in", function () {
-        page("/auth/google");
-    });
 
     ractive.on("*.navigate_to_page", function (urlToNavigateTo) {
         page(urlToNavigateTo);
@@ -94,52 +62,13 @@ domready(function () {
     page.start();
 });
 
-},{"./../engine/vendor.js":41,"./index.gen.html":6,"./partials/userbox.html":7,"./routes":8}],2:[function(require,module,exports){
+},{"./.././app/index.gen.html":4,"./.././app/partials/userbox.html":5,"./.././engine/vendor.js":28,"./routes":6}],2:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
       a:{ "class":"page-view",
         id:"view-editor" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row" },
-          t1:"fade",
-          v:{ mouseup:"app_mouseup" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"back-button" },
-              v:{ click:"navigate_back" },
-              f:[ { t:7,
-                  e:"p",
-                  f:[ { t:7,
-                      e:"i",
-                      a:{ "class":"fa fa-chevron-left" } } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"h3",
-                  a:{ "class":"tune-title" },
-                  f:[ { t:2,
-                      r:"title" } ] },
-                " ",
-                { t:7,
-                  e:"br" },
-                " ",
-                { t:7,
-                  e:"div",
-                  a:{ id:"menuButtons" } } ] },
-            " ",
-            { t:8,
-              r:"userbox" },
-            " ",
-            { t:4,
-              n:50,
-              x:{ r:[ "loggedIn" ],
-                s:"!_0" },
-              f:[  ] } ] },
-        " ",
+      f:[ " ",
         { t:7,
           e:"div",
           a:{ "class":"row toolbar" },
@@ -375,7 +304,23 @@ module.exports = { v:1,
             { t:7,
               e:"div",
               a:{ "class":"toolbar-item" },
-              f:[ { t:4,
+              f:[ { t:7,
+                  e:"input",
+                  a:{ type:"number",
+                    style:"width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;",
+                    "class":"playback-control",
+                    value:[ { t:2,
+                        r:"playTempo" } ],
+                    disabled:[ { t:2,
+                        r:"playing" } ],
+                    min:"30",
+                    max:"240" } },
+                " ",
+                { t:7,
+                  e:"small",
+                  f:[ "bpm" ] },
+                " ",
+                { t:4,
                   n:50,
                   r:"playing",
                   f:[ { t:7,
@@ -514,31 +459,31 @@ module.exports = { v:1,
 },{}],3:[function(require,module,exports){
 "use strict";
 
-var _ = require('./../../engine/vendor.js').lodash,
-    engine = require('./../../engine/engine'),
+var _ = require('./../.././engine/vendor.js').lodash,
+    engine = require('./../.././engine/engine'),
     ABCParser = engine.parser,
     diff = engine.diff,
 
 //dispatcher = engine.dispatcher,
 ABCLayout = engine.layout,
     ABCRenderer = engine.render,
-    ABCRenderToDOM = require('./../../engine/vdom2dom'),
-    AudioRenderer = require('./../../engine/audio_render'),
-    AudioEngine = require('./../../engine/audio/audio'),
-    customElements = require('./../../engine/rendering/custom_elements'),
-    CodeMirrorABCMode = require('./../../scripts/abc_mode'),
-    CodeMirror = require('./../../engine/vendor.js').codeMirror,
-    CodeMirrorLint = require('./../../engine/vendor.js').codeMirrorLint,
-    siz = require('./../../engine/vendor.js').sizzle,
-    queryString = require('./../../engine/vendor.js').queryString,
-    FileSaver = require('./../../engine/vendor.js').filesaver,
-    toastr = require('./../../engine/vendor.js').toastr,
-    Combokeys = require('./../../engine/vendor.js').combokeys,
-    AbcLine = require('./../../engine/types/LineCollection').AbcLine,
-    TunePlayer = require('./../../engine/audio/myplayer');
+    ABCRenderToDOM = require('./../.././engine/vdom2dom'),
+    AudioRenderer = require('./../.././engine/audio_render'),
+    AudioEngine = require('./../.././engine/audio/audio'),
+    customElements = require('./../.././engine/rendering/custom_elements'),
+    CodeMirrorABCMode = require('./../.././scripts/abc_mode'),
+    CodeMirror = require('./../.././engine/vendor.js').codeMirror,
+    CodeMirrorLint = require('./../.././engine/vendor.js').codeMirrorLint,
+    siz = require('./../.././engine/vendor.js').sizzle,
+    queryString = require('./../.././engine/vendor.js').queryString,
+    FileSaver = require('./../.././engine/vendor.js').filesaver,
+    toastr = require('./../.././engine/vendor.js').toastr,
+    Combokeys = require('./../.././engine/vendor.js').combokeys,
+    AbcLine = require('./../.././engine/types/LineCollection').AbcLine,
+    TunePlayer = require('./../.././engine/audio/myplayer');
 
-require('./../../scripts/transitions/ractive.transitions.fade');
-require('./../../scripts/transitions/ractive.transitions.fly');
+require('./../.././scripts/transitions/ractive.transitions.fade');
+require('./../.././scripts/transitions/ractive.transitions.fly');
 
 
 var emptyTuneName = "Untitled Tune";
@@ -564,6 +509,9 @@ var template = require("./editor.html");
 
 module.exports = function () {
     var onInit = function () {
+        var _this = this;
+
+
         var ractive = this;
 
         var parser = ABCParser(ractive, 0),
@@ -584,6 +532,7 @@ module.exports = function () {
         ractive.set("showingTranspositionDropdown", false);
         ractive.set("selectedTransposition", "No Transposition");
         ractive.set("currentTranspositionValue", 0);
+        ractive.set("playTempo", 120);
 
         ractive.on({
             abc_error: function (data) {
@@ -634,7 +583,7 @@ module.exports = function () {
             },
             "toggle-play-tune": function () {
                 //AudioEngine.play(AudioRenderer(processedTune));
-                tunePlayer.playTune(AudioRenderer(processedTune));
+                tunePlayer.playTune(AudioRenderer(processedTune), _this.get("playTempo"));
                 ractive.set("playing", true);
             },
             "toggle-stop-tune": function () {
@@ -829,803 +778,11 @@ module.exports = function () {
     return ractive;
 };
 
-},{"./../../engine/audio/audio":20,"./../../engine/audio/myplayer":22,"./../../engine/audio_render":23,"./../../engine/engine":27,"./../../engine/rendering/custom_elements":32,"./../../engine/types/LineCollection":39,"./../../engine/vdom2dom":40,"./../../engine/vendor.js":41,"./../../scripts/abc_mode":140,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./editor.html":2}],4:[function(require,module,exports){
+},{"./../.././engine/audio/audio":7,"./../.././engine/audio/myplayer":9,"./../.././engine/audio_render":10,"./../.././engine/engine":14,"./../.././engine/rendering/custom_elements":19,"./../.././engine/types/LineCollection":26,"./../.././engine/vdom2dom":27,"./../.././engine/vendor.js":28,"./../.././scripts/abc_mode":125,"./../.././scripts/transitions/ractive.transitions.fade":127,"./../.././scripts/transitions/ractive.transitions.fly":128,"./editor.html":2}],4:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
-      e:"section",
-      a:{ "class":"page-view",
-        id:"view-home" },
-      v:{ click:"page-clicked" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row coloured" },
-          t1:"fade",
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"app-name" },
-                  f:[ { t:7,
-                      e:"img",
-                      a:{ src:"/images/logo.png",
-                        "class":"app-logo",
-                        height:"32px" } } ] } ] },
-            " ",
-            { t:8,
-              r:"userbox" } ] },
-        " ",
-        { t:7,
-          e:"div",
-          a:{ "class":"row main-row" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"column quarter right-divide" },
-              t1:{ n:"fade",
-                a:[ { delay:100 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"tile-button-container" },
-                  f:[ { t:7,
-                      e:"h3",
-                      f:[ "Welcome to 4|Bar" ] },
-                    " ",
-                    { t:7,
-                      e:"p",
-                      f:[ "Choose a tune from the right or one of the options below." ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tile-button" },
-                      v:{ click:"new_tune" },
-                      f:[ { t:7,
-                          e:"h4",
-                          f:[ "+ New Tune" ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tile-button" },
-                      v:{ click:"view_tutorial" },
-                      f:[ { t:7,
-                          e:"h4",
-                          f:[ { t:7,
-                              e:"i",
-                              a:{ "class":"fa fa-book" } },
-                            " Tutorial" ] } ] } ] },
-                " ",
-                { t:7,
-                  e:"div",
-                  a:{ "class":"text-area-padding" },
-                  f:[ { t:7,
-                      e:"h3",
-                      f:[ "My Tunes" ] },
-                    " ",
-                    { t:4,
-                      n:50,
-                      x:{ r:[ "loggedIn" ],
-                        s:"!_0" },
-                      f:[ { t:7,
-                          e:"p",
-                          f:[ "Login to use these features!" ] } ] },
-                    { t:4,
-                      n:51,
-                      f:[ { t:4,
-                          n:52,
-                          r:"myTunebookNames",
-                          f:[ { t:7,
-                              e:"div",
-                              v:{ click:"view_tunebook" },
-                              a:{ tunebookId:[ { t:2,
-                                    r:"_id" } ],
-                                "class":"tile-button" },
-                              f:[ { t:7,
-                                  e:"h4",
-                                  f:[ { t:2,
-                                      r:"name" } ] } ] } ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"tile-button" },
-                          v:{ click:"view_new_tunebook" },
-                          f:[ { t:7,
-                              e:"h4",
-                              f:[ { t:7,
-                                  e:"i",
-                                  a:{ "class":"fa fa-plus" } },
-                                " New Tunebook" ] } ] } ],
-                      x:{ r:[ "loggedIn" ],
-                        s:"!_0" } } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"column three-quarters",
-                id:"task-pane" },
-              t1:{ n:"fade",
-                a:[ { delay:200 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"scroll-list" },
-                  f:[ { t:7,
-                      e:"div",
-                      a:{ id:"search-box" },
-                      f:[ { t:7,
-                          e:"i",
-                          a:{ "class":"fa fa-search" } },
-                        " ",
-                        { t:7,
-                          e:"input",
-                          v:{ keyup:"updated_search" },
-                          a:{ type:"text",
-                            placeholder:"Type here to search for a tune..",
-                            value:[ { t:2,
-                                r:"search_filter" } ] } } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"search-options-bar" },
-                      f:[ { t:7,
-                          e:"div",
-                          a:{ "class":"search-option" },
-                          f:[ { t:7,
-                              e:"label",
-                              f:[ "Key" ] },
-                            " ",
-                            { t:7,
-                              e:"div",
-                              a:{ "class":"key-selector" },
-                              f:[ { t:7,
-                                  e:"div",
-                                  v:{ click:"key-selector-value-clicked" },
-                                  a:{ "class":[ "key-selector-value ",
-                                      { t:4,
-                                        n:50,
-                                        r:"showingKeySelectorPopup",
-                                        f:[ "open" ] } ] },
-                                  f:[ "All ",
-                                    { t:7,
-                                      e:"i",
-                                      a:{ "class":"fa fa-arrow-down" } } ] },
-                                " ",
-                                { t:4,
-                                  n:50,
-                                  r:"showingKeySelectorPopup",
-                                  f:[ { t:7,
-                                      e:"div",
-                                      a:{ "class":"key-selector-popup" },
-                                      v:{ click:"key-popup-clicked" },
-                                      f:[ { t:7,
-                                          e:"div",
-                                          a:{ "class":"key-selector-popup-top" },
-                                          f:[ { t:7,
-                                              e:"div",
-                                              a:{ "class":"key-selector-popup-top-left" },
-                                              f:[ { t:7,
-                                                  e:"table",
-                                                  a:{ "class":"key-letter-selection-table" },
-                                                  f:[ { t:7,
-                                                      e:"tr",
-                                                      f:[ { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"A",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"A\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "A" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"A#",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"A#\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "A#" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"B",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"B\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "B" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"C",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"C\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "C" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"C#",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"C#\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "C#" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"D",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"D\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "D" ] } ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"tr",
-                                                      f:[ { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"D#",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"D#\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "D#" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"E",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"E\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "E" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"F",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"F\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "F" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"F#",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"F#\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "F#" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"G",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"G\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "G" ] },
-                                                        " ",
-                                                        { t:7,
-                                                          e:"td",
-                                                          v:{ click:"toggle-note" },
-                                                          a:{ note:"G#",
-                                                            "class":[ { t:4,
-                                                                n:50,
-                                                                rx:{ r:"keynote",
-                                                                  m:[ { r:[  ],
-                                                                      s:"\"G#\"" } ] },
-                                                                f:[ "on" ] } ] },
-                                                          f:[ "G#" ] } ] } ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"div",
-                                                  a:{ "class":"span-button-container" },
-                                                  f:[ { t:7,
-                                                      e:"span",
-                                                      v:{ click:"clear-all-keys" },
-                                                      f:[ "Clear All" ] },
-                                                    { t:7,
-                                                      e:"span",
-                                                      v:{ click:"select-all-keys" },
-                                                      f:[ "Select All" ] } ] } ] },
-                                            " ",
-                                            { t:7,
-                                              e:"div",
-                                              a:{ "class":"key-selector-popup-top-right" },
-                                              f:[ { t:7,
-                                                  e:"p",
-                                                  f:[ "Include equivilent keys" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"input",
-                                                  a:{ type:"checkbox",
-                                                    value:"Bike" } } ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"table",
-                                          a:{ "class":"key-mode-selection-table" },
-                                          f:[ { t:7,
-                                              e:"tr",
-                                              f:[ { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Major",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Major\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Major" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Dorian",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Dorian\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Dorian" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Phrygian",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Phrygian\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Phrygian" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Lydian",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Lydian\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Lydian" ] } ] },
-                                            " ",
-                                            { t:7,
-                                              e:"tr",
-                                              f:[ { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Mixolydian",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Mixolydian\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Mixolydian" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Minor",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Minor\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Minor" ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"td",
-                                                  v:{ click:"toggle-mode" },
-                                                  a:{ mode:"Locrian",
-                                                    "class":[ { t:4,
-                                                        n:50,
-                                                        rx:{ r:"keymode",
-                                                          m:[ { r:[  ],
-                                                              s:"\"Locrian\"" } ] },
-                                                        f:[ "on" ] } ] },
-                                                  f:[ "Locrian" ] } ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"div",
-                                          a:{ "class":"span-button-container" },
-                                          f:[ { t:7,
-                                              e:"span",
-                                              v:{ click:"clear-all-modes" },
-                                              f:[ "Clear All" ] },
-                                            { t:7,
-                                              e:"span",
-                                              v:{ click:"select-all-modes" },
-                                              f:[ "Select All" ] } ] } ] } ] } ] } ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"search-option" },
-                          f:[ { t:7,
-                              e:"label",
-                              f:[ "Rhythm" ] },
-                            " ",
-                            { t:7,
-                              e:"select",
-                              f:[ { t:7,
-                                  e:"option",
-                                  f:[ "All" ] },
-                                " ",
-                                { t:4,
-                                  n:52,
-                                  r:"rhythm",
-                                  f:[ { t:7,
-                                      e:"option",
-                                      f:[ { t:2,
-                                          r:"." } ] } ] } ] } ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"search-option" },
-                          f:[ { t:7,
-                              e:"label",
-                              f:[ "Type" ] },
-                            " ",
-                            { t:7,
-                              e:"select",
-                              f:[ { t:7,
-                                  e:"option",
-                                  f:[ "All" ] } ] } ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"search-option" },
-                          f:[ { t:7,
-                              e:"label",
-                              f:[ "Time Signature" ] },
-                            " ",
-                            { t:7,
-                              e:"select",
-                              f:[ { t:7,
-                                  e:"option",
-                                  f:[ "All" ] } ] } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tune-card-list" },
-                      f:[ { t:4,
-                          n:52,
-                          r:"publicTuneNames",
-                          f:[ { t:7,
-                              e:"div",
-                              v:{ click:"view_tune" },
-                              a:{ "class":"card-list",
-                                "tune-id":[ { t:2,
-                                    r:"_id" } ] },
-                              f:[ { t:7,
-                                  e:"div",
-                                  a:{ "class":"tune-card card clearfix",
-                                    title:[ { t:2,
-                                        r:"name" } ] },
-                                  f:[ { t:7,
-                                      e:"div",
-                                      a:{ "class":"tune-card-left" },
-                                      f:[ { t:7,
-                                          e:"h3",
-                                          f:[ { t:7,
-                                              e:"span",
-                                              a:{ "class":"tune-key" },
-                                              f:[ { t:2,
-                                                  r:"settings.key.note" },
-                                                { t:7,
-                                                  e:"small",
-                                                  f:[ { t:2,
-                                                      r:"settings.key.mode" } ] } ] },
-                                            { t:7,
-                                              e:"span",
-                                              a:{ "class":"tune-title" },
-                                              f:[ { t:2,
-                                                  r:"name" } ] } ] } ] },
-                                    " ",
-                                    { t:7,
-                                      e:"div",
-                                      a:{ "class":"tune-card-right" },
-                                      f:[ { t:7,
-                                          e:"div",
-                                          a:{ "class":"tune-rhythm" },
-                                          f:[ { t:2,
-                                              r:"settings.rhythm" } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] }
+      e:"EditorPage" } ] }
 },{}],5:[function(require,module,exports){
-"use strict";
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    toastr = require('./../../engine/vendor.js').toastr,
-    ractive = require('./../../engine/vendor.js').ractive,
-    _ = require("lodash");
-
-
-var template = require("./home.html");
-
-
-module.exports = function (ractive, context, page, urlcontext, user) {
-    var onInit = function () {
-        var ractive = this;
-
-        ractive.set("showingKeySelectorPopup", false);
-
-        ractive.on({
-            new_tune: function (event) {
-                ractive.fire("navigate_to_page", "/editor");
-            },
-            view_tutorial: function (event) {
-                ractive.fire("navigate_to_page", "/tutorial");
-            },
-            view_new_tunebook: function () {
-                ractive.fire("navigate_to_page", "/tunebook");
-            },
-            updated_search: function (event, data) {
-                console.log("EVENT", event.context.search_filter);
-
-                var keynoteData = ractive.get("keynote");
-                var keynoteFilter = "disallowkeys=";
-
-                _.forOwn(keynoteData, function (val, key) {
-                    if (!val) {
-                        if (key.length === 1) {
-                            keynoteFilter += key[0] + ",";
-                        } else {
-                            keynoteFilter += key[0] + "^,";
-                        }
-                    }
-                });
-
-                fetch("/api/tunes?name=" + event.context.search_filter + "&" + keynoteFilter).then(function (response) {
-                    return response.json();
-                }).then(function (data) {
-                    console.log("DONE", data);
-                    ractive.set("publicTuneNames", data);
-                    ractive.update("publicTuneNames");
-                })["catch"](function (ex) {
-                    console.log("parsing failed", ex);
-                });
-            },
-            view_tunebook: function (event) {
-                ractive.fire("navigate_to_page", "/tunebook/view?tunebook=" + event.node.attributes.tunebookId.value);
-            },
-            view_tune: function (event) {
-                var tuneId = event.node.attributes["tune-id"].value;
-                console.log(tuneId);
-                ractive.fire("navigate_to_page", "/viewer?tuneid=" + tuneId);
-            }
-        });
-
-        ractive.on("toggle-note", function (event) {
-            var note = event.node.attributes.note.value;
-            ractive.set("keynote." + note, !ractive.get("keynote." + note));
-            ractive.fire("updated_search", event);
-        });
-
-        ractive.on("toggle-mode", function (event) {
-            var mode = event.node.attributes.mode.value;
-            ractive.set("keymode." + mode, !ractive.get("keymode." + mode));
-        });
-
-        ractive.on({
-            "clear-all-keys": function (event) {
-                ractive.set("keynote", {
-                    A: false,
-                    "A#": false,
-                    B: false,
-                    C: false,
-                    "C#": false,
-                    D: false,
-                    "D#": false,
-                    E: false,
-                    F: false,
-                    "F#": false,
-                    G: false,
-                    "G#": false
-                });
-                ractive.fire("updated_search", event);
-            },
-            "select-all-keys": function (event) {
-                ractive.set("keynote", {
-                    A: true,
-                    "A#": true,
-                    B: true,
-                    C: true,
-                    "C#": true,
-                    D: true,
-                    "D#": true,
-                    E: true,
-                    F: true,
-                    "F#": true,
-                    G: true,
-                    "G#": true
-                });
-                ractive.fire("updated_search", event);
-            },
-            "clear-all-modes": function () {
-                ractive.set("keymode", {
-                    Major: false,
-                    Dorian: false,
-                    Phrygian: false,
-                    Lydian: false,
-                    Mixolydian: false,
-                    Minor: false,
-                    Locrian: false
-                });
-            },
-            "select-all-modes": function () {
-                ractive.set("keymode", {
-                    Major: true,
-                    Dorian: true,
-                    Phrygian: true,
-                    Lydian: true,
-                    Mixolydian: true,
-                    Minor: true,
-                    Locrian: true
-                });
-            },
-            "key-selector-value-clicked": function () {
-                ractive.set("showingKeySelectorPopup", !ractive.get("showingKeySelectorPopup"));
-                return false;
-            },
-            "page-clicked": function () {
-                if (ractive.get("showingKeySelectorPopup")) ractive.set("showingKeySelectorPopup", false);
-            },
-            "key-popup-clicked": function () {
-                console.log("meh");
-                if (ractive.get("showingKeySelectorPopup")) return false;
-            }
-        });
-
-        //ractive.on("init", function() {
-        fetch("/api/tunes").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            ractive.set("publicTuneNames", data);
-        })["catch"](function (ex) {
-            console.log("parsing failed", ex);
-        });
-
-
-        fetch("/api/tunebooks").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            ractive.set("myTunebookNames", data);
-        })["catch"](function (ex) {
-            console.log("parsing failed", ex);
-        });
-
-        //});
-
-
-
-        ractive.set("keynote", {
-            A: true,
-            "A#": true,
-            B: true,
-            C: true,
-            "C#": true,
-            D: true,
-            "D#": true,
-            E: true,
-            F: true,
-            "F#": true,
-            G: true,
-            "G#": true
-        });
-
-        ractive.set("keymode", {
-            Major: true,
-            Dorian: true,
-            Phrygian: true,
-            Lydian: true,
-            Mixolydian: true,
-            Minor: true,
-            Locrian: true
-        });
-
-        ractive.set("rhythm", ["Jig", "Reel"]);
-    };
-
-
-    var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit
-    });
-
-    return ractive;
-};
-
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./home.html":4,"lodash":88}],6:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/\"" },
-      f:[ { t:7,
-          e:"HomePage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/editor\"" },
-      f:[ { t:7,
-          e:"EditorPage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/user\"" },
-      f:[ { t:7,
-          e:"UserPage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/viewer\"" },
-      f:[ { t:7,
-          e:"ViewerPage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/tutorial\"" },
-      f:[ { t:7,
-          e:"TutorialPage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/tunebook\"" },
-      f:[ { t:7,
-          e:"TunebookPage" } ] },
-    " ",
-    { t:4,
-      n:50,
-      x:{ r:[ "url.pathname" ],
-        s:"_0===\"/tunebook/view\"" },
-      f:[ { t:7,
-          e:"TunebookViewerPage" } ] } ] }
-},{}],7:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"div",
@@ -1679,1571 +836,19 @@ module.exports = { v:1,
                             r:"user.picture" } ] } } ] } ] } ],
           x:{ r:[ "loggedIn" ],
             s:"_0===false" } } ] } ] }
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 var inBrowser = typeof window !== "undefined";
 
 module.exports = {
     "/": {
-        name: "HomePage",
-        model: inBrowser ? require('./home/home') : null
-    },
-    "/editor": {
         name: "EditorPage",
-        model: inBrowser ? require('./editor/editor') : null
-    },
-    "/user": {
-        name: "UserPage",
-        model: inBrowser ? require('./user/user') : null
-    },
-    "/viewer": {
-        name: "ViewerPage",
-        model: inBrowser ? require('./viewer/viewer') : null
-    },
-    "/tutorial": {
-        name: "TutorialPage",
-        model: inBrowser ? require('./tutorial/tutorial') : null
-    },
-    "/tunebook": {
-        name: "TunebookPage",
-        model: inBrowser ? require('./tunebook/tunebook_edit') : null
-    },
-    "/tunebook/view": {
-        name: "TunebookViewerPage",
-        model: inBrowser ? require('./tunebook/tunebook_view') : null
+        model: inBrowser ? require('./.././app/editor/editor') : null
     }
 };
 
-},{"./editor/editor":3,"./home/home":5,"./tunebook/tunebook_edit":10,"./tunebook/tunebook_view":12,"./tutorial/tutorial":16,"./user/user":17,"./viewer/viewer":19}],9:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:7,
-      e:"section",
-      a:{ "class":"page-view",
-        id:"view-tunebook" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row coloured" },
-          t1:"fade",
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"app-name" },
-                  f:[ { t:7,
-                      e:"img",
-                      a:{ src:"/images/logo.png",
-                        "class":"app-logo",
-                        height:"32px" },
-                      v:{ click:"navigate_back" } } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"page-title" },
-              f:[ { t:7,
-                  e:"h1",
-                  f:[ "Create Tunebook" ] } ] },
-            " ",
-            { t:8,
-              r:"userbox" } ] },
-        " ",
-        { t:7,
-          e:"div",
-          a:{ "class":"row editor" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"column half flex-column card-list" },
-              t1:{ n:"fade",
-                a:[ { delay:100 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ id:"search-box" },
-                  f:[ { t:7,
-                      e:"i",
-                      a:{ "class":"fa fa-search" } },
-                    " ",
-                    { t:7,
-                      e:"input",
-                      v:{ keyup:"updated_search" },
-                      a:{ type:"text",
-                        placeholder:"Type here to search for a tune..",
-                        value:[ { t:2,
-                            r:"search_filter" } ] } } ] },
-                " ",
-                { t:7,
-                  e:"div",
-                  a:{ "class":"search-options-bar" },
-                  f:[ { t:7,
-                      e:"div",
-                      a:{ "class":"search-option" },
-                      f:[ { t:7,
-                          e:"label",
-                          f:[ "Key" ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"key-selector" },
-                          f:[ { t:7,
-                              e:"div",
-                              v:{ click:"key-selector-value-clicked" },
-                              a:{ "class":[ "key-selector-value ",
-                                  { t:4,
-                                    n:50,
-                                    r:"showingKeySelectorPopup",
-                                    f:[ "open" ] } ] },
-                              f:[ "All ",
-                                { t:7,
-                                  e:"i",
-                                  a:{ "class":"fa fa-arrow-down" } } ] },
-                            " ",
-                            { t:4,
-                              n:50,
-                              r:"showingKeySelectorPopup",
-                              f:[ { t:7,
-                                  e:"div",
-                                  a:{ "class":"key-selector-popup" },
-                                  v:{ click:"key-popup-clicked" },
-                                  f:[ { t:7,
-                                      e:"div",
-                                      a:{ "class":"key-selector-popup-top" },
-                                      f:[ { t:7,
-                                          e:"div",
-                                          a:{ "class":"key-selector-popup-top-left" },
-                                          f:[ { t:7,
-                                              e:"table",
-                                              a:{ "class":"key-letter-selection-table" },
-                                              f:[ { t:7,
-                                                  e:"tr",
-                                                  f:[ { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"A",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"A\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "A" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"A#",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"A#\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "A#" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"B",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"B\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "B" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"C",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"C\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "C" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"C#",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"C#\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "C#" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"D",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"D\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "D" ] } ] },
-                                                " ",
-                                                { t:7,
-                                                  e:"tr",
-                                                  f:[ { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"D#",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"D#\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "D#" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"E",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"E\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "E" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"F",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"F\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "F" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"F#",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"F#\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "F#" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"G",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"G\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "G" ] },
-                                                    " ",
-                                                    { t:7,
-                                                      e:"td",
-                                                      v:{ click:"toggle-note" },
-                                                      a:{ note:"G#",
-                                                        "class":[ { t:4,
-                                                            n:50,
-                                                            rx:{ r:"keynote",
-                                                              m:[ { r:[  ],
-                                                                  s:"\"G#\"" } ] },
-                                                            f:[ "on" ] } ] },
-                                                      f:[ "G#" ] } ] } ] },
-                                            " ",
-                                            { t:7,
-                                              e:"div",
-                                              a:{ "class":"span-button-container" },
-                                              f:[ { t:7,
-                                                  e:"span",
-                                                  v:{ click:"clear-all-keys" },
-                                                  f:[ "Clear All" ] },
-                                                { t:7,
-                                                  e:"span",
-                                                  v:{ click:"select-all-keys" },
-                                                  f:[ "Select All" ] } ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"div",
-                                          a:{ "class":"key-selector-popup-top-right" },
-                                          f:[ { t:7,
-                                              e:"p",
-                                              f:[ "Include equivilent keys" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"input",
-                                              a:{ type:"checkbox",
-                                                value:"Bike" } } ] } ] },
-                                    " ",
-                                    { t:7,
-                                      e:"table",
-                                      a:{ "class":"key-mode-selection-table" },
-                                      f:[ { t:7,
-                                          e:"tr",
-                                          f:[ { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Major",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Major\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Major" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Dorian",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Dorian\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Dorian" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Phrygian",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Phrygian\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Phrygian" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Lydian",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Lydian\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Lydian" ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"tr",
-                                          f:[ { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Mixolydian",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Mixolydian\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Mixolydian" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Minor",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Minor\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Minor" ] },
-                                            " ",
-                                            { t:7,
-                                              e:"td",
-                                              v:{ click:"toggle-mode" },
-                                              a:{ mode:"Locrian",
-                                                "class":[ { t:4,
-                                                    n:50,
-                                                    rx:{ r:"keymode",
-                                                      m:[ { r:[  ],
-                                                          s:"\"Locrian\"" } ] },
-                                                    f:[ "on" ] } ] },
-                                              f:[ "Locrian" ] } ] } ] },
-                                    " ",
-                                    { t:7,
-                                      e:"div",
-                                      a:{ "class":"span-button-container" },
-                                      f:[ { t:7,
-                                          e:"span",
-                                          v:{ click:"clear-all-modes" },
-                                          f:[ "Clear All" ] },
-                                        { t:7,
-                                          e:"span",
-                                          v:{ click:"select-all-modes" },
-                                          f:[ "Select All" ] } ] } ] } ] } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"search-option" },
-                      f:[ { t:7,
-                          e:"label",
-                          f:[ "Rhythm" ] },
-                        " ",
-                        { t:7,
-                          e:"select",
-                          f:[ { t:7,
-                              e:"option",
-                              f:[ "All" ] },
-                            " ",
-                            { t:4,
-                              n:52,
-                              r:"rhythm",
-                              f:[ { t:7,
-                                  e:"option",
-                                  f:[ { t:2,
-                                      r:"." } ] } ] } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"search-option" },
-                      f:[ { t:7,
-                          e:"label",
-                          f:[ "Type" ] },
-                        " ",
-                        { t:7,
-                          e:"select",
-                          f:[ { t:7,
-                              e:"option",
-                              f:[ "All" ] } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"search-option" },
-                      f:[ { t:7,
-                          e:"label",
-                          f:[ "Time Signature" ] },
-                        " ",
-                        { t:7,
-                          e:"select",
-                          f:[ { t:7,
-                              e:"option",
-                              f:[ "All" ] } ] } ] } ] },
-                " ",
-                { t:7,
-                  e:"div",
-                  a:{ "class":"scrollable flex-column" },
-                  f:[ { t:7,
-                      e:"ul",
-                      a:{ "class":"item-list tune-list",
-                        id:"allTunes" },
-                      f:[ { t:4,
-                          n:52,
-                          r:"publicTuneNames",
-                          f:[ { t:7,
-                              e:"li",
-                              a:{ "class":"drag tune-list-item thin-card",
-                                tuneId:[ { t:2,
-                                    r:"_id" } ],
-                                tuneData:[ { t:2,
-                                    x:{ r:[ "." ],
-                                      s:"JSON.stringify(_0)" } } ] },
-                              f:[ { t:7,
-                                  e:"h3",
-                                  f:[ { t:2,
-                                      r:"settings.rhythm" },
-                                    " - ",
-                                    { t:2,
-                                      r:"settings.key.note" },
-                                    { t:2,
-                                      r:"settings.key.mode" },
-                                    " - ",
-                                    { t:2,
-                                      r:"name" } ] },
-                                " " ] } ] } ] } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"column half",
-                id:"tunebook-editor-pane" },
-              t1:{ n:"fade",
-                a:[ { delay:200 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"tunebook-card-full card flex-column" },
-                  f:[ { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-settings" },
-                      f:[ { t:7,
-                          e:"input",
-                          a:{ "class":"title-box",
-                            type:"text",
-                            value:[ { t:2,
-                                r:"tunebookName" } ] } } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-tunes flex-column" },
-                      f:[ { t:7,
-                          e:"ul",
-                          a:{ "class":"item-list tune-list",
-                            id:"selectedTunes" },
-                          f:[  ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-footer" },
-                      f:[ { t:7,
-                          e:"div",
-                          a:{ "class":"footer-stats" },
-                          f:[ { t:7,
-                              e:"span",
-                              f:[ { t:2,
-                                  r:"selectedTuneCount" },
-                                " tune",
-                                { t:4,
-                                  n:50,
-                                  x:{ r:[ "selectedTuneCount" ],
-                                    s:"_0!==1" },
-                                  f:[ "s" ] },
-                                " added" ] } ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"footer-buttons" },
-                          f:[ { t:7,
-                              e:"button",
-                              v:{ click:"save-tunebook" },
-                              f:[ "Save" ] } ] } ] } ] } ] } ] } ] } ] }
-},{}],10:[function(require,module,exports){
-"use strict";
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    Sortable = require('./../../engine/vendor.js').sortable,
-    siz = require('./../../engine/vendor.js').sizzle;
-
-
-var template = require("./tunebook_edit.html");
-
-module.exports = function () {
-    var onInit = function () {
-        var ractive = this;
-
-        var selectedTuneCount = 0;
-
-        var getSelectedTunes = function () {
-            return siz(".tunebook-tunes .tune-list-item").map(function (item) {
-                return JSON.parse(item.attributes.tuneData.value);
-            });
-        };
-
-        ractive.set("selectedTuneCount", selectedTuneCount);
-        ractive.set("tunebookName", "Untitled Tunebook");
-
-        ractive.on({
-            navigate_back: function (event) {
-                ractive.fire("navigate_to_page", "/");
-            },
-            "save-tunebook": function (event) {
-                fetch("/api/tunebook/add", {
-                    method: "post",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name: ractive.get("tunebookName"),
-                        tunes: getSelectedTunes()
-                    })
-                });
-
-                page.show("/");
-            }
-        });
-
-        fetch("/api/tunes").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            ractive.set("publicTuneNames", data);
-        })["catch"](function (ex) {
-            console.log("parsing failed", ex);
-        });
-    };
-
-    var onRender = function () {
-        Sortable.create(siz("#allTunes")[0], {
-            group: "omega",
-            sort: false,
-            animation: 150
-        });
-
-        Sortable.create(siz("#selectedTunes")[0], {
-            group: "omega",
-            animation: 150,
-            onAdd: function (evt) {
-                selectedTuneCount++;
-                ractive.set("selectedTuneCount", selectedTuneCount);
-            },
-            onRemove: function (evt) {
-                selectedTuneCount--;
-                ractive.set("selectedTuneCount", selectedTuneCount);
-            }
-        });
-    };
-
-
-    var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
-
-    return ractive;
-};
-
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./tunebook_edit.html":9}],11:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:7,
-      e:"section",
-      a:{ "class":"page-view",
-        id:"view-tunebook" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row coloured" },
-          t1:"fade",
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"app-name" },
-                  f:[ { t:7,
-                      e:"img",
-                      a:{ src:"/images/logo.png",
-                        "class":"app-logo",
-                        height:"32px" },
-                      v:{ click:"navigate_back" } } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"page-title" },
-              f:[ { t:7,
-                  e:"h1",
-                  f:[ { t:7,
-                      e:"i",
-                      a:{ "class":"fa fa-book" } },
-                    " ",
-                    { t:2,
-                      r:"tunebook.name" } ] } ] },
-            " ",
-            { t:8,
-              r:"userbox" } ] },
-        " ",
-        { t:7,
-          e:"div",
-          a:{ "class":"row editor" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"column third",
-                id:"tunebook-editor-pane" },
-              t1:{ n:"fade",
-                a:[ { delay:200 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"tunebook-card-full card flex-column" },
-                  f:[ { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-settings" },
-                      f:[ { t:7,
-                          e:"input",
-                          a:{ "class":"title-box",
-                            type:"text",
-                            value:[ { t:2,
-                                r:"tunebook.name" } ] } } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-tunes flex-column" },
-                      f:[ { t:7,
-                          e:"ul",
-                          a:{ "class":"item-list tune-list",
-                            id:"tunebookTunes" },
-                          f:[ { t:4,
-                              n:52,
-                              r:"tunebook.tunes",
-                              i:"num",
-                              f:[ { t:4,
-                                  n:50,
-                                  x:{ r:[ "type" ],
-                                    s:"_0===\"tune\"" },
-                                  f:[ { t:7,
-                                      e:"li",
-                                      a:{ "class":[ "drag tune-list-item clearfix ",
-                                          { t:4,
-                                            n:50,
-                                            x:{ r:[ "_id",
-                                                "selectedItem" ],
-                                              s:"_0===_1" },
-                                            f:[ "selected" ] } ],
-                                        tuneId:[ { t:2,
-                                            r:"_id" } ] },
-                                      v:{ click:"tune_item_click" },
-                                      f:[ { t:7,
-                                          e:"span",
-                                          a:{ "class":"tune-info" },
-                                          f:[ { t:7,
-                                              e:"h3",
-                                              f:[ { t:7,
-                                                  e:"span",
-                                                  a:{ "class":"drag-handle" },
-                                                  f:[ { t:7,
-                                                      e:"i",
-                                                      a:{ "class":"fa fa-cube" } } ] },
-                                                " ",
-                                                { t:2,
-                                                  r:"name" } ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"span",
-                                          a:{ "class":"tune-buttons" },
-                                          f:[ { t:7,
-                                              e:"span",
-                                              a:{ "class":"icon-button-panel compact" },
-                                              f:[ { t:7,
-                                                  e:"i",
-                                                  a:{ "class":"fa fa-sitemap",
-                                                    arrayId:[ { t:2,
-                                                        r:"num" } ],
-                                                    title:"Convert to Set" },
-                                                  v:{ click:"convert-to-set" } } ] } ] } ] } ] },
-                                " ",
-                                { t:4,
-                                  n:50,
-                                  x:{ r:[ "type" ],
-                                    s:"_0===\"set\"" },
-                                  f:[ { t:7,
-                                      e:"li",
-                                      a:{ "class":[ "tune-list-item set-box flex-column ",
-                                          { t:4,
-                                            n:50,
-                                            x:{ r:[ "_id",
-                                                "selectedItem" ],
-                                              s:"_0===_1" },
-                                            f:[ "selected" ] } ],
-                                        setId:[ { t:2,
-                                            r:"_id" } ] },
-                                      v:{ click:"set_item_click" },
-                                      f:[ { t:7,
-                                          e:"div",
-                                          a:{ "class":"set-box-header" },
-                                          f:[ { t:7,
-                                              e:"h3",
-                                              f:[ { t:7,
-                                                  e:"span",
-                                                  a:{ "class":"drag-handle" },
-                                                  f:[ { t:7,
-                                                      e:"i",
-                                                      a:{ "class":"fa fa-cubes" } } ] },
-                                                { t:7,
-                                                  e:"input",
-                                                  a:{ type:"text",
-                                                    value:[ { t:2,
-                                                        r:"name" } ] } } ] } ] },
-                                        " ",
-                                        { t:7,
-                                          e:"div",
-                                          a:{ "class":"set-box-body flex-column" },
-                                          f:[ { t:7,
-                                              e:"ul",
-                                              a:{ "class":"item-list tune-list set-tune-list",
-                                                id:[ { t:2,
-                                                    r:"_id" },
-                                                  "_list" ] },
-                                              f:[ { t:4,
-                                                  n:52,
-                                                  r:"tunes",
-                                                  f:[ { t:4,
-                                                      n:50,
-                                                      x:{ r:[ "type" ],
-                                                        s:"_0===\"tune\"" },
-                                                      f:[ { t:7,
-                                                          e:"li",
-                                                          a:{ "class":[ "drag tune-list-item clearfix ",
-                                                              { t:4,
-                                                                n:50,
-                                                                x:{ r:[ "_id",
-                                                                    "selectedItem" ],
-                                                                  s:"_0===_1" },
-                                                                f:[ "selected" ] } ],
-                                                            tuneId:[ { t:2,
-                                                                r:"_id" } ] },
-                                                          v:{ click:"tune_item_click" },
-                                                          f:[ { t:7,
-                                                              e:"span",
-                                                              a:{ "class":"tune-info" },
-                                                              f:[ { t:7,
-                                                                  e:"h3",
-                                                                  f:[ { t:7,
-                                                                      e:"span",
-                                                                      a:{ "class":"drag-handle" },
-                                                                      f:[ { t:7,
-                                                                          e:"i",
-                                                                          a:{ "class":"fa fa-cube" } } ] },
-                                                                    " ",
-                                                                    { t:2,
-                                                                      r:"name" } ] } ] },
-                                                            " ",
-                                                            { t:7,
-                                                              e:"span",
-                                                              a:{ "class":"tune-buttons" },
-                                                              f:[ { t:7,
-                                                                  e:"span",
-                                                                  a:{ "class":"icon-button-panel compact" },
-                                                                  f:[  ] } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"tunebook-footer" },
-                      f:[ { t:7,
-                          e:"div",
-                          a:{ "class":"footer-stats" },
-                          f:[  ] },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"footer-buttons" },
-                          f:[ { t:7,
-                              e:"button",
-                              v:{ click:"add-new-set" },
-                              f:[ "Add New Set" ] },
-                            " ",
-                            { t:7,
-                              e:"button",
-                              v:{ click:"save-tunebook" },
-                              f:[ "Save" ] } ] } ] } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"column two-thirds flex-column" },
-              t1:{ n:"fade",
-                a:[ { delay:100 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ id:"canvas" },
-                  f:[  ] } ] } ] } ] } ] }
-},{}],12:[function(require,module,exports){
-"use strict";
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    Sortable = require('./../../engine/vendor.js').sortable,
-    siz = require('./../../engine/vendor.js').sizzle,
-    queryString = require('./../../engine/vendor.js').queryString,
-    _ = require('./../../engine/vendor.js').lodash,
-    engine = require('./../../engine/engine'),
-    ABCParser = engine.parser,
-    ABCRenderer = engine.render,
-    diff = engine.diff,
-    ABCLayout = engine.layout,
-    AudioRenderer = engine.audioRender,
-    AudioEngine = engine.audio;
-
-var setListIdRegex = /^set_(.*)_list$/;
-
-var template = require("./tunebook_view.html");
-
-module.exports = function () {
-    var onInit = function () {
-        var ractive = this;
-
-        var selectedTuneCount = 0;
-        var params = queryString.parse(ractive.get("url").querystring);
-
-        ractive.set("selectedItem", "");
-        var tunebookData = {};
-
-        if (params.tunebook != undefined) {
-            fetch("/api/tunebook/" + params.tunebook).then(function (response) {
-                return response.json();
-            }).then(function (data) {
-                tunebookData = data;
-                ractive.set("tunebook", data);
-            })["catch"](function (ex) {
-                console.log("parsing failed", ex);
-            });
-        } else {}
-
-        ractive.on({
-            navigate_back: function (event) {
-                ractive.fire("navigate_to_page", "/");
-            },
-            tune_item_click: function (event) {
-                var tuneId = event.node.attributes.tuneId.value;
-
-                ractive.set("selectedItem", tuneId);
-
-                fetch("/api/tune/" + tuneId).then(function (response) {
-                    return response.json();
-                }).then(function (res) {
-                    var parser = ABCParser(),
-                        layout = ABCLayout(),
-                        renderer = ABCRenderer();
-
-                    ractive.set("tune", res);
-
-                    var diffed = diff({
-                        newValue: res.raw,
-                        oldValue: ""
-                    });
-                    var parsed = diffed.map(parser);
-                    var done = parsed.reduce(layout, 0);
-
-                    renderer(done);
-                    console.log("It WORKED!!", res);
-                });
-            },
-            set_item_click: function (event) {
-                var setId = event.node.attributes.setId.value;
-                ractive.set("selectedItem", setId);
-
-                siz("#canvas")[0].innerHTML = "<h3>YAY A SET</h3>";
-            },
-            "add-new-set": function () {
-                var newId = _.uniqueId("set_");
-
-                tunebookData.tunes.push({
-                    name: "Set",
-                    type: "set",
-                    _id: newId,
-                    tunes: []
-                });
-
-                Sortable.create(siz("#" + newId + "_list")[0], {
-                    animation: 150,
-                    group: "omega",
-                    handle: ".drag-handle",
-                    onSort: updateListOrderFunc
-                });
-            },
-            "convert-to-set": function (event) {
-                var arrayId = event.node.attributes.arrayId.value;
-
-                var newId = _.uniqueId("set_");
-
-                var oldTune = tunebookData.tunes[arrayId];
-
-                tunebookData.tunes.splice(arrayId, 1, {
-                    name: "Set",
-                    type: "set",
-                    _id: newId,
-                    tunes: [oldTune]
-                });
-
-                Sortable.create(siz("#" + newId + "_list")[0], {
-                    animation: 150,
-                    group: "omega",
-                    handle: ".drag-handle" });
-            }
-        });
-    };
-
-    var onRender = function () {
-        var ractive = this;
-
-        var updateListOrderFunc = function (evt) {
-            console.log(evt);
-            var movedTune = null;
-
-            if (evt.from.id === "tunebookTunes") {
-                movedTune = tunebookData.tunes.splice(evt.oldIndex, 1);
-            } else {
-                var regexTestResult = setListIdRegex.exec(evt.from.id);
-                if (regexTestResult !== null) {
-                    var currentSet = _.find(tunebookData.tunes, function (tuneItem) {
-                        return tuneItem.type === "set" && tuneItem._id === "set_" + regexTestResult[1];
-                    });
-                    movedTune = currentSet.tunes.splice(evt.oldIndex, 1);
-                }
-            }
-
-            if (evt.target.id === "tunebookTunes") {
-                tunebookData.tunes.splice(evt.newIndex, 0, movedTune[0]);
-            } else {
-                var regexTestResult = setListIdRegex.exec(evt.target.id);
-                if (regexTestResult !== null) {
-                    var currentSet = _.find(tunebookData.tunes, function (tuneItem) {
-                        return tuneItem.type === "set" && tuneItem._id === "set_" + regexTestResult[1];
-                    });
-                    currentSet.tunes.splice(evt.newIndex, 0, movedTune[0]);
-                }
-            }
-
-            ractive.set("tunebook", tunebookData);
-        };
-
-        Sortable.create(siz("#tunebookTunes")[0], {
-            animation: 150,
-            group: "omega",
-            handle: ".drag-handle",
-            onSort: updateListOrderFunc
-        });
-    };
-
-
-    var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
-
-    return ractive;
-};
-//error
-//onSort: updateListOrderFunc
-
-},{"./../../engine/engine":27,"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./tunebook_view.html":11}],13:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:7,
-      e:"section",
-      a:{ "class":"tutorial",
-        id:"tut01" },
-      f:[ { t:7,
-          e:"h1",
-          f:[ "Tutorial 1" ] } ] } ] }
-},{}],14:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],15:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:7,
-      e:"section",
-      a:{ "class":"page-view",
-        id:"view-tutorial" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row coloured" },
-          t1:"fade",
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"app-name" },
-                  f:[ { t:7,
-                      e:"img",
-                      a:{ src:"/images/logo.png",
-                        "class":"app-logo",
-                        height:"32px" },
-                      v:{ click:"navigate_back" } } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"page-title" },
-              f:[ { t:7,
-                  e:"h1",
-                  f:[ "Tutorial" ] } ] },
-            " ",
-            { t:8,
-              r:"userbox" } ] },
-        " ",
-        { t:7,
-          e:"div",
-          a:{ "class":"row editor" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"column quarter right-divide" },
-              t1:{ n:"fade",
-                a:[ { delay:100 } ] },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"text-area-padding" },
-                  f:[ { t:7,
-                      e:"ol",
-                      f:[ { t:7,
-                          e:"li",
-                          v:{ click:"goto_p1" },
-                          f:[ "First tutorial" ] },
-                        " ",
-                        { t:7,
-                          e:"li",
-                          v:{ click:"goto_p2" },
-                          f:[ "Second tutorial" ] } ] } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"column three-quarters",
-                id:"task-pane" },
-              t1:{ n:"fade",
-                a:[ { delay:200 } ] },
-              f:[ { t:7,
-                  e:"h1" } ] } ] } ] } ] }
-},{}],16:[function(require,module,exports){
-"use strict";
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-
-
-//well these work... but are they useful?
-tut01 = require('./tut/tut01.html'),
-    tut02 = require('./tut/tut02.html');
-
-
-var template = require("./tutorial.html");
-
-module.exports = function () {
-    var onInit = function () {
-        var ractive = this;
-
-        ractive.on({
-            new_tune: function (event) {
-                page("/editor");
-            },
-            navigate_back: function (event) {
-                window.history.back();
-            },
-            goto_p1: function (event) {
-                console.log("p1");
-            },
-            goto_p2: function (event) {
-                console.log("p2");
-            }
-        });
-    };
-
-    var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit
-    });
-
-    return ractive;
-};
-
-},{"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./tut/tut01.html":13,"./tut/tut02.html":14,"./tutorial.html":15}],17:[function(require,module,exports){
-"use strict";
-
-var $ = require('./../../engine/vendor.js').jquery;
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    toastr = require('./../../engine/vendor.js').toastr;
-
-
-module.exports = function (ractive, context, page, urlcontext, user) {
-    ractive.on({
-        new_tune: function (event) {
-            page("/editor");
-        },
-        navigate_back: function (event) {
-            page.show("/");
-        }
-    });
-
-    ractive.on("view_tune", function (event) {
-        var tuneId = event.node.attributes["tune-id"].value;
-        console.log(tuneId);
-        page("/editor?tuneid=" + tuneId);
-    });
-
-    $.getJSON("/api/tunes").then(function (data) {
-        ractive.set("tuneNames", data);
-    });
-
-    ractive.set("filterTuneNames", function (tuneNames, filter) {
-        if (filter.length <= 0) return tuneNames;
-        return tuneNames.filter(function (a) {
-            return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
-        });
-    });
-
-    // toastr.success("YAY");
-};
-
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143}],18:[function(require,module,exports){
-module.exports = { v:1,
-  t:[ { t:7,
-      e:"section",
-      a:{ "class":"page-view",
-        id:"view-viewer" },
-      v:{ mouseover:"mouse-over-window" },
-      f:[ { t:7,
-          e:"div",
-          a:{ "class":"header row coloured" },
-          t1:"fade",
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"central-menu" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"app-name" },
-                  f:[ { t:7,
-                      e:"img",
-                      v:{ click:"navigate_back" },
-                      a:{ src:"/images/logo.png",
-                        "class":"app-logo",
-                        height:"32px" } } ] } ] },
-            " ",
-            { t:8,
-              r:"userbox" } ] },
-        " ",
-        { t:7,
-          e:"div",
-          a:{ "class":"viewer-area" },
-          f:[ { t:7,
-              e:"div",
-              a:{ "class":"tune-information-card" },
-              f:[ { t:7,
-                  e:"div",
-                  a:{ "class":"card" },
-                  f:[ { t:7,
-                      e:"h1",
-                      f:[ { t:2,
-                          r:"tune.name" } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"viewer-play-container" },
-                      f:[ { t:4,
-                          n:50,
-                          r:"playing",
-                          f:[ { t:7,
-                              e:"i",
-                              v:{ click:"toggle-stop-tune" },
-                              a:{ "class":"playback-control fa fa-stop",
-                                style:"cursor: pointer" } } ] },
-                        { t:4,
-                          n:51,
-                          f:[ { t:7,
-                              e:"i",
-                              v:{ click:"toggle-play-tune" },
-                              a:{ "class":[ "playback-control play-button fa fa-play ",
-                                  { t:4,
-                                    n:50,
-                                    x:{ r:[ "playbackReady" ],
-                                      s:"!_0" },
-                                    f:[ "inactive" ] } ],
-                                style:"cursor: pointer" } } ],
-                          r:"playing" },
-                        " ",
-                        { t:7,
-                          e:"i",
-                          v:{ click:"toggle-repeat-tune" },
-                          a:{ "class":[ "playback-control fa fa-refresh repeat-button ",
-                              { t:4,
-                                n:50,
-                                r:"repeatingTune",
-                                f:[ "active" ] },
-                              { t:4,
-                                n:51,
-                                f:[ "inactive" ],
-                                r:"repeatingTune" } ],
-                            style:"cursor: pointer" } },
-                        " ",
-                        { t:7,
-                          e:"input",
-                          a:{ type:"number",
-                            style:"width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;",
-                            "class":"playback-control",
-                            value:[ { t:2,
-                                r:"playTempo" } ],
-                            disabled:[ { t:2,
-                                r:"playing" } ],
-                            min:"30",
-                            max:"240" } },
-                        " ",
-                        { t:7,
-                          e:"small",
-                          f:[ "bpm" ] } ] },
-                    " ",
-                    { t:7,
-                      e:"h2",
-                      f:[ { t:2,
-                          r:"tune.settings.rhythm" },
-                        " ",
-                        { t:2,
-                          r:"tune.settings.key.note" },
-                        { t:7,
-                          e:"small",
-                          f:[ { t:2,
-                              r:"tune.settings.key.mode" } ] } ] },
-                    " ",
-                    { t:7,
-                      e:"p",
-                      f:[ "Added by ",
-                        { t:7,
-                          e:"strong",
-                          f:[ "Tim Hollies" ] },
-                        " on ",
-                        { t:2,
-                          r:"tune.metadata.createdOn" } ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"icon-button-panel" },
-                      f:[ { t:7,
-                          e:"i",
-                          v:{ click:"edit_tune" },
-                          a:{ "class":"fa fa-pencil-square-o" } },
-                        " ",
-                        { t:7,
-                          e:"i",
-                          a:{ "class":"fa fa-floppy-o" } },
-                        " ",
-                        { t:7,
-                          e:"i",
-                          v:{ mouseover:"download_tune_options" },
-                          a:{ "class":"fa fa-download",
-                            id:"download-button" } },
-                        " ",
-                        { t:7,
-                          e:"div",
-                          a:{ "class":"download popover-menu",
-                            style:[ { t:4,
-                                n:50,
-                                x:{ r:[ "downloadOptionsOpen" ],
-                                  s:"!_0" },
-                                f:[ "display:none" ] } ] },
-                          f:[ { t:7,
-                              e:"div",
-                              v:{ click:"download-abc" },
-                              a:{ "class":"download-type start" },
-                              f:[ { t:7,
-                                  e:"div",
-                                  a:{ "class":"icon" },
-                                  f:[ { t:7,
-                                      e:"i",
-                                      a:{ "class":"fa fa-file-text-o" } } ] },
-                                { t:7,
-                                  e:"div",
-                                  f:[ "ABC" ] } ] },
-                            " ",
-                            { t:7,
-                              e:"div",
-                              v:{ click:"download-midi" },
-                              a:{ "class":"download-type" },
-                              f:[ { t:7,
-                                  e:"div",
-                                  a:{ "class":"icon" },
-                                  f:[ { t:7,
-                                      e:"i",
-                                      a:{ "class":"fa fa-file-audio-o" } } ] },
-                                { t:7,
-                                  e:"div",
-                                  f:[ "MIDI" ] } ] },
-                            " ",
-                            { t:7,
-                              e:"div",
-                              v:{ click:"download-pdf" },
-                              a:{ "class":"download-type end" },
-                              f:[ { t:7,
-                                  e:"div",
-                                  a:{ "class":"icon" },
-                                  f:[ { t:7,
-                                      e:"i",
-                                      a:{ "class":"fa fa-file-pdf-o" } } ] },
-                                { t:7,
-                                  e:"div",
-                                  f:[ "PDF" ] } ] } ] } ] } ] } ] },
-            " ",
-            { t:7,
-              e:"div",
-              a:{ "class":"row editor viewer",
-                id:"fullscreenZone" },
-              t1:"fade",
-              f:[ { t:7,
-                  e:"div",
-                  a:{ id:"canvas" },
-                  f:[ { t:7,
-                      e:"h1",
-                      f:[ "LOADING" ] },
-                    " ",
-                    { t:7,
-                      e:"div",
-                      a:{ "class":"spinners" },
-                      f:[ { t:7,
-                          e:"i",
-                          a:{ "class":"fa fa-cog fa-spin" } },
-                        " ",
-                        { t:7,
-                          e:"i",
-                          a:{ "class":"fa fa-cog icon-spin-reverse" } },
-                        " ",
-                        { t:7,
-                          e:"i",
-                          a:{ "class":"fa fa-cog fa-spin" } } ] } ] } ] } ] } ] } ] }
-},{}],19:[function(require,module,exports){
-"use strict";
-
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    screenfull = require('./../../engine/vendor.js').screenfull,
-    queryString = require('./../../engine/vendor.js').queryString,
-    Drop = require('./../../engine/vendor.js').drop,
-    engine = require('./../../engine/engine'),
-    ABCParser = engine.parser,
-    ABCRenderer = engine.render,
-    diff = engine.diff,
-    ABCLayout = engine.layout,
-    AudioRenderer = require('./../../engine/audio_render'),
-    ABCRenderToDOM = require('./../../engine/vdom2dom'),
-    AudioEngine = require('./../../engine/audio/audio'),
-    TunePlayer = require('./../../engine/audio/myplayer');
-
-var template = require("./viewer.html");
-
-module.exports = function (r) {
-    var downloadOptionsTether = null;
-
-    var onInit = function () {
-        var ractive = this;
-
-        var parameters = queryString.parse(ractive.get("url").querystring);
-
-        ractive.set("playbackReady", false);
-
-        var parser = ABCParser(ractive),
-            layout = ABCLayout(ractive),
-            renderer = ABCRenderer(ractive),
-            tunePlayer = TunePlayer(ractive);
-
-        ractive.set("playing", false);
-        ractive.set("repeatingTune", false);
-        ractive.set("currentTranspositionValue", 0);
-        ractive.set("playTempo", 120);
-        ractive.set("downloadOptionsOpen", false);
-
-        ractive.on({
-            show_fullscreen: function show_fullscreen() {
-                var elem = document.getElementById("fullscreenZone");
-                if (screenfull.enabled) {
-                    screenfull.request(elem);
-                }
-            },
-            publish_tune: function publish_tune() {
-                $.ajax({
-                    type: "POST",
-                    url: "/api/tunes/publish",
-                    data: {
-                        tuneId: ractive.get("tune")._id
-                    }
-                }).then(function () {
-                    ractive.fire("tune_publish_success");
-                    toastr.success("Tune published", "Success!");
-                });
-            },
-            end_of_tune: function end_of_tune() {
-                ractive.set("playing", false);
-            },
-            navigate_back: function () {
-                window.history.back();
-            },
-            edit_tune: function () {
-                if (ractive.get("playing")) ractive.fire("toggle-stop-tune");
-                ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get("tune")._id);
-            },
-            "toggle-stop-tune": function () {
-                tunePlayer.stopTune();
-                ractive.set("playing", false);
-            },
-            "play-tune-end": function () {
-                if (ractive.get("repeatingTune")) {
-                    tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
-                } else {
-                    ractive.set("playing", false);
-                }
-            },
-            "toggle-play-tune": function () {
-                if (!ractive.get("playbackReady")) return;
-
-                tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
-                ractive.set("playing", true);
-            },
-            "toggle-repeat-tune": function () {
-                ractive.set("repeatingTune", !ractive.get("repeatingTune"));
-            },
-            "play-tune-ready": function () {
-                ractive.set("playbackReady", true);
-            },
-            download_tune_options: function () {
-                ractive.set("downloadOptionsOpen", true);
-                downloadOptionsTether.position();
-                return false;
-            },
-            "mouse-over-window": function () {
-                ractive.set("downloadOptionsOpen", false);
-            },
-            "download-abc": function () {
-                ractive.set("downloadOptionsOpen", false);
-            },
-            "download-midi": function () {
-                ractive.set("downloadOptionsOpen", false);
-            },
-            "download-pdf": function () {
-                window.location.href = "/pdf?tune=" + encodeURIComponent(ractive.get("tune").raw);
-                ractive.set("downloadOptionsOpen", false);
-            }
-        });
-
-        var doneThing = null;
-
-        if (parameters.tuneid) {
-            fetch("/api/tune/" + parameters.tuneid).then(function (response) {
-                return response.json();
-            }).then(function (res) {
-                ractive.set("tune", res);
-
-                var diffed = diff({
-                    newValue: res.raw,
-                    oldValue: ""
-                });
-                var parsed = diffed.map(parser);
-                var done = parsed.reduce(layout, 0);
-
-                doneThing = done;
-
-                var vdom = renderer(done);
-                ABCRenderToDOM(vdom);
-            });
-        }
-
-        if (parameters.transpose) {
-            ractive.fire("transpose_change", parseInt(parameters.transpose));
-        }
-
-        window.addEventListener("popstate", function () {
-            if (ractive.get("playing")) ractive.fire("toggle-stop-tune");
-        });
-    };
-
-    var onRender = function () {
-        downloadOptionsTether = new Drop({
-            target: document.querySelector("#download-button"),
-            element: document.querySelector(".download.popover-menu"),
-            attachment: "top center",
-            targetAttachment: "bottom center",
-            offset: "0px 35px"
-        });
-    };
-
-    var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
-
-    return ractive;
-};
-
-},{"./../../engine/audio/audio":20,"./../../engine/audio/myplayer":22,"./../../engine/audio_render":23,"./../../engine/engine":27,"./../../engine/vdom2dom":40,"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":142,"./../../scripts/transitions/ractive.transitions.fly":143,"./viewer.html":18}],20:[function(require,module,exports){
+},{"./.././app/editor/editor":3}],7:[function(require,module,exports){
 "use strict";
 
 var base64 = require("base64-js");
@@ -3405,7 +1010,7 @@ module.exports = {
 };
 // MIDIjs.message_callback("Error: Cannot retrieve patch file " + path + filename);
 
-},{"../dispatcher":26,"./midi":21,"base64-js":44,"lodash":88}],21:[function(require,module,exports){
+},{"../dispatcher":13,"./midi":8,"base64-js":30,"lodash":73}],8:[function(require,module,exports){
 "use strict";
 
 /*jslint es5: true, laxbreak: true */
@@ -3883,13 +1488,13 @@ module.exports = {
 // TBD
 // TBD
 
-},{}],22:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 var Base64 = require("base64-arraybuffer");
 var _ = require("lodash");
 var Timer = require("clockmaker").Timer;
-var siz = require("Sizzle");
+var siz = require("sizzle");
 
 var note = {};
 var loadedNoteData = false;
@@ -3902,7 +1507,7 @@ var RhythmSample = {};
 
 RhythmSample.play = function (dispatcher) {
   if (!loadedNoteData) {
-    fetch("/pat/acoustic_grand_piano-mp3.json").then(function (response) {
+    fetch("pat/acoustic_grand_piano-mp3.json").then(function (response) {
       return response.json();
     }).then(function (res) {
       _.forOwn(res, function (val, key) {
@@ -4008,7 +1613,7 @@ RhythmSample.play = function (dispatcher) {
 
 module.exports = RhythmSample.play;
 
-},{"Sizzle":42,"base64-arraybuffer":43,"clockmaker":46,"lodash":88}],23:[function(require,module,exports){
+},{"base64-arraybuffer":29,"clockmaker":32,"lodash":73,"sizzle":79}],10:[function(require,module,exports){
 "use strict";
 
 var data_tables = require("./data_tables.js");
@@ -4087,7 +1692,7 @@ var audioRender = function (tune) {
 
 module.exports = audioRender;
 
-},{"./data_tables.js":24}],24:[function(require,module,exports){
+},{"./data_tables.js":11}],11:[function(require,module,exports){
 "use strict";
 
 var data_tables = {},
@@ -4483,7 +2088,7 @@ data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];
 
 module.exports = data_tables;
 
-},{"lodash":88,"zazate.js":134}],25:[function(require,module,exports){
+},{"lodash":73,"zazate.js":119}],12:[function(require,module,exports){
 "use strict";
 
 var JsDiff = require("diff"),
@@ -4491,50 +2096,50 @@ var JsDiff = require("diff"),
 
 
 var Diff = function (change) {
-         var diff = JsDiff.diffLines(change.oldValue, change.newValue);
+    var diff = JsDiff.diffLines(change.oldValue, change.newValue);
 
-         //ensure deletions are before additions in changes
-         for (var i = 0; i < diff.length; i++) {
-                  if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
-                           var swap = diff[i];
-                           diff[i] = diff[i + 1];
-                           diff[i + 1] = swap;
-                  }
-         }
+    //ensure deletions are before additions in changes
+    for (var i = 0; i < diff.length; i++) {
+        if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+            var swap = diff[i];
+            diff[i] = diff[i + 1];
+            diff[i + 1] = swap;
+        }
+    }
 
-         var lineCount = 0;
-         var output = [];
+    var lineCount = 0;
+    var output = [];
 
-         for (var i = 0; i < diff.length; i++) {
-                  var item = diff[i],
-                      newlines = 0,
-                      split = [];
+    for (var i = 0; i < diff.length; i++) {
+        var item = diff[i],
+            newlines = 0,
+            split = [];
 
-                  split = item.value.split(/\r\n|\r|\n/);
+        split = item.value.split(/\r\n|\r|\n/);
 
-                  if (split[split.length - 1] === "") {
-                           split = split.slice(0, split.length - 1);
-                  }
+        if (split[split.length - 1] === "") {
+            split = split.slice(0, split.length - 1);
+        }
 
-                  newlines = split.length;
+        newlines = split.length;
 
-                  item.lineno = lineCount;
+        item.lineno = lineCount;
 
-                  var newLineCollection = new LineCollection(item.lineno, item.value, item.added ? "ADD" : item.removed ? "DEL" : "NONE");
+        var newLineCollection = new LineCollection(item.lineno, item.value, item.added ? "ADD" : item.removed ? "DEL" : "NONE");
 
-                  if (!item.removed) {
-                           lineCount += newlines;
-                  }
+        if (!item.removed) {
+            lineCount += newlines;
+        }
 
-                  if (newLineCollection.action != "NONE") output.push(newLineCollection);
-         }
+        if (newLineCollection.action != "NONE") output.push(newLineCollection);
+    }
 
-         return output;
+    return output;
 };
 
 module.exports = Diff;
 
-},{"./types/LineCollection":39,"diff":82}],26:[function(require,module,exports){
+},{"./types/LineCollection":26,"diff":68}],13:[function(require,module,exports){
 "use strict";
 
 var _ = require("lodash");
@@ -4610,7 +2215,7 @@ module.exports = {
     after: after
 };
 
-},{"lodash":88}],27:[function(require,module,exports){
+},{"lodash":73}],14:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -4620,7 +2225,7 @@ module.exports = {
 	layout: require("./layout")
 };
 
-},{"./diff":25,"./layout":28,"./parser":30,"./render":31}],28:[function(require,module,exports){
+},{"./diff":12,"./layout":15,"./parser":17,"./render":18}],15:[function(require,module,exports){
 "use strict";
 
 var data_tables = require("./data_tables"),
@@ -4838,7 +2443,7 @@ var ABCLayout = function (dispatcher) {
 
 module.exports = ABCLayout;
 
-},{"./data_tables":24,"./dispatcher":26,"./springs":35,"./types/AbcBeam":36,"lodash":88}],29:[function(require,module,exports){
+},{"./data_tables":11,"./dispatcher":13,"./springs":22,"./types/AbcBeam":23,"lodash":73}],16:[function(require,module,exports){
 "use strict";
 
 var _ = require("lodash"),
@@ -5219,7 +2824,7 @@ module.exports = function (dispatcher, input, lineId) {
     return output;
 };
 
-},{"./dispatcher":26,"lex":87,"lodash":88}],30:[function(require,module,exports){
+},{"./dispatcher":13,"lex":72,"lodash":73}],17:[function(require,module,exports){
 "use strict";
 
 var lexer = require("./lexer.js"),
@@ -5660,7 +3265,7 @@ var ABCParser = function (dispatcher, transposeAmount) {
 
 module.exports = ABCParser;
 
-},{"./data_tables.js":24,"./dispatcher":26,"./lexer.js":29,"./types/AbcChord":37,"./types/AbcSymbol":38,"lodash":88}],31:[function(require,module,exports){
+},{"./data_tables.js":11,"./dispatcher":13,"./lexer.js":16,"./types/AbcChord":24,"./types/AbcSymbol":25,"lodash":73}],18:[function(require,module,exports){
 
 "use strict";
 
@@ -5766,15 +3371,15 @@ var ABCRenderer = function (ractive) {
         return topDiv;
 
         /* if(!returnString) {
-               renderElement = createElement(topDiv);
+              renderElement = createElement(topDiv);
              document.getElementById("canvas").innerHTML = '';
              document.getElementById("canvas").appendChild(renderElement);
-               var svgs = document.getElementById("tuneSVGCanvas");
+              var svgs = document.getElementById("tuneSVGCanvas");
              var canvasElement = document.getElementById("canvas");
-               var scrollDist = canvasElement.scrollTop;
+              var scrollDist = canvasElement.scrollTop;
              svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
              canvasElement.scrollTop = scrollDist;
-                   previousNodeTree = topDiv;    
+                previousNodeTree = topDiv;    
          } else {
              return stringify(topDiv);
          }*/
@@ -5786,7 +3391,7 @@ var ABCRenderer = function (ractive) {
 module.exports = ABCRenderer;
 //height: "100%"
 
-},{"./rendering/stave_symbols.js":34,"virtual-dom/h":98,"virtual-dom/virtual-hyperscript/svg":118}],32:[function(require,module,exports){
+},{"./rendering/stave_symbols.js":21,"virtual-dom/h":83,"virtual-dom/virtual-hyperscript/svg":104}],19:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg"),
@@ -5808,7 +3413,7 @@ module.exports = {
     }
 };
 
-},{"virtual-dom/create-element":96,"virtual-dom/h":98,"virtual-dom/virtual-hyperscript/svg":118}],33:[function(require,module,exports){
+},{"virtual-dom/create-element":81,"virtual-dom/h":83,"virtual-dom/virtual-hyperscript/svg":104}],20:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -6187,7 +3792,7 @@ module.exports = {
     }
 };
 
-},{}],34:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 
 var s = require("virtual-dom/virtual-hyperscript/svg");
@@ -6266,7 +3871,7 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
         },
         stem_tail = null,
         stem = null;
-      //invalid note length?
+     //invalid note length?
     if (data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
         console.log("INVALID NOTE LENGTH");
         for (var i = 0; i < data_tables.allowed_note_lengths.length; i++) {
@@ -6428,7 +4033,7 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
                     fill: 'black'
                 }).move(0, -24).scale(1);
             }
-              //store point
+             //store point
             stem_end.y = -24;*/
         }
     }
@@ -6473,14 +4078,14 @@ drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
             break;
         default:
     } /*
-       currentNote.stem_end = stem_end;
-       noteGroup.stem_tail = stem_tail;
+      currentNote.stem_end = stem_end;
+      noteGroup.stem_tail = stem_tail;
       noteGroup.stem = stem;
       noteGroup.dot = noteDot;
       currentNote.truepos = truepos;
-         currentNote.x = totalOffset;
+       currentNote.x = totalOffset;
       currentNote.y = 28 - (truepos * 4);
-       noteGroup.move(currentNote.x, currentNote.y);*/
+      noteGroup.move(currentNote.x, currentNote.y);*/
 
     var noteGroup = s("g", {
         transform: "translate(0," + currentNote.y + ")"
@@ -6745,7 +4350,7 @@ drawing_functions.timesig = function (top, bottom, xoffset) {
     /*
     var top_width = top_group.bbox().width,
         bottom_width = bottom_group.bbox().width;
-      if (top_width > bottom_width) {
+     if (top_width > bottom_width) {
         bottom_group.move((top_width - bottom_width) / 2, 0);
     } else {
         top_group.move((bottom_width - top_width) / 2, 0);
@@ -6954,7 +4559,7 @@ module.exports = drawing_functions;
      fill: 'black'
  });*/
 
-},{"../data_tables":24,"../dispatcher":26,"./glyphs":33,"lodash":88,"randomcolor":92,"virtual-dom/virtual-hyperscript/svg":118}],35:[function(require,module,exports){
+},{"../data_tables":11,"../dispatcher":13,"./glyphs":20,"lodash":73,"randomcolor":77,"virtual-dom/virtual-hyperscript/svg":104}],22:[function(require,module,exports){
 "use strict";
 
 var data = {
@@ -6969,7 +4574,7 @@ var data = {
 
 module.exports = data;
 
-},{}],36:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 
 var POS_SWITCH = 6;
@@ -7037,7 +4642,7 @@ AbcBeam.prototype.weight = 0;
 
 module.exports = AbcBeam;
 
-},{}],37:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 
 ////////////
@@ -7084,7 +4689,7 @@ var AbcChord = function (text) {
 module.exports = {
     AbcChord: AbcChord };
 
-},{"zazate.js":134}],38:[function(require,module,exports){
+},{"zazate.js":119}],25:[function(require,module,exports){
 "use strict";
 
 ////////////
@@ -7143,7 +4748,7 @@ module.exports = {
     AbcRest: AbcRest
 };
 
-},{}],39:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 "use strict";
 
 /////////////
@@ -7193,7 +4798,7 @@ module.exports = {
     AbcLine: AbcLine
 };
 
-},{}],40:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // injects the vDOM structure into the actual DOM tree
 // BROWSER ONLY
 
@@ -7234,2099 +4839,32 @@ var vDom2DOM = function (vDOMTree) {
 
 module.exports = vDom2DOM;
 
-},{"virtual-dom/create-element":96,"virtual-dom/diff":97,"virtual-dom/patch":105}],41:[function(require,module,exports){
+},{"virtual-dom/create-element":81,"virtual-dom/diff":82,"virtual-dom/patch":91}],28:[function(require,module,exports){
 "use strict";
 
 //polyfill
 require("isomorphic-fetch");
 
 module.exports = {
-    lodash: require("lodash"),
-    lex: require("lex"),
-    Ractive: require("ractive/ractive"),
-
-    page: require("page"),
-    jsDiff: require("diff"),
-    codeMirror: require("codemirror"),
-    codeMirrorLint: require("codemirror/addon/lint/lint"),
-    combokeys: require("combokeys"),
-    screenfull: require("screenfull"),
-    zazate: require("zazate.js"),
-
-    queryString: require("query-string"),
-    sizzle: require("sizzle"),
-    domready: require("domready"),
-    sortable: require("sortablejs"),
-    drop: require('./../node_modules/drop/drop')
-};
-
-},{"./../node_modules/drop/drop":84,"codemirror":48,"codemirror/addon/lint/lint":47,"combokeys":81,"diff":82,"domready":83,"isomorphic-fetch":86,"lex":87,"lodash":88,"page":89,"query-string":90,"ractive/ractive":91,"screenfull":93,"sizzle":94,"sortablejs":95,"zazate.js":134}],42:[function(require,module,exports){
-/*!
- * Sizzle CSS Selector Engine v2.1.1
- * http://sizzlejs.com/
- *
- * Copyright 2008, 2014 jQuery Foundation, Inc. and other contributors
- * Released under the MIT license
- * http://jquery.org/license
- *
- * Date: 2014-12-15
- */
-(function( window ) {
-
-var i,
-	support,
-	Expr,
-	getText,
-	isXML,
-	tokenize,
-	compile,
-	select,
-	outermostContext,
-	sortInput,
-	hasDuplicate,
-
-	// Local document vars
-	setDocument,
-	document,
-	docElem,
-	documentIsHTML,
-	rbuggyQSA,
-	rbuggyMatches,
-	matches,
-	contains,
-
-	// Instance-specific data
-	expando = "sizzle" + 1 * new Date(),
-	preferredDoc = window.document,
-	dirruns = 0,
-	done = 0,
-	classCache = createCache(),
-	tokenCache = createCache(),
-	compilerCache = createCache(),
-	sortOrder = function( a, b ) {
-		if ( a === b ) {
-			hasDuplicate = true;
-		}
-		return 0;
-	},
-
-	// General-purpose constants
-	MAX_NEGATIVE = 1 << 31,
-
-	// Instance methods
-	hasOwn = ({}).hasOwnProperty,
-	arr = [],
-	pop = arr.pop,
-	push_native = arr.push,
-	push = arr.push,
-	slice = arr.slice,
-	// Use a stripped-down indexOf as it's faster than native
-	// http://jsperf.com/thor-indexof-vs-for/5
-	indexOf = function( list, elem ) {
-		var i = 0,
-			len = list.length;
-		for ( ; i < len; i++ ) {
-			if ( list[i] === elem ) {
-				return i;
-			}
-		}
-		return -1;
-	},
-
-	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
-
-	// Regular expressions
-
-	// http://www.w3.org/TR/css3-selectors/#whitespace
-	whitespace = "[\\x20\\t\\r\\n\\f]",
-
-	// http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
-	identifier = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",
-
-	// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
-	attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
-		// Operator (capture 2)
-		"*([*^$|!~]?=)" + whitespace +
-		// "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
-		"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
-		"*\\]",
-
-	pseudos = ":(" + identifier + ")(?:\\((" +
-		// To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
-		// 1. quoted (capture 3; capture 4 or capture 5)
-		"('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
-		// 2. simple (capture 6)
-		"((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" +
-		// 3. anything else (capture 2)
-		".*" +
-		")\\)|)",
-
-	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
-	rwhitespace = new RegExp( whitespace + "+", "g" ),
-	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
-
-	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
-	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
-
-	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
-
-	rpseudo = new RegExp( pseudos ),
-	ridentifier = new RegExp( "^" + identifier + "$" ),
-
-	matchExpr = {
-		"ID": new RegExp( "^#(" + identifier + ")" ),
-		"CLASS": new RegExp( "^\\.(" + identifier + ")" ),
-		"TAG": new RegExp( "^(" + identifier + "|[*])" ),
-		"ATTR": new RegExp( "^" + attributes ),
-		"PSEUDO": new RegExp( "^" + pseudos ),
-		"CHILD": new RegExp( "^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
-			"*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
-			"*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
-		"bool": new RegExp( "^(?:" + booleans + ")$", "i" ),
-		// For use in libraries implementing .is()
-		// We use this for POS matching in `select`
-		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
-			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
-	},
-
-	rinputs = /^(?:input|select|textarea|button)$/i,
-	rheader = /^h\d$/i,
-
-	rnative = /^[^{]+\{\s*\[native \w/,
-
-	// Easily-parseable/retrievable ID or TAG or CLASS selectors
-	rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
-
-	rsibling = /[+~]/,
-	rescape = /'|\\/g,
-
-	// CSS escapes http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
-	runescape = new RegExp( "\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig" ),
-	funescape = function( _, escaped, escapedWhitespace ) {
-		var high = "0x" + escaped - 0x10000;
-		// NaN means non-codepoint
-		// Support: Firefox<24
-		// Workaround erroneous numeric interpretation of +"0x"
-		return high !== high || escapedWhitespace ?
-			escaped :
-			high < 0 ?
-				// BMP codepoint
-				String.fromCharCode( high + 0x10000 ) :
-				// Supplemental Plane codepoint (surrogate pair)
-				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
-	},
-
-	// Used for iframes
-	// See setDocument()
-	// Removing the function wrapper causes a "Permission Denied"
-	// error in IE
-	unloadHandler = function() {
-		setDocument();
-	};
-
-// Optimize for push.apply( _, NodeList )
-try {
-	push.apply(
-		(arr = slice.call( preferredDoc.childNodes )),
-		preferredDoc.childNodes
-	);
-	// Support: Android<4.0
-	// Detect silently failing push.apply
-	arr[ preferredDoc.childNodes.length ].nodeType;
-} catch ( e ) {
-	push = { apply: arr.length ?
-
-		// Leverage slice if possible
-		function( target, els ) {
-			push_native.apply( target, slice.call(els) );
-		} :
-
-		// Support: IE<9
-		// Otherwise append directly
-		function( target, els ) {
-			var j = target.length,
-				i = 0;
-			// Can't trust NodeList.length
-			while ( (target[j++] = els[i++]) ) {}
-			target.length = j - 1;
-		}
-	};
-}
-
-function Sizzle( selector, context, results, seed ) {
-	var match, elem, m, nodeType,
-		// QSA vars
-		i, groups, old, nid, newContext, newSelector;
-
-	if ( ( context ? context.ownerDocument || context : preferredDoc ) !== document ) {
-		setDocument( context );
-	}
-
-	context = context || document;
-	results = results || [];
-
-	if ( !selector || typeof selector !== "string" ) {
-		return results;
-	}
-
-	if ( (nodeType = context.nodeType) !== 1 && nodeType !== 9 && nodeType !== 11 ) {
-		return [];
-	}
-
-	if ( documentIsHTML && !seed ) {
-
-		// Try to shortcut find operations when possible (e.g., not under DocumentFragment)
-		if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
-			// Speed-up: Sizzle("#ID")
-			if ( (m = match[1]) ) {
-				if ( nodeType === 9 ) {
-					elem = context.getElementById( m );
-					// Check parentNode to catch when Blackberry 4.6 returns
-					// nodes that are no longer in the document (jQuery #6963)
-					if ( elem && elem.parentNode ) {
-						// Handle the case where IE, Opera, and Webkit return items
-						// by name instead of ID
-						if ( elem.id === m ) {
-							results.push( elem );
-							return results;
-						}
-					} else {
-						return results;
-					}
-				} else {
-					// Context is not a document
-					if ( context.ownerDocument && (elem = context.ownerDocument.getElementById( m )) &&
-						contains( context, elem ) && elem.id === m ) {
-						results.push( elem );
-						return results;
-					}
-				}
-
-			// Speed-up: Sizzle("TAG")
-			} else if ( match[2] ) {
-				push.apply( results, context.getElementsByTagName( selector ) );
-				return results;
-
-			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && support.getElementsByClassName ) {
-				push.apply( results, context.getElementsByClassName( m ) );
-				return results;
-			}
-		}
-
-		// QSA path
-		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
-			nid = old = expando;
-			newContext = context;
-			newSelector = nodeType !== 1 && selector;
-
-			// qSA works strangely on Element-rooted queries
-			// We can work around this by specifying an extra ID on the root
-			// and working up from there (Thanks to Andrew Dupont for the technique)
-			// IE 8 doesn't work on object elements
-			if ( nodeType === 1 && context.nodeName.toLowerCase() !== "object" ) {
-				groups = tokenize( selector );
-
-				if ( (old = context.getAttribute("id")) ) {
-					nid = old.replace( rescape, "\\$&" );
-				} else {
-					context.setAttribute( "id", nid );
-				}
-				nid = "[id='" + nid + "'] ";
-
-				i = groups.length;
-				while ( i-- ) {
-					groups[i] = nid + toSelector( groups[i] );
-				}
-				newContext = rsibling.test( selector ) && testContext( context.parentNode ) || context;
-				newSelector = groups.join(",");
-			}
-
-			if ( newSelector ) {
-				try {
-					push.apply( results,
-						newContext.querySelectorAll( newSelector )
-					);
-					return results;
-				} catch(qsaError) {
-				} finally {
-					if ( !old ) {
-						context.removeAttribute("id");
-					}
-				}
-			}
-		}
-	}
-
-	// All others
-	return select( selector.replace( rtrim, "$1" ), context, results, seed );
-}
-
-/**
- * Create key-value caches of limited size
- * @returns {Function(string, Object)} Returns the Object data after storing it on itself with
- *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
- *	deleting the oldest entry
- */
-function createCache() {
-	var keys = [];
-
-	function cache( key, value ) {
-		// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
-		if ( keys.push( key + " " ) > Expr.cacheLength ) {
-			// Only keep the most recent entries
-			delete cache[ keys.shift() ];
-		}
-		return (cache[ key + " " ] = value);
-	}
-	return cache;
-}
-
-/**
- * Mark a function for special use by Sizzle
- * @param {Function} fn The function to mark
- */
-function markFunction( fn ) {
-	fn[ expando ] = true;
-	return fn;
-}
-
-/**
- * Support testing using an element
- * @param {Function} fn Passed the created div and expects a boolean result
- */
-function assert( fn ) {
-	var div = document.createElement("div");
-
-	try {
-		return !!fn( div );
-	} catch (e) {
-		return false;
-	} finally {
-		// Remove from its parent by default
-		if ( div.parentNode ) {
-			div.parentNode.removeChild( div );
-		}
-		// release memory in IE
-		div = null;
-	}
-}
-
-/**
- * Adds the same handler for all of the specified attrs
- * @param {String} attrs Pipe-separated list of attributes
- * @param {Function} handler The method that will be applied
- */
-function addHandle( attrs, handler ) {
-	var arr = attrs.split("|"),
-		i = attrs.length;
-
-	while ( i-- ) {
-		Expr.attrHandle[ arr[i] ] = handler;
-	}
-}
-
-/**
- * Checks document order of two siblings
- * @param {Element} a
- * @param {Element} b
- * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
- */
-function siblingCheck( a, b ) {
-	var cur = b && a,
-		diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
-			( ~b.sourceIndex || MAX_NEGATIVE ) -
-			( ~a.sourceIndex || MAX_NEGATIVE );
-
-	// Use IE sourceIndex if available on both nodes
-	if ( diff ) {
-		return diff;
-	}
-
-	// Check if b follows a
-	if ( cur ) {
-		while ( (cur = cur.nextSibling) ) {
-			if ( cur === b ) {
-				return -1;
-			}
-		}
-	}
-
-	return a ? 1 : -1;
-}
-
-/**
- * Returns a function to use in pseudos for input types
- * @param {String} type
- */
-function createInputPseudo( type ) {
-	return function( elem ) {
-		var name = elem.nodeName.toLowerCase();
-		return name === "input" && elem.type === type;
-	};
-}
-
-/**
- * Returns a function to use in pseudos for buttons
- * @param {String} type
- */
-function createButtonPseudo( type ) {
-	return function( elem ) {
-		var name = elem.nodeName.toLowerCase();
-		return (name === "input" || name === "button") && elem.type === type;
-	};
-}
-
-/**
- * Returns a function to use in pseudos for positionals
- * @param {Function} fn
- */
-function createPositionalPseudo( fn ) {
-	return markFunction(function( argument ) {
-		argument = +argument;
-		return markFunction(function( seed, matches ) {
-			var j,
-				matchIndexes = fn( [], seed.length, argument ),
-				i = matchIndexes.length;
-
-			// Match elements found at the specified indexes
-			while ( i-- ) {
-				if ( seed[ (j = matchIndexes[i]) ] ) {
-					seed[j] = !(matches[j] = seed[j]);
-				}
-			}
-		});
-	});
-}
-
-/**
- * Checks a node for validity as a Sizzle context
- * @param {Element|Object=} context
- * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
- */
-function testContext( context ) {
-	return context && typeof context.getElementsByTagName !== "undefined" && context;
-}
-
-// Expose support vars for convenience
-support = Sizzle.support = {};
-
-/**
- * Detects XML nodes
- * @param {Element|Object} elem An element or a document
- * @returns {Boolean} True iff elem is a non-HTML XML node
- */
-isXML = Sizzle.isXML = function( elem ) {
-	// documentElement is verified for cases where it doesn't yet exist
-	// (such as loading iframes in IE - #4833)
-	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
-	return documentElement ? documentElement.nodeName !== "HTML" : false;
-};
-
-/**
- * Sets document-related variables once based on the current document
- * @param {Element|Object} [doc] An element or document object to use to set the document
- * @returns {Object} Returns the current document
- */
-setDocument = Sizzle.setDocument = function( node ) {
-	var hasCompare, parent,
-		doc = node ? node.ownerDocument || node : preferredDoc;
-
-	// If no document and documentElement is available, return
-	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
-		return document;
-	}
-
-	// Set our document
-	document = doc;
-	docElem = doc.documentElement;
-	parent = doc.defaultView;
-
-	// Support: IE>8
-	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
-	// IE will throw "permission denied" error when accessing "document" variable, see jQuery #13936
-	// IE6-8 do not support the defaultView property so parent will be undefined
-	if ( parent && parent !== parent.top ) {
-		// IE11 does not have attachEvent, so all must suffer
-		if ( parent.addEventListener ) {
-			parent.addEventListener( "unload", unloadHandler, false );
-		} else if ( parent.attachEvent ) {
-			parent.attachEvent( "onunload", unloadHandler );
-		}
-	}
-
-	/* Support tests
-	---------------------------------------------------------------------- */
-	documentIsHTML = !isXML( doc );
-
-	/* Attributes
-	---------------------------------------------------------------------- */
-
-	// Support: IE<8
-	// Verify that getAttribute really returns attributes and not properties
-	// (excepting IE8 booleans)
-	support.attributes = assert(function( div ) {
-		div.className = "i";
-		return !div.getAttribute("className");
-	});
-
-	/* getElement(s)By*
-	---------------------------------------------------------------------- */
-
-	// Check if getElementsByTagName("*") returns only elements
-	support.getElementsByTagName = assert(function( div ) {
-		div.appendChild( doc.createComment("") );
-		return !div.getElementsByTagName("*").length;
-	});
-
-	// Support: IE<9
-	support.getElementsByClassName = rnative.test( doc.getElementsByClassName );
-
-	// Support: IE<10
-	// Check if getElementById returns elements by name
-	// The broken getElementById methods don't pick up programatically-set names,
-	// so use a roundabout getElementsByName test
-	support.getById = assert(function( div ) {
-		docElem.appendChild( div ).id = expando;
-		return !doc.getElementsByName || !doc.getElementsByName( expando ).length;
-	});
-
-	// ID find and filter
-	if ( support.getById ) {
-		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
-				var m = context.getElementById( id );
-				// Check parentNode to catch when Blackberry 4.6 returns
-				// nodes that are no longer in the document #6963
-				return m && m.parentNode ? [ m ] : [];
-			}
-		};
-		Expr.filter["ID"] = function( id ) {
-			var attrId = id.replace( runescape, funescape );
-			return function( elem ) {
-				return elem.getAttribute("id") === attrId;
-			};
-		};
-	} else {
-		// Support: IE6/7
-		// getElementById is not reliable as a find shortcut
-		delete Expr.find["ID"];
-
-		Expr.filter["ID"] =  function( id ) {
-			var attrId = id.replace( runescape, funescape );
-			return function( elem ) {
-				var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
-				return node && node.value === attrId;
-			};
-		};
-	}
-
-	// Tag
-	Expr.find["TAG"] = support.getElementsByTagName ?
-		function( tag, context ) {
-			if ( typeof context.getElementsByTagName !== "undefined" ) {
-				return context.getElementsByTagName( tag );
-
-			// DocumentFragment nodes don't have gEBTN
-			} else if ( support.qsa ) {
-				return context.querySelectorAll( tag );
-			}
-		} :
-
-		function( tag, context ) {
-			var elem,
-				tmp = [],
-				i = 0,
-				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
-				results = context.getElementsByTagName( tag );
-
-			// Filter out possible comments
-			if ( tag === "*" ) {
-				while ( (elem = results[i++]) ) {
-					if ( elem.nodeType === 1 ) {
-						tmp.push( elem );
-					}
-				}
-
-				return tmp;
-			}
-			return results;
-		};
-
-	// Class
-	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
-		if ( documentIsHTML ) {
-			return context.getElementsByClassName( className );
-		}
-	};
-
-	/* QSA/matchesSelector
-	---------------------------------------------------------------------- */
-
-	// QSA and matchesSelector support
-
-	// matchesSelector(:active) reports false when true (IE9/Opera 11.5)
-	rbuggyMatches = [];
-
-	// qSa(:focus) reports false when true (Chrome 21)
-	// We allow this because of a bug in IE8/9 that throws an error
-	// whenever `document.activeElement` is accessed on an iframe
-	// So, we allow :focus to pass through QSA all the time to avoid the IE error
-	// See http://bugs.jquery.com/ticket/13378
-	rbuggyQSA = [];
-
-	if ( (support.qsa = rnative.test( doc.querySelectorAll )) ) {
-		// Build QSA regex
-		// Regex strategy adopted from Diego Perini
-		assert(function( div ) {
-			// Select is set to empty string on purpose
-			// This is to test IE's treatment of not explicitly
-			// setting a boolean content attribute,
-			// since its presence should be enough
-			// http://bugs.jquery.com/ticket/12359
-			docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
-				"<select id='" + expando + "-\f]' msallowcapture=''>" +
-				"<option selected=''></option></select>";
-
-			// Support: IE8, Opera 11-12.16
-			// Nothing should be selected when empty strings follow ^= or $= or *=
-			// The test attribute must be unknown in Opera but "safe" for WinRT
-			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
-			if ( div.querySelectorAll("[msallowcapture^='']").length ) {
-				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
-			}
-
-			// Support: IE8
-			// Boolean attributes and "value" are not treated correctly
-			if ( !div.querySelectorAll("[selected]").length ) {
-				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
-			}
-
-			// Support: Chrome<29, Android<4.2+, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.7+
-			if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
-				rbuggyQSA.push("~=");
-			}
-
-			// Webkit/Opera - :checked should return selected option elements
-			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
-			// IE8 throws error here and will not see later tests
-			if ( !div.querySelectorAll(":checked").length ) {
-				rbuggyQSA.push(":checked");
-			}
-
-			// Support: Safari 8+, iOS 8+
-			// https://bugs.webkit.org/show_bug.cgi?id=136851
-			// In-page `selector#id sibing-combinator selector` fails
-			if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
-				rbuggyQSA.push(".#.+[+~]");
-			}
-		});
-
-		assert(function( div ) {
-			// Support: Windows 8 Native Apps
-			// The type and name attributes are restricted during .innerHTML assignment
-			var input = doc.createElement("input");
-			input.setAttribute( "type", "hidden" );
-			div.appendChild( input ).setAttribute( "name", "D" );
-
-			// Support: IE8
-			// Enforce case-sensitivity of name attribute
-			if ( div.querySelectorAll("[name=d]").length ) {
-				rbuggyQSA.push( "name" + whitespace + "*[*^$|!~]?=" );
-			}
-
-			// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
-			// IE8 throws error here and will not see later tests
-			if ( !div.querySelectorAll(":enabled").length ) {
-				rbuggyQSA.push( ":enabled", ":disabled" );
-			}
-
-			// Opera 10-11 does not throw on post-comma invalid pseudos
-			div.querySelectorAll("*,:x");
-			rbuggyQSA.push(",.*:");
-		});
-	}
-
-	if ( (support.matchesSelector = rnative.test( (matches = docElem.matches ||
-		docElem.webkitMatchesSelector ||
-		docElem.mozMatchesSelector ||
-		docElem.oMatchesSelector ||
-		docElem.msMatchesSelector) )) ) {
-
-		assert(function( div ) {
-			// Check to see if it's possible to do matchesSelector
-			// on a disconnected node (IE 9)
-			support.disconnectedMatch = matches.call( div, "div" );
-
-			// This should fail with an exception
-			// Gecko does not error, returns false instead
-			matches.call( div, "[s!='']:x" );
-			rbuggyMatches.push( "!=", pseudos );
-		});
-	}
-
-	rbuggyQSA = rbuggyQSA.length && new RegExp( rbuggyQSA.join("|") );
-	rbuggyMatches = rbuggyMatches.length && new RegExp( rbuggyMatches.join("|") );
-
-	/* Contains
-	---------------------------------------------------------------------- */
-	hasCompare = rnative.test( docElem.compareDocumentPosition );
-
-	// Element contains another
-	// Purposefully does not implement inclusive descendent
-	// As in, an element does not contain itself
-	contains = hasCompare || rnative.test( docElem.contains ) ?
-		function( a, b ) {
-			var adown = a.nodeType === 9 ? a.documentElement : a,
-				bup = b && b.parentNode;
-			return a === bup || !!( bup && bup.nodeType === 1 && (
-				adown.contains ?
-					adown.contains( bup ) :
-					a.compareDocumentPosition && a.compareDocumentPosition( bup ) & 16
-			));
-		} :
-		function( a, b ) {
-			if ( b ) {
-				while ( (b = b.parentNode) ) {
-					if ( b === a ) {
-						return true;
-					}
-				}
-			}
-			return false;
-		};
-
-	/* Sorting
-	---------------------------------------------------------------------- */
-
-	// Document order sorting
-	sortOrder = hasCompare ?
-	function( a, b ) {
-
-		// Flag for duplicate removal
-		if ( a === b ) {
-			hasDuplicate = true;
-			return 0;
-		}
-
-		// Sort on method existence if only one input has compareDocumentPosition
-		var compare = !a.compareDocumentPosition - !b.compareDocumentPosition;
-		if ( compare ) {
-			return compare;
-		}
-
-		// Calculate position if both inputs belong to the same document
-		compare = ( a.ownerDocument || a ) === ( b.ownerDocument || b ) ?
-			a.compareDocumentPosition( b ) :
-
-			// Otherwise we know they are disconnected
-			1;
-
-		// Disconnected nodes
-		if ( compare & 1 ||
-			(!support.sortDetached && b.compareDocumentPosition( a ) === compare) ) {
-
-			// Choose the first element that is related to our preferred document
-			if ( a === doc || a.ownerDocument === preferredDoc && contains(preferredDoc, a) ) {
-				return -1;
-			}
-			if ( b === doc || b.ownerDocument === preferredDoc && contains(preferredDoc, b) ) {
-				return 1;
-			}
-
-			// Maintain original order
-			return sortInput ?
-				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
-				0;
-		}
-
-		return compare & 4 ? -1 : 1;
-	} :
-	function( a, b ) {
-		// Exit early if the nodes are identical
-		if ( a === b ) {
-			hasDuplicate = true;
-			return 0;
-		}
-
-		var cur,
-			i = 0,
-			aup = a.parentNode,
-			bup = b.parentNode,
-			ap = [ a ],
-			bp = [ b ];
-
-		// Parentless nodes are either documents or disconnected
-		if ( !aup || !bup ) {
-			return a === doc ? -1 :
-				b === doc ? 1 :
-				aup ? -1 :
-				bup ? 1 :
-				sortInput ?
-				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
-				0;
-
-		// If the nodes are siblings, we can do a quick check
-		} else if ( aup === bup ) {
-			return siblingCheck( a, b );
-		}
-
-		// Otherwise we need full lists of their ancestors for comparison
-		cur = a;
-		while ( (cur = cur.parentNode) ) {
-			ap.unshift( cur );
-		}
-		cur = b;
-		while ( (cur = cur.parentNode) ) {
-			bp.unshift( cur );
-		}
-
-		// Walk down the tree looking for a discrepancy
-		while ( ap[i] === bp[i] ) {
-			i++;
-		}
-
-		return i ?
-			// Do a sibling check if the nodes have a common ancestor
-			siblingCheck( ap[i], bp[i] ) :
-
-			// Otherwise nodes in our document sort first
-			ap[i] === preferredDoc ? -1 :
-			bp[i] === preferredDoc ? 1 :
-			0;
-	};
-
-	return doc;
-};
-
-Sizzle.matches = function( expr, elements ) {
-	return Sizzle( expr, null, null, elements );
-};
-
-Sizzle.matchesSelector = function( elem, expr ) {
-	// Set document vars if needed
-	if ( ( elem.ownerDocument || elem ) !== document ) {
-		setDocument( elem );
-	}
-
-	// Make sure that attribute selectors are quoted
-	expr = expr.replace( rattributeQuotes, "='$1']" );
-
-	if ( support.matchesSelector && documentIsHTML &&
-		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
-		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
-
-		try {
-			var ret = matches.call( elem, expr );
-
-			// IE 9's matchesSelector returns false on disconnected nodes
-			if ( ret || support.disconnectedMatch ||
-					// As well, disconnected nodes are said to be in a document
-					// fragment in IE 9
-					elem.document && elem.document.nodeType !== 11 ) {
-				return ret;
-			}
-		} catch (e) {}
-	}
-
-	return Sizzle( expr, document, null, [ elem ] ).length > 0;
-};
-
-Sizzle.contains = function( context, elem ) {
-	// Set document vars if needed
-	if ( ( context.ownerDocument || context ) !== document ) {
-		setDocument( context );
-	}
-	return contains( context, elem );
-};
-
-Sizzle.attr = function( elem, name ) {
-	// Set document vars if needed
-	if ( ( elem.ownerDocument || elem ) !== document ) {
-		setDocument( elem );
-	}
-
-	var fn = Expr.attrHandle[ name.toLowerCase() ],
-		// Don't get fooled by Object.prototype properties (jQuery #13807)
-		val = fn && hasOwn.call( Expr.attrHandle, name.toLowerCase() ) ?
-			fn( elem, name, !documentIsHTML ) :
-			undefined;
-
-	return val !== undefined ?
-		val :
-		support.attributes || !documentIsHTML ?
-			elem.getAttribute( name ) :
-			(val = elem.getAttributeNode(name)) && val.specified ?
-				val.value :
-				null;
-};
-
-Sizzle.error = function( msg ) {
-	throw new Error( "Syntax error, unrecognized expression: " + msg );
-};
-
-/**
- * Document sorting and removing duplicates
- * @param {ArrayLike} results
- */
-Sizzle.uniqueSort = function( results ) {
-	var elem,
-		duplicates = [],
-		j = 0,
-		i = 0;
-
-	// Unless we *know* we can detect duplicates, assume their presence
-	hasDuplicate = !support.detectDuplicates;
-	sortInput = !support.sortStable && results.slice( 0 );
-	results.sort( sortOrder );
-
-	if ( hasDuplicate ) {
-		while ( (elem = results[i++]) ) {
-			if ( elem === results[ i ] ) {
-				j = duplicates.push( i );
-			}
-		}
-		while ( j-- ) {
-			results.splice( duplicates[ j ], 1 );
-		}
-	}
-
-	// Clear input after sorting to release objects
-	// See https://github.com/jquery/sizzle/pull/225
-	sortInput = null;
-
-	return results;
-};
-
-/**
- * Utility function for retrieving the text value of an array of DOM nodes
- * @param {Array|Element} elem
- */
-getText = Sizzle.getText = function( elem ) {
-	var node,
-		ret = "",
-		i = 0,
-		nodeType = elem.nodeType;
-
-	if ( !nodeType ) {
-		// If no nodeType, this is expected to be an array
-		while ( (node = elem[i++]) ) {
-			// Do not traverse comment nodes
-			ret += getText( node );
-		}
-	} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
-		// Use textContent for elements
-		// innerText usage removed for consistency of new lines (jQuery #11153)
-		if ( typeof elem.textContent === "string" ) {
-			return elem.textContent;
-		} else {
-			// Traverse its children
-			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-				ret += getText( elem );
-			}
-		}
-	} else if ( nodeType === 3 || nodeType === 4 ) {
-		return elem.nodeValue;
-	}
-	// Do not include comment or processing instruction nodes
-
-	return ret;
-};
-
-Expr = Sizzle.selectors = {
-
-	// Can be adjusted by the user
-	cacheLength: 50,
-
-	createPseudo: markFunction,
-
-	match: matchExpr,
-
-	attrHandle: {},
-
-	find: {},
-
-	relative: {
-		">": { dir: "parentNode", first: true },
-		" ": { dir: "parentNode" },
-		"+": { dir: "previousSibling", first: true },
-		"~": { dir: "previousSibling" }
-	},
-
-	preFilter: {
-		"ATTR": function( match ) {
-			match[1] = match[1].replace( runescape, funescape );
-
-			// Move the given value to match[3] whether quoted or unquoted
-			match[3] = ( match[3] || match[4] || match[5] || "" ).replace( runescape, funescape );
-
-			if ( match[2] === "~=" ) {
-				match[3] = " " + match[3] + " ";
-			}
-
-			return match.slice( 0, 4 );
-		},
-
-		"CHILD": function( match ) {
-			/* matches from matchExpr["CHILD"]
-				1 type (only|nth|...)
-				2 what (child|of-type)
-				3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
-				4 xn-component of xn+y argument ([+-]?\d*n|)
-				5 sign of xn-component
-				6 x of xn-component
-				7 sign of y-component
-				8 y of y-component
-			*/
-			match[1] = match[1].toLowerCase();
-
-			if ( match[1].slice( 0, 3 ) === "nth" ) {
-				// nth-* requires argument
-				if ( !match[3] ) {
-					Sizzle.error( match[0] );
-				}
-
-				// numeric x and y parameters for Expr.filter.CHILD
-				// remember that false/true cast respectively to 0/1
-				match[4] = +( match[4] ? match[5] + (match[6] || 1) : 2 * ( match[3] === "even" || match[3] === "odd" ) );
-				match[5] = +( ( match[7] + match[8] ) || match[3] === "odd" );
-
-			// other types prohibit arguments
-			} else if ( match[3] ) {
-				Sizzle.error( match[0] );
-			}
-
-			return match;
-		},
-
-		"PSEUDO": function( match ) {
-			var excess,
-				unquoted = !match[6] && match[2];
-
-			if ( matchExpr["CHILD"].test( match[0] ) ) {
-				return null;
-			}
-
-			// Accept quoted arguments as-is
-			if ( match[3] ) {
-				match[2] = match[4] || match[5] || "";
-
-			// Strip excess characters from unquoted arguments
-			} else if ( unquoted && rpseudo.test( unquoted ) &&
-				// Get excess from tokenize (recursively)
-				(excess = tokenize( unquoted, true )) &&
-				// advance to the next closing parenthesis
-				(excess = unquoted.indexOf( ")", unquoted.length - excess ) - unquoted.length) ) {
-
-				// excess is a negative index
-				match[0] = match[0].slice( 0, excess );
-				match[2] = unquoted.slice( 0, excess );
-			}
-
-			// Return only captures needed by the pseudo filter method (type and argument)
-			return match.slice( 0, 3 );
-		}
-	},
-
-	filter: {
-
-		"TAG": function( nodeNameSelector ) {
-			var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
-			return nodeNameSelector === "*" ?
-				function() { return true; } :
-				function( elem ) {
-					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
-				};
-		},
-
-		"CLASS": function( className ) {
-			var pattern = classCache[ className + " " ];
-
-			return pattern ||
-				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
-				classCache( className, function( elem ) {
-					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
-				});
-		},
-
-		"ATTR": function( name, operator, check ) {
-			return function( elem ) {
-				var result = Sizzle.attr( elem, name );
-
-				if ( result == null ) {
-					return operator === "!=";
-				}
-				if ( !operator ) {
-					return true;
-				}
-
-				result += "";
-
-				return operator === "=" ? result === check :
-					operator === "!=" ? result !== check :
-					operator === "^=" ? check && result.indexOf( check ) === 0 :
-					operator === "*=" ? check && result.indexOf( check ) > -1 :
-					operator === "$=" ? check && result.slice( -check.length ) === check :
-					operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
-					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
-					false;
-			};
-		},
-
-		"CHILD": function( type, what, argument, first, last ) {
-			var simple = type.slice( 0, 3 ) !== "nth",
-				forward = type.slice( -4 ) !== "last",
-				ofType = what === "of-type";
-
-			return first === 1 && last === 0 ?
-
-				// Shortcut for :nth-*(n)
-				function( elem ) {
-					return !!elem.parentNode;
-				} :
-
-				function( elem, context, xml ) {
-					var cache, outerCache, node, diff, nodeIndex, start,
-						dir = simple !== forward ? "nextSibling" : "previousSibling",
-						parent = elem.parentNode,
-						name = ofType && elem.nodeName.toLowerCase(),
-						useCache = !xml && !ofType;
-
-					if ( parent ) {
-
-						// :(first|last|only)-(child|of-type)
-						if ( simple ) {
-							while ( dir ) {
-								node = elem;
-								while ( (node = node[ dir ]) ) {
-									if ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) {
-										return false;
-									}
-								}
-								// Reverse direction for :only-* (if we haven't yet done so)
-								start = dir = type === "only" && !start && "nextSibling";
-							}
-							return true;
-						}
-
-						start = [ forward ? parent.firstChild : parent.lastChild ];
-
-						// non-xml :nth-child(...) stores cache data on `parent`
-						if ( forward && useCache ) {
-							// Seek `elem` from a previously-cached index
-							outerCache = parent[ expando ] || (parent[ expando ] = {});
-							cache = outerCache[ type ] || [];
-							nodeIndex = cache[0] === dirruns && cache[1];
-							diff = cache[0] === dirruns && cache[2];
-							node = nodeIndex && parent.childNodes[ nodeIndex ];
-
-							while ( (node = ++nodeIndex && node && node[ dir ] ||
-
-								// Fallback to seeking `elem` from the start
-								(diff = nodeIndex = 0) || start.pop()) ) {
-
-								// When found, cache indexes on `parent` and break
-								if ( node.nodeType === 1 && ++diff && node === elem ) {
-									outerCache[ type ] = [ dirruns, nodeIndex, diff ];
-									break;
-								}
-							}
-
-						// Use previously-cached element index if available
-						} else if ( useCache && (cache = (elem[ expando ] || (elem[ expando ] = {}))[ type ]) && cache[0] === dirruns ) {
-							diff = cache[1];
-
-						// xml :nth-child(...) or :nth-last-child(...) or :nth(-last)?-of-type(...)
-						} else {
-							// Use the same loop as above to seek `elem` from the start
-							while ( (node = ++nodeIndex && node && node[ dir ] ||
-								(diff = nodeIndex = 0) || start.pop()) ) {
-
-								if ( ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) && ++diff ) {
-									// Cache the index of each encountered element
-									if ( useCache ) {
-										(node[ expando ] || (node[ expando ] = {}))[ type ] = [ dirruns, diff ];
-									}
-
-									if ( node === elem ) {
-										break;
-									}
-								}
-							}
-						}
-
-						// Incorporate the offset, then check against cycle size
-						diff -= last;
-						return diff === first || ( diff % first === 0 && diff / first >= 0 );
-					}
-				};
-		},
-
-		"PSEUDO": function( pseudo, argument ) {
-			// pseudo-class names are case-insensitive
-			// http://www.w3.org/TR/selectors/#pseudo-classes
-			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-			// Remember that setFilters inherits from pseudos
-			var args,
-				fn = Expr.pseudos[ pseudo ] || Expr.setFilters[ pseudo.toLowerCase() ] ||
-					Sizzle.error( "unsupported pseudo: " + pseudo );
-
-			// The user may use createPseudo to indicate that
-			// arguments are needed to create the filter function
-			// just as Sizzle does
-			if ( fn[ expando ] ) {
-				return fn( argument );
-			}
-
-			// But maintain support for old signatures
-			if ( fn.length > 1 ) {
-				args = [ pseudo, pseudo, "", argument ];
-				return Expr.setFilters.hasOwnProperty( pseudo.toLowerCase() ) ?
-					markFunction(function( seed, matches ) {
-						var idx,
-							matched = fn( seed, argument ),
-							i = matched.length;
-						while ( i-- ) {
-							idx = indexOf( seed, matched[i] );
-							seed[ idx ] = !( matches[ idx ] = matched[i] );
-						}
-					}) :
-					function( elem ) {
-						return fn( elem, 0, args );
-					};
-			}
-
-			return fn;
-		}
-	},
-
-	pseudos: {
-		// Potentially complex pseudos
-		"not": markFunction(function( selector ) {
-			// Trim the selector passed to compile
-			// to avoid treating leading and trailing
-			// spaces as combinators
-			var input = [],
-				results = [],
-				matcher = compile( selector.replace( rtrim, "$1" ) );
-
-			return matcher[ expando ] ?
-				markFunction(function( seed, matches, context, xml ) {
-					var elem,
-						unmatched = matcher( seed, null, xml, [] ),
-						i = seed.length;
-
-					// Match elements unmatched by `matcher`
-					while ( i-- ) {
-						if ( (elem = unmatched[i]) ) {
-							seed[i] = !(matches[i] = elem);
-						}
-					}
-				}) :
-				function( elem, context, xml ) {
-					input[0] = elem;
-					matcher( input, null, xml, results );
-					// Don't keep the element (issue #299)
-					input[0] = null;
-					return !results.pop();
-				};
-		}),
-
-		"has": markFunction(function( selector ) {
-			return function( elem ) {
-				return Sizzle( selector, elem ).length > 0;
-			};
-		}),
-
-		"contains": markFunction(function( text ) {
-			text = text.replace( runescape, funescape );
-			return function( elem ) {
-				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
-			};
-		}),
-
-		// "Whether an element is represented by a :lang() selector
-		// is based solely on the element's language value
-		// being equal to the identifier C,
-		// or beginning with the identifier C immediately followed by "-".
-		// The matching of C against the element's language value is performed case-insensitively.
-		// The identifier C does not have to be a valid language name."
-		// http://www.w3.org/TR/selectors/#lang-pseudo
-		"lang": markFunction( function( lang ) {
-			// lang value must be a valid identifier
-			if ( !ridentifier.test(lang || "") ) {
-				Sizzle.error( "unsupported lang: " + lang );
-			}
-			lang = lang.replace( runescape, funescape ).toLowerCase();
-			return function( elem ) {
-				var elemLang;
-				do {
-					if ( (elemLang = documentIsHTML ?
-						elem.lang :
-						elem.getAttribute("xml:lang") || elem.getAttribute("lang")) ) {
-
-						elemLang = elemLang.toLowerCase();
-						return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
-					}
-				} while ( (elem = elem.parentNode) && elem.nodeType === 1 );
-				return false;
-			};
-		}),
-
-		// Miscellaneous
-		"target": function( elem ) {
-			var hash = window.location && window.location.hash;
-			return hash && hash.slice( 1 ) === elem.id;
-		},
-
-		"root": function( elem ) {
-			return elem === docElem;
-		},
-
-		"focus": function( elem ) {
-			return elem === document.activeElement && (!document.hasFocus || document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
-		},
-
-		// Boolean properties
-		"enabled": function( elem ) {
-			return elem.disabled === false;
-		},
-
-		"disabled": function( elem ) {
-			return elem.disabled === true;
-		},
-
-		"checked": function( elem ) {
-			// In CSS3, :checked should return both checked and selected elements
-			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
-			var nodeName = elem.nodeName.toLowerCase();
-			return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
-		},
-
-		"selected": function( elem ) {
-			// Accessing this property makes selected-by-default
-			// options in Safari work properly
-			if ( elem.parentNode ) {
-				elem.parentNode.selectedIndex;
-			}
-
-			return elem.selected === true;
-		},
-
-		// Contents
-		"empty": function( elem ) {
-			// http://www.w3.org/TR/selectors/#empty-pseudo
-			// :empty is negated by element (1) or content nodes (text: 3; cdata: 4; entity ref: 5),
-			//   but not by others (comment: 8; processing instruction: 7; etc.)
-			// nodeType < 6 works because attributes (2) do not appear as children
-			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-				if ( elem.nodeType < 6 ) {
-					return false;
-				}
-			}
-			return true;
-		},
-
-		"parent": function( elem ) {
-			return !Expr.pseudos["empty"]( elem );
-		},
-
-		// Element/input types
-		"header": function( elem ) {
-			return rheader.test( elem.nodeName );
-		},
-
-		"input": function( elem ) {
-			return rinputs.test( elem.nodeName );
-		},
-
-		"button": function( elem ) {
-			var name = elem.nodeName.toLowerCase();
-			return name === "input" && elem.type === "button" || name === "button";
-		},
-
-		"text": function( elem ) {
-			var attr;
-			return elem.nodeName.toLowerCase() === "input" &&
-				elem.type === "text" &&
-
-				// Support: IE<8
-				// New HTML5 attribute values (e.g., "search") appear with elem.type === "text"
-				( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === "text" );
-		},
-
-		// Position-in-collection
-		"first": createPositionalPseudo(function() {
-			return [ 0 ];
-		}),
-
-		"last": createPositionalPseudo(function( matchIndexes, length ) {
-			return [ length - 1 ];
-		}),
-
-		"eq": createPositionalPseudo(function( matchIndexes, length, argument ) {
-			return [ argument < 0 ? argument + length : argument ];
-		}),
-
-		"even": createPositionalPseudo(function( matchIndexes, length ) {
-			var i = 0;
-			for ( ; i < length; i += 2 ) {
-				matchIndexes.push( i );
-			}
-			return matchIndexes;
-		}),
-
-		"odd": createPositionalPseudo(function( matchIndexes, length ) {
-			var i = 1;
-			for ( ; i < length; i += 2 ) {
-				matchIndexes.push( i );
-			}
-			return matchIndexes;
-		}),
-
-		"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
-			var i = argument < 0 ? argument + length : argument;
-			for ( ; --i >= 0; ) {
-				matchIndexes.push( i );
-			}
-			return matchIndexes;
-		}),
-
-		"gt": createPositionalPseudo(function( matchIndexes, length, argument ) {
-			var i = argument < 0 ? argument + length : argument;
-			for ( ; ++i < length; ) {
-				matchIndexes.push( i );
-			}
-			return matchIndexes;
-		})
-	}
-};
-
-Expr.pseudos["nth"] = Expr.pseudos["eq"];
-
-// Add button/input type pseudos
-for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
-	Expr.pseudos[ i ] = createInputPseudo( i );
-}
-for ( i in { submit: true, reset: true } ) {
-	Expr.pseudos[ i ] = createButtonPseudo( i );
-}
-
-// Easy API for creating new setFilters
-function setFilters() {}
-setFilters.prototype = Expr.filters = Expr.pseudos;
-Expr.setFilters = new setFilters();
-
-tokenize = Sizzle.tokenize = function( selector, parseOnly ) {
-	var matched, match, tokens, type,
-		soFar, groups, preFilters,
-		cached = tokenCache[ selector + " " ];
-
-	if ( cached ) {
-		return parseOnly ? 0 : cached.slice( 0 );
-	}
-
-	soFar = selector;
-	groups = [];
-	preFilters = Expr.preFilter;
-
-	while ( soFar ) {
-
-		// Comma and first run
-		if ( !matched || (match = rcomma.exec( soFar )) ) {
-			if ( match ) {
-				// Don't consume trailing commas as valid
-				soFar = soFar.slice( match[0].length ) || soFar;
-			}
-			groups.push( (tokens = []) );
-		}
-
-		matched = false;
-
-		// Combinators
-		if ( (match = rcombinators.exec( soFar )) ) {
-			matched = match.shift();
-			tokens.push({
-				value: matched,
-				// Cast descendant combinators to space
-				type: match[0].replace( rtrim, " " )
-			});
-			soFar = soFar.slice( matched.length );
-		}
-
-		// Filters
-		for ( type in Expr.filter ) {
-			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
-				(match = preFilters[ type ]( match ))) ) {
-				matched = match.shift();
-				tokens.push({
-					value: matched,
-					type: type,
-					matches: match
-				});
-				soFar = soFar.slice( matched.length );
-			}
-		}
-
-		if ( !matched ) {
-			break;
-		}
-	}
-
-	// Return the length of the invalid excess
-	// if we're just parsing
-	// Otherwise, throw an error or return tokens
-	return parseOnly ?
-		soFar.length :
-		soFar ?
-			Sizzle.error( selector ) :
-			// Cache the tokens
-			tokenCache( selector, groups ).slice( 0 );
-};
-
-function toSelector( tokens ) {
-	var i = 0,
-		len = tokens.length,
-		selector = "";
-	for ( ; i < len; i++ ) {
-		selector += tokens[i].value;
-	}
-	return selector;
-}
-
-function addCombinator( matcher, combinator, base ) {
-	var dir = combinator.dir,
-		checkNonElements = base && dir === "parentNode",
-		doneName = done++;
-
-	return combinator.first ?
-		// Check against closest ancestor/preceding element
-		function( elem, context, xml ) {
-			while ( (elem = elem[ dir ]) ) {
-				if ( elem.nodeType === 1 || checkNonElements ) {
-					return matcher( elem, context, xml );
-				}
-			}
-		} :
-
-		// Check against all ancestor/preceding elements
-		function( elem, context, xml ) {
-			var oldCache, outerCache,
-				newCache = [ dirruns, doneName ];
-
-			// We can't set arbitrary data on XML nodes, so they don't benefit from dir caching
-			if ( xml ) {
-				while ( (elem = elem[ dir ]) ) {
-					if ( elem.nodeType === 1 || checkNonElements ) {
-						if ( matcher( elem, context, xml ) ) {
-							return true;
-						}
-					}
-				}
-			} else {
-				while ( (elem = elem[ dir ]) ) {
-					if ( elem.nodeType === 1 || checkNonElements ) {
-						outerCache = elem[ expando ] || (elem[ expando ] = {});
-						if ( (oldCache = outerCache[ dir ]) &&
-							oldCache[ 0 ] === dirruns && oldCache[ 1 ] === doneName ) {
-
-							// Assign to newCache so results back-propagate to previous elements
-							return (newCache[ 2 ] = oldCache[ 2 ]);
-						} else {
-							// Reuse newcache so results back-propagate to previous elements
-							outerCache[ dir ] = newCache;
-
-							// A match means we're done; a fail means we have to keep checking
-							if ( (newCache[ 2 ] = matcher( elem, context, xml )) ) {
-								return true;
-							}
-						}
-					}
-				}
-			}
-		};
-}
-
-function elementMatcher( matchers ) {
-	return matchers.length > 1 ?
-		function( elem, context, xml ) {
-			var i = matchers.length;
-			while ( i-- ) {
-				if ( !matchers[i]( elem, context, xml ) ) {
-					return false;
-				}
-			}
-			return true;
-		} :
-		matchers[0];
-}
-
-function multipleContexts( selector, contexts, results ) {
-	var i = 0,
-		len = contexts.length;
-	for ( ; i < len; i++ ) {
-		Sizzle( selector, contexts[i], results );
-	}
-	return results;
-}
-
-function condense( unmatched, map, filter, context, xml ) {
-	var elem,
-		newUnmatched = [],
-		i = 0,
-		len = unmatched.length,
-		mapped = map != null;
-
-	for ( ; i < len; i++ ) {
-		if ( (elem = unmatched[i]) ) {
-			if ( !filter || filter( elem, context, xml ) ) {
-				newUnmatched.push( elem );
-				if ( mapped ) {
-					map.push( i );
-				}
-			}
-		}
-	}
-
-	return newUnmatched;
-}
-
-function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postSelector ) {
-	if ( postFilter && !postFilter[ expando ] ) {
-		postFilter = setMatcher( postFilter );
-	}
-	if ( postFinder && !postFinder[ expando ] ) {
-		postFinder = setMatcher( postFinder, postSelector );
-	}
-	return markFunction(function( seed, results, context, xml ) {
-		var temp, i, elem,
-			preMap = [],
-			postMap = [],
-			preexisting = results.length,
-
-			// Get initial elements from seed or context
-			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
-
-			// Prefilter to get matcher input, preserving a map for seed-results synchronization
-			matcherIn = preFilter && ( seed || !selector ) ?
-				condense( elems, preMap, preFilter, context, xml ) :
-				elems,
-
-			matcherOut = matcher ?
-				// If we have a postFinder, or filtered seed, or non-seed postFilter or preexisting results,
-				postFinder || ( seed ? preFilter : preexisting || postFilter ) ?
-
-					// ...intermediate processing is necessary
-					[] :
-
-					// ...otherwise use results directly
-					results :
-				matcherIn;
-
-		// Find primary matches
-		if ( matcher ) {
-			matcher( matcherIn, matcherOut, context, xml );
-		}
-
-		// Apply postFilter
-		if ( postFilter ) {
-			temp = condense( matcherOut, postMap );
-			postFilter( temp, [], context, xml );
-
-			// Un-match failing elements by moving them back to matcherIn
-			i = temp.length;
-			while ( i-- ) {
-				if ( (elem = temp[i]) ) {
-					matcherOut[ postMap[i] ] = !(matcherIn[ postMap[i] ] = elem);
-				}
-			}
-		}
-
-		if ( seed ) {
-			if ( postFinder || preFilter ) {
-				if ( postFinder ) {
-					// Get the final matcherOut by condensing this intermediate into postFinder contexts
-					temp = [];
-					i = matcherOut.length;
-					while ( i-- ) {
-						if ( (elem = matcherOut[i]) ) {
-							// Restore matcherIn since elem is not yet a final match
-							temp.push( (matcherIn[i] = elem) );
-						}
-					}
-					postFinder( null, (matcherOut = []), temp, xml );
-				}
-
-				// Move matched elements from seed to results to keep them synchronized
-				i = matcherOut.length;
-				while ( i-- ) {
-					if ( (elem = matcherOut[i]) &&
-						(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
-
-						seed[temp] = !(results[temp] = elem);
-					}
-				}
-			}
-
-		// Add elements to results, through postFinder if defined
-		} else {
-			matcherOut = condense(
-				matcherOut === results ?
-					matcherOut.splice( preexisting, matcherOut.length ) :
-					matcherOut
-			);
-			if ( postFinder ) {
-				postFinder( null, results, matcherOut, xml );
-			} else {
-				push.apply( results, matcherOut );
-			}
-		}
-	});
-}
-
-function matcherFromTokens( tokens ) {
-	var checkContext, matcher, j,
-		len = tokens.length,
-		leadingRelative = Expr.relative[ tokens[0].type ],
-		implicitRelative = leadingRelative || Expr.relative[" "],
-		i = leadingRelative ? 1 : 0,
-
-		// The foundational matcher ensures that elements are reachable from top-level context(s)
-		matchContext = addCombinator( function( elem ) {
-			return elem === checkContext;
-		}, implicitRelative, true ),
-		matchAnyContext = addCombinator( function( elem ) {
-			return indexOf( checkContext, elem ) > -1;
-		}, implicitRelative, true ),
-		matchers = [ function( elem, context, xml ) {
-			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
-				(checkContext = context).nodeType ?
-					matchContext( elem, context, xml ) :
-					matchAnyContext( elem, context, xml ) );
-			// Avoid hanging onto element (issue #299)
-			checkContext = null;
-			return ret;
-		} ];
-
-	for ( ; i < len; i++ ) {
-		if ( (matcher = Expr.relative[ tokens[i].type ]) ) {
-			matchers = [ addCombinator(elementMatcher( matchers ), matcher) ];
-		} else {
-			matcher = Expr.filter[ tokens[i].type ].apply( null, tokens[i].matches );
-
-			// Return special upon seeing a positional matcher
-			if ( matcher[ expando ] ) {
-				// Find the next relative operator (if any) for proper handling
-				j = ++i;
-				for ( ; j < len; j++ ) {
-					if ( Expr.relative[ tokens[j].type ] ) {
-						break;
-					}
-				}
-				return setMatcher(
-					i > 1 && elementMatcher( matchers ),
-					i > 1 && toSelector(
-						// If the preceding token was a descendant combinator, insert an implicit any-element `*`
-						tokens.slice( 0, i - 1 ).concat({ value: tokens[ i - 2 ].type === " " ? "*" : "" })
-					).replace( rtrim, "$1" ),
-					matcher,
-					i < j && matcherFromTokens( tokens.slice( i, j ) ),
-					j < len && matcherFromTokens( (tokens = tokens.slice( j )) ),
-					j < len && toSelector( tokens )
-				);
-			}
-			matchers.push( matcher );
-		}
-	}
-
-	return elementMatcher( matchers );
-}
-
-function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
-	var bySet = setMatchers.length > 0,
-		byElement = elementMatchers.length > 0,
-		superMatcher = function( seed, context, xml, results, outermost ) {
-			var elem, j, matcher,
-				matchedCount = 0,
-				i = "0",
-				unmatched = seed && [],
-				setMatched = [],
-				contextBackup = outermostContext,
-				// We must always have either seed elements or outermost context
-				elems = seed || byElement && Expr.find["TAG"]( "*", outermost ),
-				// Use integer dirruns iff this is the outermost matcher
-				dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.random() || 0.1),
-				len = elems.length;
-
-			if ( outermost ) {
-				outermostContext = context !== document && context;
-			}
-
-			// Add elements passing elementMatchers directly to results
-			// Keep `i` a string if there are no elements so `matchedCount` will be "00" below
-			// Support: IE<9, Safari
-			// Tolerate NodeList properties (IE: "length"; Safari: <number>) matching elements by id
-			for ( ; i !== len && (elem = elems[i]) != null; i++ ) {
-				if ( byElement && elem ) {
-					j = 0;
-					while ( (matcher = elementMatchers[j++]) ) {
-						if ( matcher( elem, context, xml ) ) {
-							results.push( elem );
-							break;
-						}
-					}
-					if ( outermost ) {
-						dirruns = dirrunsUnique;
-					}
-				}
-
-				// Track unmatched elements for set filters
-				if ( bySet ) {
-					// They will have gone through all possible matchers
-					if ( (elem = !matcher && elem) ) {
-						matchedCount--;
-					}
-
-					// Lengthen the array for every element, matched or not
-					if ( seed ) {
-						unmatched.push( elem );
-					}
-				}
-			}
-
-			// Apply set filters to unmatched elements
-			matchedCount += i;
-			if ( bySet && i !== matchedCount ) {
-				j = 0;
-				while ( (matcher = setMatchers[j++]) ) {
-					matcher( unmatched, setMatched, context, xml );
-				}
-
-				if ( seed ) {
-					// Reintegrate element matches to eliminate the need for sorting
-					if ( matchedCount > 0 ) {
-						while ( i-- ) {
-							if ( !(unmatched[i] || setMatched[i]) ) {
-								setMatched[i] = pop.call( results );
-							}
-						}
-					}
-
-					// Discard index placeholder values to get only actual matches
-					setMatched = condense( setMatched );
-				}
-
-				// Add matches to results
-				push.apply( results, setMatched );
-
-				// Seedless set matches succeeding multiple successful matchers stipulate sorting
-				if ( outermost && !seed && setMatched.length > 0 &&
-					( matchedCount + setMatchers.length ) > 1 ) {
-
-					Sizzle.uniqueSort( results );
-				}
-			}
-
-			// Override manipulation of globals by nested matchers
-			if ( outermost ) {
-				dirruns = dirrunsUnique;
-				outermostContext = contextBackup;
-			}
-
-			return unmatched;
-		};
-
-	return bySet ?
-		markFunction( superMatcher ) :
-		superMatcher;
-}
-
-compile = Sizzle.compile = function( selector, match /* Internal Use Only */ ) {
-	var i,
-		setMatchers = [],
-		elementMatchers = [],
-		cached = compilerCache[ selector + " " ];
-
-	if ( !cached ) {
-		// Generate a function of recursive functions that can be used to check each element
-		if ( !match ) {
-			match = tokenize( selector );
-		}
-		i = match.length;
-		while ( i-- ) {
-			cached = matcherFromTokens( match[i] );
-			if ( cached[ expando ] ) {
-				setMatchers.push( cached );
-			} else {
-				elementMatchers.push( cached );
-			}
-		}
-
-		// Cache the compiled function
-		cached = compilerCache( selector, matcherFromGroupMatchers( elementMatchers, setMatchers ) );
-
-		// Save selector and tokenization
-		cached.selector = selector;
-	}
-	return cached;
-};
-
-/**
- * A low-level selection function that works with Sizzle's compiled
- *  selector functions
- * @param {String|Function} selector A selector or a pre-compiled
- *  selector function built with Sizzle.compile
- * @param {Element} context
- * @param {Array} [results]
- * @param {Array} [seed] A set of elements to match against
- */
-select = Sizzle.select = function( selector, context, results, seed ) {
-	var i, tokens, token, type, find,
-		compiled = typeof selector === "function" && selector,
-		match = !seed && tokenize( (selector = compiled.selector || selector) );
-
-	results = results || [];
-
-	// Try to minimize operations if there is no seed and only one group
-	if ( match.length === 1 ) {
-
-		// Take a shortcut and set the context if the root selector is an ID
-		tokens = match[0] = match[0].slice( 0 );
-		if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
-				support.getById && context.nodeType === 9 && documentIsHTML &&
-				Expr.relative[ tokens[1].type ] ) {
-
-			context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
-			if ( !context ) {
-				return results;
-
-			// Precompiled matchers will still verify ancestry, so step up a level
-			} else if ( compiled ) {
-				context = context.parentNode;
-			}
-
-			selector = selector.slice( tokens.shift().value.length );
-		}
-
-		// Fetch a seed set for right-to-left matching
-		i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
-		while ( i-- ) {
-			token = tokens[i];
-
-			// Abort if we hit a combinator
-			if ( Expr.relative[ (type = token.type) ] ) {
-				break;
-			}
-			if ( (find = Expr.find[ type ]) ) {
-				// Search, expanding context for leading sibling combinators
-				if ( (seed = find(
-					token.matches[0].replace( runescape, funescape ),
-					rsibling.test( tokens[0].type ) && testContext( context.parentNode ) || context
-				)) ) {
-
-					// If seed is empty or no tokens remain, we can return early
-					tokens.splice( i, 1 );
-					selector = seed.length && toSelector( tokens );
-					if ( !selector ) {
-						push.apply( results, seed );
-						return results;
-					}
-
-					break;
-				}
-			}
-		}
-	}
-
-	// Compile and execute a filtering function if one is not provided
-	// Provide `match` to avoid retokenization if we modified the selector above
-	( compiled || compile( selector, match ) )(
-		seed,
-		context,
-		!documentIsHTML,
-		results,
-		rsibling.test( selector ) && testContext( context.parentNode ) || context
-	);
-	return results;
-};
-
-// One-time assignments
-
-// Sort stability
-support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
-
-// Support: Chrome 14-35+
-// Always assume duplicates if they aren't passed to the comparison function
-support.detectDuplicates = !!hasDuplicate;
-
-// Initialize against the default document
-setDocument();
-
-// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
-// Detached nodes confoundingly follow *each other*
-support.sortDetached = assert(function( div1 ) {
-	// Should return 1, but returns 4 (following)
-	return div1.compareDocumentPosition( document.createElement("div") ) & 1;
-});
-
-// Support: IE<8
-// Prevent attribute/property "interpolation"
-// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
-if ( !assert(function( div ) {
-	div.innerHTML = "<a href='#'></a>";
-	return div.firstChild.getAttribute("href") === "#" ;
-}) ) {
-	addHandle( "type|href|height|width", function( elem, name, isXML ) {
-		if ( !isXML ) {
-			return elem.getAttribute( name, name.toLowerCase() === "type" ? 1 : 2 );
-		}
-	});
-}
-
-// Support: IE<9
-// Use defaultValue in place of getAttribute("value")
-if ( !support.attributes || !assert(function( div ) {
-	div.innerHTML = "<input/>";
-	div.firstChild.setAttribute( "value", "" );
-	return div.firstChild.getAttribute( "value" ) === "";
-}) ) {
-	addHandle( "value", function( elem, name, isXML ) {
-		if ( !isXML && elem.nodeName.toLowerCase() === "input" ) {
-			return elem.defaultValue;
-		}
-	});
-}
-
-// Support: IE<9
-// Use getAttributeNode to fetch booleans when getAttribute lies
-if ( !assert(function( div ) {
-	return div.getAttribute("disabled") == null;
-}) ) {
-	addHandle( booleans, function( elem, name, isXML ) {
-		var val;
-		if ( !isXML ) {
-			return elem[ name ] === true ? name.toLowerCase() :
-					(val = elem.getAttributeNode( name )) && val.specified ?
-					val.value :
-				null;
-		}
-	});
-}
-
-// EXPOSE
-if ( typeof define === "function" && define.amd ) {
-	define(function() { return Sizzle; });
-// Sizzle requires that there be a global window in Common-JS like environments
-} else if ( typeof module !== "undefined" && module.exports ) {
-	module.exports = Sizzle;
-} else {
-	window.Sizzle = Sizzle;
-}
-// EXPOSE
-
-})( window );
-
-},{}],43:[function(require,module,exports){
+   lodash: require("lodash"),
+   lex: require("lex"),
+   Ractive: require("ractive/ractive"),
+
+   page: require("page"),
+   jsDiff: require("diff"),
+   codeMirror: require("codemirror"),
+   codeMirrorLint: require("codemirror/addon/lint/lint"),
+   combokeys: require("combokeys"),
+   screenfull: require("screenfull"),
+   zazate: require("zazate.js"),
+
+   queryString: require("query-string"),
+   sizzle: require("sizzle"),
+   domready: require("domready"),
+   sortable: require("sortablejs") };
+//drop: require('node_modules/drop/drop')
+
+},{"codemirror":34,"codemirror/addon/lint/lint":33,"combokeys":35,"diff":68,"domready":69,"isomorphic-fetch":71,"lex":72,"lodash":73,"page":74,"query-string":75,"ractive/ractive":76,"screenfull":78,"sizzle":79,"sortablejs":80,"zazate.js":119}],29:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -9387,7 +4925,7 @@ if ( typeof define === "function" && define.amd ) {
   };
 })("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-},{}],44:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -9513,9 +5051,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],45:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 
-},{}],46:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (root, factory) {
   "use strict";
 
@@ -9827,7 +5365,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 
 
-},{}],47:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -9876,6 +5414,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
     var poll = setInterval(function() {
       if (tooltip) for (var n = node;; n = n.parentNode) {
+        if (n && n.nodeType == 11) n = n.host;
         if (n == document.body) return;
         if (!n) { hide(); break; }
       }
@@ -9892,11 +5431,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     this.onMouseOver = function(e) { onMouseOver(cm, e); };
   }
 
-  function parseOptions(cm, options) {
+  function parseOptions(_cm, options) {
     if (options instanceof Function) return {getAnnotations: options};
     if (!options || options === true) options = {};
-    if (!options.getAnnotations) options.getAnnotations = cm.getHelper(CodeMirror.Pos(0, 0), "lint");
-    if (!options.getAnnotations) throw new Error("Required option 'getAnnotations' missing (lint addon)");
     return options;
   }
 
@@ -9949,10 +5486,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function startLinting(cm) {
     var state = cm.state.lint, options = state.options;
     var passOptions = options.options || options; // Support deprecated passing of `options` property in options
-    if (options.async)
-      options.getAnnotations(cm.getValue(), updateLinting, passOptions, cm);
+    var getAnnotations = options.getAnnotations || cm.getHelper(CodeMirror.Pos(0, 0), "lint");
+    if (!getAnnotations) return;
+    if (options.async || getAnnotations.async)
+      getAnnotations(cm.getValue(), updateLinting, passOptions, cm);
     else
-      updateLinting(cm, options.getAnnotations(cm.getValue(), passOptions, cm));
+      updateLinting(cm, getAnnotations(cm.getValue(), passOptions, cm));
   }
 
   function updateLinting(cm, annotationsNotSorted) {
@@ -9992,6 +5531,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   function onChange(cm) {
     var state = cm.state.lint;
+    if (!state) return;
     clearTimeout(state.timeout);
     state.timeout = setTimeout(function(){startLinting(cm);}, state.options.delay || 500);
   }
@@ -10015,8 +5555,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   CodeMirror.defineOption("lint", false, function(cm, val, old) {
     if (old && old != CodeMirror.Init) {
       clearMarks(cm);
-      cm.off("change", onChange);
+      if (cm.state.lint.options.lintOnChange !== false)
+        cm.off("change", onChange);
       CodeMirror.off(cm.getWrapperElement(), "mouseover", cm.state.lint.onMouseOver);
+      clearTimeout(cm.state.lint.timeout);
       delete cm.state.lint;
     }
 
@@ -10024,16 +5566,21 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       var gutters = cm.getOption("gutters"), hasLintGutter = false;
       for (var i = 0; i < gutters.length; ++i) if (gutters[i] == GUTTER_ID) hasLintGutter = true;
       var state = cm.state.lint = new LintState(cm, parseOptions(cm, val), hasLintGutter);
-      cm.on("change", onChange);
+      if (state.options.lintOnChange !== false)
+        cm.on("change", onChange);
       if (state.options.tooltips != false)
         CodeMirror.on(cm.getWrapperElement(), "mouseover", state.onMouseOver);
 
       startLinting(cm);
     }
   });
+
+  CodeMirror.defineExtension("performLint", function() {
+    if (this.state.lint) startLinting(this);
+  });
 });
 
-},{"../../lib/codemirror":48}],48:[function(require,module,exports){
+},{"../../lib/codemirror":34}],34:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -10059,7 +5606,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // detected are enabled based on userAgent etc sniffing.
 
   var gecko = /gecko\/\d/i.test(navigator.userAgent);
-  // ie_uptoN means Internet Explorer version N or lower
   var ie_upto10 = /MSIE \d/.test(navigator.userAgent);
   var ie_11up = /Trident\/(?:[7-9]|\d{2,})\..*rv:(\d+)/.exec(navigator.userAgent);
   var ie = ie_upto10 || ie_11up;
@@ -10069,7 +5615,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   var chrome = /Chrome\//.test(navigator.userAgent);
   var presto = /Opera\//.test(navigator.userAgent);
   var safari = /Apple Computer/.test(navigator.vendor);
-  var khtml = /KHTML\//.test(navigator.userAgent);
   var mac_geMountainLion = /Mac OS X 1\d\D([8-9]|\d\d)\D/.test(navigator.userAgent);
   var phantom = /PhantomJS/.test(navigator.userAgent);
 
@@ -10103,31 +5648,40 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     setGuttersForLineNumbers(options);
 
     var doc = options.value;
-    if (typeof doc == "string") doc = new Doc(doc, options.mode);
+    if (typeof doc == "string") doc = new Doc(doc, options.mode, null, options.lineSeparator);
     this.doc = doc;
 
-    var display = this.display = new Display(place, doc);
+    var input = new CodeMirror.inputStyles[options.inputStyle](this);
+    var display = this.display = new Display(place, doc, input);
     display.wrapper.CodeMirror = this;
     updateGutters(this);
     themeChanged(this);
     if (options.lineWrapping)
       this.display.wrapper.className += " CodeMirror-wrap";
-    if (options.autofocus && !mobile) focusInput(this);
+    if (options.autofocus && !mobile) display.input.focus();
+    initScrollbars(this);
 
     this.state = {
       keyMaps: [],  // stores maps added by addKeyMap
       overlays: [], // highlighting overlays, as added by addOverlay
       modeGen: 0,   // bumped when mode/overlay changes, used to invalidate highlighting info
-      overwrite: false, focused: false,
+      overwrite: false,
+      delayingBlurEvent: false,
+      focused: false,
       suppressEdits: false, // used to disable editing during key handlers when in readOnly mode
-      pasteIncoming: false, cutIncoming: false, // help recognize paste/cut edits in readInput
+      pasteIncoming: false, cutIncoming: false, // help recognize paste/cut edits in input.poll
+      selectingText: false,
       draggingText: false,
-      highlight: new Delayed() // stores highlight worker timeout
+      highlight: new Delayed(), // stores highlight worker timeout
+      keySeq: null,  // Unfinished key sequence
+      specialChars: null
     };
+
+    var cm = this;
 
     // Override magic textarea content restore that IE sometimes does
     // on our hidden textarea on reload
-    if (ie && ie_version < 11) setTimeout(bind(resetInput, this, true), 20);
+    if (ie && ie_version < 11) setTimeout(function() { cm.display.input.reset(true); }, 20);
 
     registerEventHandlers(this);
     ensureGlobalHandlers();
@@ -10136,7 +5690,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     this.curOp.forceUpdate = true;
     attachDoc(this, doc);
 
-    if ((options.autofocus && !mobile) || activeElt() == display.input)
+    if ((options.autofocus && !mobile) || cm.hasFocus())
       setTimeout(bind(onFocus, this), 20);
     else
       onBlur(this);
@@ -10144,8 +5698,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     for (var opt in optionHandlers) if (optionHandlers.hasOwnProperty(opt))
       optionHandlers[opt](this, options[opt], Init);
     maybeUpdateLineNumberWidth(this);
+    if (options.finishInit) options.finishInit(this);
     for (var i = 0; i < initHooks.length; ++i) initHooks[i](this);
     endOperation(this);
+    // Suppress optimizelegibility in Webkit, since it breaks text
+    // measuring on line wrapping boundaries.
+    if (webkit && options.lineWrapping &&
+        getComputedStyle(display.lineDiv).textRendering == "optimizelegibility")
+      display.lineDiv.style.textRendering = "auto";
   }
 
   // DISPLAY CONSTRUCTOR
@@ -10154,32 +5714,17 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // and content drawing. It holds references to DOM nodes and
   // display-related state.
 
-  function Display(place, doc) {
+  function Display(place, doc, input) {
     var d = this;
+    this.input = input;
 
-    // The semihidden textarea that is focused when the editor is
-    // focused, and receives input.
-    var input = d.input = elt("textarea", null, null, "position: absolute; padding: 0; width: 1px; height: 1em; outline: none");
-    // The textarea is kept positioned near the cursor to prevent the
-    // fact that it'll be scrolled into view on input from scrolling
-    // our fake cursor out of view. On webkit, when wrap=off, paste is
-    // very slow. So make the area wide instead.
-    if (webkit) input.style.width = "1000px";
-    else input.setAttribute("wrap", "off");
-    // If border: 0; -- iOS fails to open keyboard (issue #1287)
-    if (ios) input.style.border = "1px solid black";
-    input.setAttribute("autocorrect", "off"); input.setAttribute("autocapitalize", "off"); input.setAttribute("spellcheck", "false");
-
-    // Wraps and hides input textarea
-    d.inputDiv = elt("div", [input], null, "overflow: hidden; position: relative; width: 3px; height: 0px;");
-    // The fake scrollbar elements.
-    d.scrollbarH = elt("div", [elt("div", null, null, "height: 100%; min-height: 1px")], "CodeMirror-hscrollbar");
-    d.scrollbarV = elt("div", [elt("div", null, null, "min-width: 1px")], "CodeMirror-vscrollbar");
     // Covers bottom-right square when both scrollbars are present.
     d.scrollbarFiller = elt("div", null, "CodeMirror-scrollbar-filler");
+    d.scrollbarFiller.setAttribute("cm-not-content", "true");
     // Covers bottom of gutter when coverGutterNextToScrollbar is on
     // and h scrollbar is present.
     d.gutterFiller = elt("div", null, "CodeMirror-gutter-filler");
+    d.gutterFiller.setAttribute("cm-not-content", "true");
     // Will contain the actual code, positioned to cover the viewport.
     d.lineDiv = elt("div", null, "CodeMirror-code");
     // Elements are added to these to represent selection and cursors.
@@ -10196,10 +5741,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     d.mover = elt("div", [elt("div", [d.lineSpace], "CodeMirror-lines")], null, "position: relative");
     // Set to the height of the document, allowing scrolling.
     d.sizer = elt("div", [d.mover], "CodeMirror-sizer");
+    d.sizerWidth = null;
     // Behavior of elts with overflow: auto and padding is
     // inconsistent across browsers. This is used to ensure the
     // scrollable area is big enough.
-    d.heightForcer = elt("div", null, null, "position: absolute; height: " + scrollerCutOff + "px; width: 1px;");
+    d.heightForcer = elt("div", null, null, "position: absolute; height: " + scrollerGap + "px; width: 1px;");
     // Will contain the gutters, if any.
     d.gutters = elt("div", null, "CodeMirror-gutters");
     d.lineGutter = null;
@@ -10207,55 +5753,43 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     d.scroller = elt("div", [d.sizer, d.heightForcer, d.gutters], "CodeMirror-scroll");
     d.scroller.setAttribute("tabIndex", "-1");
     // The element in which the editor lives.
-    d.wrapper = elt("div", [d.inputDiv, d.scrollbarH, d.scrollbarV,
-                            d.scrollbarFiller, d.gutterFiller, d.scroller], "CodeMirror");
+    d.wrapper = elt("div", [d.scrollbarFiller, d.gutterFiller, d.scroller], "CodeMirror");
 
     // Work around IE7 z-index bug (not perfect, hence IE7 not really being supported)
     if (ie && ie_version < 8) { d.gutters.style.zIndex = -1; d.scroller.style.paddingRight = 0; }
-    // Needed to hide big blue blinking cursor on Mobile Safari
-    if (ios) input.style.width = "0px";
-    if (!webkit) d.scroller.draggable = true;
-    // Needed to handle Tab key in KHTML
-    if (khtml) { d.inputDiv.style.height = "1px"; d.inputDiv.style.position = "absolute"; }
-    // Need to set a minimum width to see the scrollbar on IE7 (but must not set it on IE8).
-    if (ie && ie_version < 8) d.scrollbarH.style.minHeight = d.scrollbarV.style.minWidth = "18px";
+    if (!webkit && !(gecko && mobile)) d.scroller.draggable = true;
 
-    if (place.appendChild) place.appendChild(d.wrapper);
-    else place(d.wrapper);
+    if (place) {
+      if (place.appendChild) place.appendChild(d.wrapper);
+      else place(d.wrapper);
+    }
 
     // Current rendered range (may be bigger than the view window).
     d.viewFrom = d.viewTo = doc.first;
+    d.reportedViewFrom = d.reportedViewTo = doc.first;
     // Information about the rendered lines.
     d.view = [];
+    d.renderedView = null;
     // Holds info about a single rendered line when it was rendered
     // for measurement, while not in view.
     d.externalMeasured = null;
     // Empty space (in pixels) above the view
     d.viewOffset = 0;
-    d.lastSizeC = 0;
+    d.lastWrapHeight = d.lastWrapWidth = 0;
     d.updateLineNumbers = null;
+
+    d.nativeBarWidth = d.barHeight = d.barWidth = 0;
+    d.scrollbarsClipped = false;
 
     // Used to only resize the line number gutter when necessary (when
     // the amount of lines crosses a boundary that makes its width change)
     d.lineNumWidth = d.lineNumInnerWidth = d.lineNumChars = null;
-    // See readInput and resetInput
-    d.prevInput = "";
     // Set to true when a non-horizontal-scrolling line widget is
     // added. As an optimization, line widget aligning is skipped when
     // this is false.
     d.alignWidgets = false;
-    // Flag that indicates whether we expect input to appear real soon
-    // now (after some event like 'keypress' or 'input') and are
-    // polling intensively.
-    d.pollingFast = false;
-    // Self-resetting timeout for the poller
-    d.poll = new Delayed();
 
     d.cachedCharWidth = d.cachedTextHeight = d.cachedPaddingH = null;
-
-    // Tracks when resetInput has punted to just putting a short
-    // string into the textarea instead of the full selection.
-    d.inaccurateSelection = false;
 
     // Tracks the maximum line length so that the horizontal scrollbar
     // can be kept static when scrolling.
@@ -10272,6 +5806,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     // Used to track whether anything happened since the context menu
     // was opened.
     d.selForContextMenu = null;
+
+    d.activeTouch = null;
+
+    input.init(d);
   }
 
   // STATE UPDATES
@@ -10298,6 +5836,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (cm.options.lineWrapping) {
       addClass(cm.display.wrapper, "CodeMirror-wrap");
       cm.display.sizer.style.minWidth = "";
+      cm.display.sizerWidth = null;
     } else {
       rmClass(cm.display.wrapper, "CodeMirror-wrap");
       findMaxLine(cm);
@@ -10337,12 +5876,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     });
   }
 
-  function keyMapChanged(cm) {
-    var map = keyMap[cm.options.keyMap], style = map.style;
-    cm.display.wrapper.className = cm.display.wrapper.className.replace(/\s*cm-keymap-\S+/g, "") +
-      (style ? " cm-keymap-" + style : "");
-  }
-
   function themeChanged(cm) {
     cm.display.wrapper.className = cm.display.wrapper.className.replace(/\s*cm-s-\S+/g, "") +
       cm.options.theme.replace(/(^|\s)\s*/g, " cm-s-");
@@ -10375,7 +5908,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function updateGutterSpace(cm) {
     var width = cm.display.gutters.offsetWidth;
     cm.display.sizer.style.marginLeft = width + "px";
-    cm.display.scrollbarH.style.left = cm.options.fixedGutter ? width + "px" : 0;
   }
 
   // Compute the character length of a line, taking into account
@@ -10428,78 +5960,167 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // SCROLLBARS
 
-  function hScrollbarTakesSpace(cm) {
-    return cm.display.scroller.clientHeight - cm.display.wrapper.clientHeight < scrollerCutOff - 3;
-  }
-
   // Prepare DOM reads needed to update the scrollbars. Done in one
   // shot to minimize update/measure roundtrips.
   function measureForScrollbars(cm) {
-    var scroll = cm.display.scroller;
+    var d = cm.display, gutterW = d.gutters.offsetWidth;
+    var docH = Math.round(cm.doc.height + paddingVert(cm.display));
     return {
-      clientHeight: scroll.clientHeight,
-      barHeight: cm.display.scrollbarV.clientHeight,
-      scrollWidth: scroll.scrollWidth, clientWidth: scroll.clientWidth,
-      hScrollbarTakesSpace: hScrollbarTakesSpace(cm),
-      barWidth: cm.display.scrollbarH.clientWidth,
-      docHeight: Math.round(cm.doc.height + paddingVert(cm.display))
+      clientHeight: d.scroller.clientHeight,
+      viewHeight: d.wrapper.clientHeight,
+      scrollWidth: d.scroller.scrollWidth, clientWidth: d.scroller.clientWidth,
+      viewWidth: d.wrapper.clientWidth,
+      barLeft: cm.options.fixedGutter ? gutterW : 0,
+      docHeight: docH,
+      scrollHeight: docH + scrollGap(cm) + d.barHeight,
+      nativeBarWidth: d.nativeBarWidth,
+      gutterWidth: gutterW
     };
+  }
+
+  function NativeScrollbars(place, scroll, cm) {
+    this.cm = cm;
+    var vert = this.vert = elt("div", [elt("div", null, null, "min-width: 1px")], "CodeMirror-vscrollbar");
+    var horiz = this.horiz = elt("div", [elt("div", null, null, "height: 100%; min-height: 1px")], "CodeMirror-hscrollbar");
+    place(vert); place(horiz);
+
+    on(vert, "scroll", function() {
+      if (vert.clientHeight) scroll(vert.scrollTop, "vertical");
+    });
+    on(horiz, "scroll", function() {
+      if (horiz.clientWidth) scroll(horiz.scrollLeft, "horizontal");
+    });
+
+    this.checkedOverlay = false;
+    // Need to set a minimum width to see the scrollbar on IE7 (but must not set it on IE8).
+    if (ie && ie_version < 8) this.horiz.style.minHeight = this.vert.style.minWidth = "18px";
+  }
+
+  NativeScrollbars.prototype = copyObj({
+    update: function(measure) {
+      var needsH = measure.scrollWidth > measure.clientWidth + 1;
+      var needsV = measure.scrollHeight > measure.clientHeight + 1;
+      var sWidth = measure.nativeBarWidth;
+
+      if (needsV) {
+        this.vert.style.display = "block";
+        this.vert.style.bottom = needsH ? sWidth + "px" : "0";
+        var totalHeight = measure.viewHeight - (needsH ? sWidth : 0);
+        // A bug in IE8 can cause this value to be negative, so guard it.
+        this.vert.firstChild.style.height =
+          Math.max(0, measure.scrollHeight - measure.clientHeight + totalHeight) + "px";
+      } else {
+        this.vert.style.display = "";
+        this.vert.firstChild.style.height = "0";
+      }
+
+      if (needsH) {
+        this.horiz.style.display = "block";
+        this.horiz.style.right = needsV ? sWidth + "px" : "0";
+        this.horiz.style.left = measure.barLeft + "px";
+        var totalWidth = measure.viewWidth - measure.barLeft - (needsV ? sWidth : 0);
+        this.horiz.firstChild.style.width =
+          (measure.scrollWidth - measure.clientWidth + totalWidth) + "px";
+      } else {
+        this.horiz.style.display = "";
+        this.horiz.firstChild.style.width = "0";
+      }
+
+      if (!this.checkedOverlay && measure.clientHeight > 0) {
+        if (sWidth == 0) this.overlayHack();
+        this.checkedOverlay = true;
+      }
+
+      return {right: needsV ? sWidth : 0, bottom: needsH ? sWidth : 0};
+    },
+    setScrollLeft: function(pos) {
+      if (this.horiz.scrollLeft != pos) this.horiz.scrollLeft = pos;
+    },
+    setScrollTop: function(pos) {
+      if (this.vert.scrollTop != pos) this.vert.scrollTop = pos;
+    },
+    overlayHack: function() {
+      var w = mac && !mac_geMountainLion ? "12px" : "18px";
+      this.horiz.style.minHeight = this.vert.style.minWidth = w;
+      var self = this;
+      var barMouseDown = function(e) {
+        if (e_target(e) != self.vert && e_target(e) != self.horiz)
+          operation(self.cm, onMouseDown)(e);
+      };
+      on(this.vert, "mousedown", barMouseDown);
+      on(this.horiz, "mousedown", barMouseDown);
+    },
+    clear: function() {
+      var parent = this.horiz.parentNode;
+      parent.removeChild(this.horiz);
+      parent.removeChild(this.vert);
+    }
+  }, NativeScrollbars.prototype);
+
+  function NullScrollbars() {}
+
+  NullScrollbars.prototype = copyObj({
+    update: function() { return {bottom: 0, right: 0}; },
+    setScrollLeft: function() {},
+    setScrollTop: function() {},
+    clear: function() {}
+  }, NullScrollbars.prototype);
+
+  CodeMirror.scrollbarModel = {"native": NativeScrollbars, "null": NullScrollbars};
+
+  function initScrollbars(cm) {
+    if (cm.display.scrollbars) {
+      cm.display.scrollbars.clear();
+      if (cm.display.scrollbars.addClass)
+        rmClass(cm.display.wrapper, cm.display.scrollbars.addClass);
+    }
+
+    cm.display.scrollbars = new CodeMirror.scrollbarModel[cm.options.scrollbarStyle](function(node) {
+      cm.display.wrapper.insertBefore(node, cm.display.scrollbarFiller);
+      // Prevent clicks in the scrollbars from killing focus
+      on(node, "mousedown", function() {
+        if (cm.state.focused) setTimeout(function() { cm.display.input.focus(); }, 0);
+      });
+      node.setAttribute("cm-not-content", "true");
+    }, function(pos, axis) {
+      if (axis == "horizontal") setScrollLeft(cm, pos);
+      else setScrollTop(cm, pos);
+    }, cm);
+    if (cm.display.scrollbars.addClass)
+      addClass(cm.display.wrapper, cm.display.scrollbars.addClass);
+  }
+
+  function updateScrollbars(cm, measure) {
+    if (!measure) measure = measureForScrollbars(cm);
+    var startWidth = cm.display.barWidth, startHeight = cm.display.barHeight;
+    updateScrollbarsInner(cm, measure);
+    for (var i = 0; i < 4 && startWidth != cm.display.barWidth || startHeight != cm.display.barHeight; i++) {
+      if (startWidth != cm.display.barWidth && cm.options.lineWrapping)
+        updateHeightsInViewport(cm);
+      updateScrollbarsInner(cm, measureForScrollbars(cm));
+      startWidth = cm.display.barWidth; startHeight = cm.display.barHeight;
+    }
   }
 
   // Re-synchronize the fake scrollbars with the actual size of the
   // content.
-  function updateScrollbars(cm, measure) {
-    if (!measure) measure = measureForScrollbars(cm);
-    var d = cm.display, sWidth = scrollbarWidth(d.measure);
-    var scrollHeight = measure.docHeight + scrollerCutOff;
-    var needsH = measure.scrollWidth > measure.clientWidth;
-    if (needsH && measure.scrollWidth <= measure.clientWidth + 1 &&
-        sWidth > 0 && !measure.hScrollbarTakesSpace)
-      needsH = false; // (Issue #2562)
-    var needsV = scrollHeight > measure.clientHeight;
+  function updateScrollbarsInner(cm, measure) {
+    var d = cm.display;
+    var sizes = d.scrollbars.update(measure);
 
-    if (needsV) {
-      d.scrollbarV.style.display = "block";
-      d.scrollbarV.style.bottom = needsH ? sWidth + "px" : "0";
-      // A bug in IE8 can cause this value to be negative, so guard it.
-      d.scrollbarV.firstChild.style.height =
-        Math.max(0, scrollHeight - measure.clientHeight + (measure.barHeight || d.scrollbarV.clientHeight)) + "px";
-    } else {
-      d.scrollbarV.style.display = "";
-      d.scrollbarV.firstChild.style.height = "0";
-    }
-    if (needsH) {
-      d.scrollbarH.style.display = "block";
-      d.scrollbarH.style.right = needsV ? sWidth + "px" : "0";
-      d.scrollbarH.firstChild.style.width =
-        (measure.scrollWidth - measure.clientWidth + (measure.barWidth || d.scrollbarH.clientWidth)) + "px";
-    } else {
-      d.scrollbarH.style.display = "";
-      d.scrollbarH.firstChild.style.width = "0";
-    }
-    if (needsH && needsV) {
+    d.sizer.style.paddingRight = (d.barWidth = sizes.right) + "px";
+    d.sizer.style.paddingBottom = (d.barHeight = sizes.bottom) + "px";
+
+    if (sizes.right && sizes.bottom) {
       d.scrollbarFiller.style.display = "block";
-      d.scrollbarFiller.style.height = d.scrollbarFiller.style.width = sWidth + "px";
+      d.scrollbarFiller.style.height = sizes.bottom + "px";
+      d.scrollbarFiller.style.width = sizes.right + "px";
     } else d.scrollbarFiller.style.display = "";
-    if (needsH && cm.options.coverGutterNextToScrollbar && cm.options.fixedGutter) {
+    if (sizes.bottom && cm.options.coverGutterNextToScrollbar && cm.options.fixedGutter) {
       d.gutterFiller.style.display = "block";
-      d.gutterFiller.style.height = sWidth + "px";
-      d.gutterFiller.style.width = d.gutters.offsetWidth + "px";
+      d.gutterFiller.style.height = sizes.bottom + "px";
+      d.gutterFiller.style.width = measure.gutterWidth + "px";
     } else d.gutterFiller.style.display = "";
-
-    if (!cm.state.checkedOverlayScrollbar && measure.clientHeight > 0) {
-      if (sWidth === 0) {
-        var w = mac && !mac_geMountainLion ? "12px" : "18px";
-        d.scrollbarV.style.minWidth = d.scrollbarH.style.minHeight = w;
-        var barMouseDown = function(e) {
-          if (e_target(e) != d.scrollbarV && e_target(e) != d.scrollbarH)
-            operation(cm, onMouseDown)(e);
-        };
-        on(d.scrollbarV, "mousedown", barMouseDown);
-        on(d.scrollbarH, "mousedown", barMouseDown);
-      }
-      cm.state.checkedOverlayScrollbar = true;
-    }
   }
 
   // Compute the lines that are visible in a given viewport (defaults
@@ -10515,12 +6136,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     // forces those lines into the viewport (if possible).
     if (viewport && viewport.ensure) {
       var ensureFrom = viewport.ensure.from.line, ensureTo = viewport.ensure.to.line;
-      if (ensureFrom < from)
-        return {from: ensureFrom,
-                to: lineAtHeight(doc, heightAtLine(getLine(doc, ensureFrom)) + display.wrapper.clientHeight)};
-      if (Math.min(ensureTo, doc.lastLine()) >= to)
-        return {from: lineAtHeight(doc, heightAtLine(getLine(doc, ensureTo)) - display.wrapper.clientHeight),
-                to: ensureTo};
+      if (ensureFrom < from) {
+        from = ensureFrom;
+        to = lineAtHeight(doc, heightAtLine(getLine(doc, ensureFrom)) + display.wrapper.clientHeight);
+      } else if (Math.min(ensureTo, doc.lastLine()) >= to) {
+        from = lineAtHeight(doc, heightAtLine(getLine(doc, ensureTo)) - display.wrapper.clientHeight);
+        to = ensureTo;
+      }
     }
     return {from: from, to: Math.max(to, from + 1)};
   }
@@ -10556,7 +6178,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
                                                  "CodeMirror-linenumber CodeMirror-gutter-elt"));
       var innerW = test.firstChild.offsetWidth, padding = test.offsetWidth - innerW;
       display.lineGutter.style.width = "";
-      display.lineNumInnerWidth = Math.max(innerW, display.lineGutter.offsetWidth - padding);
+      display.lineNumInnerWidth = Math.max(innerW, display.lineGutter.offsetWidth - padding) + 1;
       display.lineNumWidth = display.lineNumInnerWidth + padding;
       display.lineNumChars = display.lineNumInnerWidth ? last.length : -1;
       display.lineGutter.style.width = display.lineNumWidth + "px";
@@ -10587,10 +6209,31 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     this.visible = visibleLines(display, cm.doc, viewport);
     this.editorIsHidden = !display.wrapper.offsetWidth;
     this.wrapperHeight = display.wrapper.clientHeight;
-    this.oldViewFrom = display.viewFrom; this.oldViewTo = display.viewTo;
-    this.oldScrollerWidth = display.scroller.clientWidth;
+    this.wrapperWidth = display.wrapper.clientWidth;
+    this.oldDisplayWidth = displayWidth(cm);
     this.force = force;
     this.dims = getDimensions(cm);
+    this.events = [];
+  }
+
+  DisplayUpdate.prototype.signal = function(emitter, type) {
+    if (hasHandler(emitter, type))
+      this.events.push(arguments);
+  };
+  DisplayUpdate.prototype.finish = function() {
+    for (var i = 0; i < this.events.length; i++)
+      signal.apply(null, this.events[i]);
+  };
+
+  function maybeClipScrollbars(cm) {
+    var display = cm.display;
+    if (!display.scrollbarsClipped && display.scroller.offsetWidth) {
+      display.nativeBarWidth = display.scroller.offsetWidth - display.scroller.clientWidth;
+      display.heightForcer.style.height = scrollGap(cm) + "px";
+      display.sizer.style.marginBottom = -display.nativeBarWidth + "px";
+      display.sizer.style.borderRightWidth = scrollGap(cm) + "px";
+      display.scrollbarsClipped = true;
+    }
   }
 
   // Does the actual updating of the line display. Bails out
@@ -10598,6 +6241,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // false.
   function updateDisplayIfNeeded(cm, update) {
     var display = cm.display, doc = cm.doc;
+
     if (update.editorIsHidden) {
       resetView(cm);
       return false;
@@ -10607,7 +6251,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (!update.force &&
         update.visible.from >= display.viewFrom && update.visible.to <= display.viewTo &&
         (display.updateLineNumbers == null || display.updateLineNumbers >= display.viewTo) &&
-        countDirtyView(cm) == 0)
+        display.renderedView == display.view && countDirtyView(cm) == 0)
       return false;
 
     if (maybeUpdateLineNumberWidth(cm)) {
@@ -10627,7 +6271,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
 
     var different = from != display.viewFrom || to != display.viewTo ||
-      display.lastSizeC != update.wrapperHeight;
+      display.lastWrapHeight != update.wrapperHeight || display.lastWrapWidth != update.wrapperWidth;
     adjustView(cm, from, to);
 
     display.viewOffset = heightAtLine(getLine(cm.doc, display.viewFrom));
@@ -10635,7 +6279,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     cm.display.mover.style.top = display.viewOffset + "px";
 
     var toUpdate = countDirtyView(cm);
-    if (!different && toUpdate == 0 && !update.force &&
+    if (!different && toUpdate == 0 && !update.force && display.renderedView == display.view &&
         (display.updateLineNumbers == null || display.updateLineNumbers >= display.viewTo))
       return false;
 
@@ -10645,17 +6289,20 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (toUpdate > 4) display.lineDiv.style.display = "none";
     patchDisplay(cm, display.updateLineNumbers, update.dims);
     if (toUpdate > 4) display.lineDiv.style.display = "";
+    display.renderedView = display.view;
     // There might have been a widget with a focused element that got
     // hidden or updated, if so re-focus it.
     if (focused && activeElt() != focused && focused.offsetHeight) focused.focus();
 
     // Prevent selection and cursors from interfering with the scroll
-    // width.
+    // width and height.
     removeChildren(display.cursorDiv);
     removeChildren(display.selectionDiv);
+    display.gutters.style.height = display.sizer.style.minHeight = 0;
 
     if (different) {
-      display.lastSizeC = update.wrapperHeight;
+      display.lastWrapHeight = update.wrapperHeight;
+      display.lastWrapWidth = update.wrapperWidth;
       startWorker(cm, 400);
     }
 
@@ -10665,16 +6312,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   }
 
   function postUpdateDisplay(cm, update) {
-    var force = update.force, viewport = update.viewport;
+    var viewport = update.viewport;
     for (var first = true;; first = false) {
-      if (first && cm.options.lineWrapping && update.oldScrollerWidth != cm.display.scroller.clientWidth) {
-        force = true;
-      } else {
-        force = false;
+      if (!first || !cm.options.lineWrapping || update.oldDisplayWidth == displayWidth(cm)) {
         // Clip forced viewport to actual scrollable area.
         if (viewport && viewport.top != null)
-          viewport = {top: Math.min(cm.doc.height + paddingVert(cm.display) - scrollerCutOff -
-                                    cm.display.scroller.clientHeight, viewport.top)};
+          viewport = {top: Math.min(cm.doc.height + paddingVert(cm.display) - displayHeight(cm), viewport.top)};
         // Updated line heights might result in the drawn area not
         // actually covering the viewport. Keep looping until it does.
         update.visible = visibleLines(cm.display, cm.doc, viewport);
@@ -10689,9 +6332,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       updateScrollbars(cm, barMeasure);
     }
 
-    signalLater(cm, "update", cm);
-    if (cm.display.viewFrom != update.oldViewFrom || cm.display.viewTo != update.oldViewTo)
-      signalLater(cm, "viewportChange", cm, cm.display.viewFrom, cm.display.viewTo);
+    update.signal(cm, "update", cm);
+    if (cm.display.viewFrom != cm.display.reportedViewFrom || cm.display.viewTo != cm.display.reportedViewTo) {
+      update.signal(cm, "viewportChange", cm, cm.display.viewFrom, cm.display.viewTo);
+      cm.display.reportedViewFrom = cm.display.viewFrom; cm.display.reportedViewTo = cm.display.viewTo;
+    }
   }
 
   function updateDisplaySimple(cm, viewport) {
@@ -10703,21 +6348,15 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       updateSelection(cm);
       setDocumentHeight(cm, barMeasure);
       updateScrollbars(cm, barMeasure);
+      update.finish();
     }
   }
 
   function setDocumentHeight(cm, measure) {
-    cm.display.sizer.style.minHeight = cm.display.heightForcer.style.top = measure.docHeight + "px";
-    cm.display.gutters.style.height = Math.max(measure.docHeight, measure.clientHeight - scrollerCutOff) + "px";
-  }
-
-  function checkForWebkitWidthBug(cm, measure) {
-    // Work around Webkit bug where it sometimes reserves space for a
-    // non-existing phantom scrollbar in the scroller (Issue #2420)
-    if (cm.display.sizer.offsetWidth + cm.display.gutters.offsetWidth < cm.display.scroller.clientWidth - 1) {
-      cm.display.sizer.style.minHeight = cm.display.heightForcer.style.top = "0px";
-      cm.display.gutters.style.height = measure.docHeight + "px";
-    }
+    cm.display.sizer.style.minHeight = measure.docHeight + "px";
+    var total = measure.docHeight + cm.display.barHeight;
+    cm.display.heightForcer.style.top = total + "px";
+    cm.display.gutters.style.height = Math.max(total + scrollGap(cm), measure.clientHeight) + "px";
   }
 
   // Read the actual heights of the rendered lines, and update their
@@ -10794,7 +6433,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     for (var i = 0; i < view.length; i++) {
       var lineView = view[i];
       if (lineView.hidden) {
-      } else if (!lineView.node) { // Not drawn yet
+      } else if (!lineView.node || lineView.node.parentNode != container) { // Not drawn yet
         var node = buildLineElement(cm, lineView, lineN, dims);
         container.insertBefore(node, cur);
       } else { // Already drawn
@@ -10825,7 +6464,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (type == "text") updateLineText(cm, lineView);
       else if (type == "gutter") updateLineGutter(cm, lineView, lineN, dims);
       else if (type == "class") updateLineClasses(lineView);
-      else if (type == "widget") updateLineWidgets(lineView, dims);
+      else if (type == "widget") updateLineWidgets(cm, lineView, dims);
     }
     lineView.changes = null;
   }
@@ -10900,13 +6539,26 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       lineView.node.removeChild(lineView.gutter);
       lineView.gutter = null;
     }
+    if (lineView.gutterBackground) {
+      lineView.node.removeChild(lineView.gutterBackground);
+      lineView.gutterBackground = null;
+    }
+    if (lineView.line.gutterClass) {
+      var wrap = ensureLineWrapped(lineView);
+      lineView.gutterBackground = elt("div", null, "CodeMirror-gutter-background " + lineView.line.gutterClass,
+                                      "left: " + (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) +
+                                      "px; width: " + dims.gutterTotalWidth + "px");
+      wrap.insertBefore(lineView.gutterBackground, lineView.text);
+    }
     var markers = lineView.line.gutterMarkers;
     if (cm.options.lineNumbers || markers) {
       var wrap = ensureLineWrapped(lineView);
-      var gutterWrap = lineView.gutter =
-        wrap.insertBefore(elt("div", null, "CodeMirror-gutter-wrapper", "position: absolute; left: " +
-                              (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px"),
-                          lineView.text);
+      var gutterWrap = lineView.gutter = elt("div", null, "CodeMirror-gutter-wrapper", "left: " +
+                                             (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px");
+      cm.display.input.setUneditable(gutterWrap);
+      wrap.insertBefore(gutterWrap, lineView.text);
+      if (lineView.line.gutterClass)
+        gutterWrap.className += " " + lineView.line.gutterClass;
       if (cm.options.lineNumbers && (!markers || !markers["CodeMirror-linenumbers"]))
         lineView.lineNumber = gutterWrap.appendChild(
           elt("div", lineNumberFor(cm.options, lineN),
@@ -10922,14 +6574,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
   }
 
-  function updateLineWidgets(lineView, dims) {
+  function updateLineWidgets(cm, lineView, dims) {
     if (lineView.alignable) lineView.alignable = null;
     for (var node = lineView.node.firstChild, next; node; node = next) {
       var next = node.nextSibling;
       if (node.className == "CodeMirror-linewidget")
         lineView.node.removeChild(node);
     }
-    insertLineWidgets(lineView, dims);
+    insertLineWidgets(cm, lineView, dims);
   }
 
   // Build a line's DOM representation from scratch
@@ -10941,25 +6593,26 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     updateLineClasses(lineView);
     updateLineGutter(cm, lineView, lineN, dims);
-    insertLineWidgets(lineView, dims);
+    insertLineWidgets(cm, lineView, dims);
     return lineView.node;
   }
 
   // A lineView may contain multiple logical lines (when merged by
   // collapsed spans). The widgets for all of them need to be drawn.
-  function insertLineWidgets(lineView, dims) {
-    insertLineWidgetsFor(lineView.line, lineView, dims, true);
+  function insertLineWidgets(cm, lineView, dims) {
+    insertLineWidgetsFor(cm, lineView.line, lineView, dims, true);
     if (lineView.rest) for (var i = 0; i < lineView.rest.length; i++)
-      insertLineWidgetsFor(lineView.rest[i], lineView, dims, false);
+      insertLineWidgetsFor(cm, lineView.rest[i], lineView, dims, false);
   }
 
-  function insertLineWidgetsFor(line, lineView, dims, allowAbove) {
+  function insertLineWidgetsFor(cm, line, lineView, dims, allowAbove) {
     if (!line.widgets) return;
     var wrap = ensureLineWrapped(lineView);
     for (var i = 0, ws = line.widgets; i < ws.length; ++i) {
       var widget = ws[i], node = elt("div", [widget.node], "CodeMirror-linewidget");
-      if (!widget.handleMouseEvents) node.ignoreEvents = true;
+      if (!widget.handleMouseEvents) node.setAttribute("cm-ignore-events", "true");
       positionLineWidget(widget, node, lineView, dims);
+      cm.display.input.setUneditable(node);
       if (allowAbove && widget.above)
         wrap.insertBefore(node, lineView.gutter || lineView.text);
       else
@@ -11001,6 +6654,905 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function copyPos(x) {return Pos(x.line, x.ch);}
   function maxPos(a, b) { return cmp(a, b) < 0 ? b : a; }
   function minPos(a, b) { return cmp(a, b) < 0 ? a : b; }
+
+  // INPUT HANDLING
+
+  function ensureFocus(cm) {
+    if (!cm.state.focused) { cm.display.input.focus(); onFocus(cm); }
+  }
+
+  function isReadOnly(cm) {
+    return cm.options.readOnly || cm.doc.cantEdit;
+  }
+
+  // This will be set to an array of strings when copying, so that,
+  // when pasting, we know what kind of selections the copied text
+  // was made out of.
+  var lastCopied = null;
+
+  function applyTextInput(cm, inserted, deleted, sel, origin) {
+    var doc = cm.doc;
+    cm.display.shift = false;
+    if (!sel) sel = doc.sel;
+
+    var paste = cm.state.pasteIncoming || origin == "paste";
+    var textLines = doc.splitLines(inserted), multiPaste = null;
+    // When pasing N lines into N selections, insert one line per selection
+    if (paste && sel.ranges.length > 1) {
+      if (lastCopied && lastCopied.join("\n") == inserted) {
+        if (sel.ranges.length % lastCopied.length == 0) {
+          multiPaste = [];
+          for (var i = 0; i < lastCopied.length; i++)
+            multiPaste.push(doc.splitLines(lastCopied[i]));
+        }
+      } else if (textLines.length == sel.ranges.length) {
+        multiPaste = map(textLines, function(l) { return [l]; });
+      }
+    }
+
+    // Normal behavior is to insert the new text into every selection
+    for (var i = sel.ranges.length - 1; i >= 0; i--) {
+      var range = sel.ranges[i];
+      var from = range.from(), to = range.to();
+      if (range.empty()) {
+        if (deleted && deleted > 0) // Handle deletion
+          from = Pos(from.line, from.ch - deleted);
+        else if (cm.state.overwrite && !paste) // Handle overwrite
+          to = Pos(to.line, Math.min(getLine(doc, to.line).text.length, to.ch + lst(textLines).length));
+      }
+      var updateInput = cm.curOp.updateInput;
+      var changeEvent = {from: from, to: to, text: multiPaste ? multiPaste[i % multiPaste.length] : textLines,
+                         origin: origin || (paste ? "paste" : cm.state.cutIncoming ? "cut" : "+input")};
+      makeChange(cm.doc, changeEvent);
+      signalLater(cm, "inputRead", cm, changeEvent);
+    }
+    if (inserted && !paste)
+      triggerElectric(cm, inserted);
+
+    ensureCursorVisible(cm);
+    cm.curOp.updateInput = updateInput;
+    cm.curOp.typing = true;
+    cm.state.pasteIncoming = cm.state.cutIncoming = false;
+  }
+
+  function handlePaste(e, cm) {
+    var pasted = e.clipboardData && e.clipboardData.getData("text/plain");
+    if (pasted) {
+      e.preventDefault();
+      if (!isReadOnly(cm) && !cm.options.disableInput)
+        runInOp(cm, function() { applyTextInput(cm, pasted, 0, null, "paste"); });
+      return true;
+    }
+  }
+
+  function triggerElectric(cm, inserted) {
+    // When an 'electric' character is inserted, immediately trigger a reindent
+    if (!cm.options.electricChars || !cm.options.smartIndent) return;
+    var sel = cm.doc.sel;
+
+    for (var i = sel.ranges.length - 1; i >= 0; i--) {
+      var range = sel.ranges[i];
+      if (range.head.ch > 100 || (i && sel.ranges[i - 1].head.line == range.head.line)) continue;
+      var mode = cm.getModeAt(range.head);
+      var indented = false;
+      if (mode.electricChars) {
+        for (var j = 0; j < mode.electricChars.length; j++)
+          if (inserted.indexOf(mode.electricChars.charAt(j)) > -1) {
+            indented = indentLine(cm, range.head.line, "smart");
+            break;
+          }
+      } else if (mode.electricInput) {
+        if (mode.electricInput.test(getLine(cm.doc, range.head.line).text.slice(0, range.head.ch)))
+          indented = indentLine(cm, range.head.line, "smart");
+      }
+      if (indented) signalLater(cm, "electricInput", cm, range.head.line);
+    }
+  }
+
+  function copyableRanges(cm) {
+    var text = [], ranges = [];
+    for (var i = 0; i < cm.doc.sel.ranges.length; i++) {
+      var line = cm.doc.sel.ranges[i].head.line;
+      var lineRange = {anchor: Pos(line, 0), head: Pos(line + 1, 0)};
+      ranges.push(lineRange);
+      text.push(cm.getRange(lineRange.anchor, lineRange.head));
+    }
+    return {text: text, ranges: ranges};
+  }
+
+  function disableBrowserMagic(field) {
+    field.setAttribute("autocorrect", "off");
+    field.setAttribute("autocapitalize", "off");
+    field.setAttribute("spellcheck", "false");
+  }
+
+  // TEXTAREA INPUT STYLE
+
+  function TextareaInput(cm) {
+    this.cm = cm;
+    // See input.poll and input.reset
+    this.prevInput = "";
+
+    // Flag that indicates whether we expect input to appear real soon
+    // now (after some event like 'keypress' or 'input') and are
+    // polling intensively.
+    this.pollingFast = false;
+    // Self-resetting timeout for the poller
+    this.polling = new Delayed();
+    // Tracks when input.reset has punted to just putting a short
+    // string into the textarea instead of the full selection.
+    this.inaccurateSelection = false;
+    // Used to work around IE issue with selection being forgotten when focus moves away from textarea
+    this.hasSelection = false;
+    this.composing = null;
+  };
+
+  function hiddenTextarea() {
+    var te = elt("textarea", null, null, "position: absolute; padding: 0; width: 1px; height: 1em; outline: none");
+    var div = elt("div", [te], null, "overflow: hidden; position: relative; width: 3px; height: 0px;");
+    // The textarea is kept positioned near the cursor to prevent the
+    // fact that it'll be scrolled into view on input from scrolling
+    // our fake cursor out of view. On webkit, when wrap=off, paste is
+    // very slow. So make the area wide instead.
+    if (webkit) te.style.width = "1000px";
+    else te.setAttribute("wrap", "off");
+    // If border: 0; -- iOS fails to open keyboard (issue #1287)
+    if (ios) te.style.border = "1px solid black";
+    disableBrowserMagic(te);
+    return div;
+  }
+
+  TextareaInput.prototype = copyObj({
+    init: function(display) {
+      var input = this, cm = this.cm;
+
+      // Wraps and hides input textarea
+      var div = this.wrapper = hiddenTextarea();
+      // The semihidden textarea that is focused when the editor is
+      // focused, and receives input.
+      var te = this.textarea = div.firstChild;
+      display.wrapper.insertBefore(div, display.wrapper.firstChild);
+
+      // Needed to hide big blue blinking cursor on Mobile Safari (doesn't seem to work in iOS 8 anymore)
+      if (ios) te.style.width = "0px";
+
+      on(te, "input", function() {
+        if (ie && ie_version >= 9 && input.hasSelection) input.hasSelection = null;
+        input.poll();
+      });
+
+      on(te, "paste", function(e) {
+        if (handlePaste(e, cm)) return true;
+
+        cm.state.pasteIncoming = true;
+        input.fastPoll();
+      });
+
+      function prepareCopyCut(e) {
+        if (cm.somethingSelected()) {
+          lastCopied = cm.getSelections();
+          if (input.inaccurateSelection) {
+            input.prevInput = "";
+            input.inaccurateSelection = false;
+            te.value = lastCopied.join("\n");
+            selectInput(te);
+          }
+        } else if (!cm.options.lineWiseCopyCut) {
+          return;
+        } else {
+          var ranges = copyableRanges(cm);
+          lastCopied = ranges.text;
+          if (e.type == "cut") {
+            cm.setSelections(ranges.ranges, null, sel_dontScroll);
+          } else {
+            input.prevInput = "";
+            te.value = ranges.text.join("\n");
+            selectInput(te);
+          }
+        }
+        if (e.type == "cut") cm.state.cutIncoming = true;
+      }
+      on(te, "cut", prepareCopyCut);
+      on(te, "copy", prepareCopyCut);
+
+      on(display.scroller, "paste", function(e) {
+        if (eventInWidget(display, e)) return;
+        cm.state.pasteIncoming = true;
+        input.focus();
+      });
+
+      // Prevent normal selection in the editor (we handle our own)
+      on(display.lineSpace, "selectstart", function(e) {
+        if (!eventInWidget(display, e)) e_preventDefault(e);
+      });
+
+      on(te, "compositionstart", function() {
+        var start = cm.getCursor("from");
+        input.composing = {
+          start: start,
+          range: cm.markText(start, cm.getCursor("to"), {className: "CodeMirror-composing"})
+        };
+      });
+      on(te, "compositionend", function() {
+        if (input.composing) {
+          input.poll();
+          input.composing.range.clear();
+          input.composing = null;
+        }
+      });
+    },
+
+    prepareSelection: function() {
+      // Redraw the selection and/or cursor
+      var cm = this.cm, display = cm.display, doc = cm.doc;
+      var result = prepareSelection(cm);
+
+      // Move the hidden textarea near the cursor to prevent scrolling artifacts
+      if (cm.options.moveInputWithCursor) {
+        var headPos = cursorCoords(cm, doc.sel.primary().head, "div");
+        var wrapOff = display.wrapper.getBoundingClientRect(), lineOff = display.lineDiv.getBoundingClientRect();
+        result.teTop = Math.max(0, Math.min(display.wrapper.clientHeight - 10,
+                                            headPos.top + lineOff.top - wrapOff.top));
+        result.teLeft = Math.max(0, Math.min(display.wrapper.clientWidth - 10,
+                                             headPos.left + lineOff.left - wrapOff.left));
+      }
+
+      return result;
+    },
+
+    showSelection: function(drawn) {
+      var cm = this.cm, display = cm.display;
+      removeChildrenAndAdd(display.cursorDiv, drawn.cursors);
+      removeChildrenAndAdd(display.selectionDiv, drawn.selection);
+      if (drawn.teTop != null) {
+        this.wrapper.style.top = drawn.teTop + "px";
+        this.wrapper.style.left = drawn.teLeft + "px";
+      }
+    },
+
+    // Reset the input to correspond to the selection (or to be empty,
+    // when not typing and nothing is selected)
+    reset: function(typing) {
+      if (this.contextMenuPending) return;
+      var minimal, selected, cm = this.cm, doc = cm.doc;
+      if (cm.somethingSelected()) {
+        this.prevInput = "";
+        var range = doc.sel.primary();
+        minimal = hasCopyEvent &&
+          (range.to().line - range.from().line > 100 || (selected = cm.getSelection()).length > 1000);
+        var content = minimal ? "-" : selected || cm.getSelection();
+        this.textarea.value = content;
+        if (cm.state.focused) selectInput(this.textarea);
+        if (ie && ie_version >= 9) this.hasSelection = content;
+      } else if (!typing) {
+        this.prevInput = this.textarea.value = "";
+        if (ie && ie_version >= 9) this.hasSelection = null;
+      }
+      this.inaccurateSelection = minimal;
+    },
+
+    getField: function() { return this.textarea; },
+
+    supportsTouch: function() { return false; },
+
+    focus: function() {
+      if (this.cm.options.readOnly != "nocursor" && (!mobile || activeElt() != this.textarea)) {
+        try { this.textarea.focus(); }
+        catch (e) {} // IE8 will throw if the textarea is display: none or not in DOM
+      }
+    },
+
+    blur: function() { this.textarea.blur(); },
+
+    resetPosition: function() {
+      this.wrapper.style.top = this.wrapper.style.left = 0;
+    },
+
+    receivedFocus: function() { this.slowPoll(); },
+
+    // Poll for input changes, using the normal rate of polling. This
+    // runs as long as the editor is focused.
+    slowPoll: function() {
+      var input = this;
+      if (input.pollingFast) return;
+      input.polling.set(this.cm.options.pollInterval, function() {
+        input.poll();
+        if (input.cm.state.focused) input.slowPoll();
+      });
+    },
+
+    // When an event has just come in that is likely to add or change
+    // something in the input textarea, we poll faster, to ensure that
+    // the change appears on the screen quickly.
+    fastPoll: function() {
+      var missed = false, input = this;
+      input.pollingFast = true;
+      function p() {
+        var changed = input.poll();
+        if (!changed && !missed) {missed = true; input.polling.set(60, p);}
+        else {input.pollingFast = false; input.slowPoll();}
+      }
+      input.polling.set(20, p);
+    },
+
+    // Read input from the textarea, and update the document to match.
+    // When something is selected, it is present in the textarea, and
+    // selected (unless it is huge, in which case a placeholder is
+    // used). When nothing is selected, the cursor sits after previously
+    // seen text (can be empty), which is stored in prevInput (we must
+    // not reset the textarea when typing, because that breaks IME).
+    poll: function() {
+      var cm = this.cm, input = this.textarea, prevInput = this.prevInput;
+      // Since this is called a *lot*, try to bail out as cheaply as
+      // possible when it is clear that nothing happened. hasSelection
+      // will be the case when there is a lot of text in the textarea,
+      // in which case reading its value would be expensive.
+      if (this.contextMenuPending || !cm.state.focused ||
+          (hasSelection(input) && !prevInput && !this.composing) ||
+          isReadOnly(cm) || cm.options.disableInput || cm.state.keySeq)
+        return false;
+
+      var text = input.value;
+      // If nothing changed, bail.
+      if (text == prevInput && !cm.somethingSelected()) return false;
+      // Work around nonsensical selection resetting in IE9/10, and
+      // inexplicable appearance of private area unicode characters on
+      // some key combos in Mac (#2689).
+      if (ie && ie_version >= 9 && this.hasSelection === text ||
+          mac && /[\uf700-\uf7ff]/.test(text)) {
+        cm.display.input.reset();
+        return false;
+      }
+
+      if (cm.doc.sel == cm.display.selForContextMenu) {
+        var first = text.charCodeAt(0);
+        if (first == 0x200b && !prevInput) prevInput = "\u200b";
+        if (first == 0x21da) { this.reset(); return this.cm.execCommand("undo"); }
+      }
+      // Find the part of the input that is actually new
+      var same = 0, l = Math.min(prevInput.length, text.length);
+      while (same < l && prevInput.charCodeAt(same) == text.charCodeAt(same)) ++same;
+
+      var self = this;
+      runInOp(cm, function() {
+        applyTextInput(cm, text.slice(same), prevInput.length - same,
+                       null, self.composing ? "*compose" : null);
+
+        // Don't leave long text in the textarea, since it makes further polling slow
+        if (text.length > 1000 || text.indexOf("\n") > -1) input.value = self.prevInput = "";
+        else self.prevInput = text;
+
+        if (self.composing) {
+          self.composing.range.clear();
+          self.composing.range = cm.markText(self.composing.start, cm.getCursor("to"),
+                                             {className: "CodeMirror-composing"});
+        }
+      });
+      return true;
+    },
+
+    ensurePolled: function() {
+      if (this.pollingFast && this.poll()) this.pollingFast = false;
+    },
+
+    onKeyPress: function() {
+      if (ie && ie_version >= 9) this.hasSelection = null;
+      this.fastPoll();
+    },
+
+    onContextMenu: function(e) {
+      var input = this, cm = input.cm, display = cm.display, te = input.textarea;
+      var pos = posFromMouse(cm, e), scrollPos = display.scroller.scrollTop;
+      if (!pos || presto) return; // Opera is difficult.
+
+      // Reset the current text selection only if the click is done outside of the selection
+      // and 'resetSelectionOnContextMenu' option is true.
+      var reset = cm.options.resetSelectionOnContextMenu;
+      if (reset && cm.doc.sel.contains(pos) == -1)
+        operation(cm, setSelection)(cm.doc, simpleSelection(pos), sel_dontScroll);
+
+      var oldCSS = te.style.cssText;
+      input.wrapper.style.position = "absolute";
+      te.style.cssText = "position: fixed; width: 30px; height: 30px; top: " + (e.clientY - 5) +
+        "px; left: " + (e.clientX - 5) + "px; z-index: 1000; background: " +
+        (ie ? "rgba(255, 255, 255, .05)" : "transparent") +
+        "; outline: none; border-width: 0; outline: none; overflow: hidden; opacity: .05; filter: alpha(opacity=5);";
+      if (webkit) var oldScrollY = window.scrollY; // Work around Chrome issue (#2712)
+      display.input.focus();
+      if (webkit) window.scrollTo(null, oldScrollY);
+      display.input.reset();
+      // Adds "Select all" to context menu in FF
+      if (!cm.somethingSelected()) te.value = input.prevInput = " ";
+      input.contextMenuPending = true;
+      display.selForContextMenu = cm.doc.sel;
+      clearTimeout(display.detectingSelectAll);
+
+      // Select-all will be greyed out if there's nothing to select, so
+      // this adds a zero-width space so that we can later check whether
+      // it got selected.
+      function prepareSelectAllHack() {
+        if (te.selectionStart != null) {
+          var selected = cm.somethingSelected();
+          var extval = "\u200b" + (selected ? te.value : "");
+          te.value = "\u21da"; // Used to catch context-menu undo
+          te.value = extval;
+          input.prevInput = selected ? "" : "\u200b";
+          te.selectionStart = 1; te.selectionEnd = extval.length;
+          // Re-set this, in case some other handler touched the
+          // selection in the meantime.
+          display.selForContextMenu = cm.doc.sel;
+        }
+      }
+      function rehide() {
+        input.contextMenuPending = false;
+        input.wrapper.style.position = "relative";
+        te.style.cssText = oldCSS;
+        if (ie && ie_version < 9) display.scrollbars.setScrollTop(display.scroller.scrollTop = scrollPos);
+
+        // Try to detect the user choosing select-all
+        if (te.selectionStart != null) {
+          if (!ie || (ie && ie_version < 9)) prepareSelectAllHack();
+          var i = 0, poll = function() {
+            if (display.selForContextMenu == cm.doc.sel && te.selectionStart == 0 &&
+                te.selectionEnd > 0 && input.prevInput == "\u200b")
+              operation(cm, commands.selectAll)(cm);
+            else if (i++ < 10) display.detectingSelectAll = setTimeout(poll, 500);
+            else display.input.reset();
+          };
+          display.detectingSelectAll = setTimeout(poll, 200);
+        }
+      }
+
+      if (ie && ie_version >= 9) prepareSelectAllHack();
+      if (captureRightClick) {
+        e_stop(e);
+        var mouseup = function() {
+          off(window, "mouseup", mouseup);
+          setTimeout(rehide, 20);
+        };
+        on(window, "mouseup", mouseup);
+      } else {
+        setTimeout(rehide, 50);
+      }
+    },
+
+    setUneditable: nothing,
+
+    needsContentAttribute: false
+  }, TextareaInput.prototype);
+
+  // CONTENTEDITABLE INPUT STYLE
+
+  function ContentEditableInput(cm) {
+    this.cm = cm;
+    this.lastAnchorNode = this.lastAnchorOffset = this.lastFocusNode = this.lastFocusOffset = null;
+    this.polling = new Delayed();
+    this.gracePeriod = false;
+  }
+
+  ContentEditableInput.prototype = copyObj({
+    init: function(display) {
+      var input = this, cm = input.cm;
+      var div = input.div = display.lineDiv;
+      div.contentEditable = "true";
+      disableBrowserMagic(div);
+
+      on(div, "paste", function(e) { handlePaste(e, cm); })
+
+      on(div, "compositionstart", function(e) {
+        var data = e.data;
+        input.composing = {sel: cm.doc.sel, data: data, startData: data};
+        if (!data) return;
+        var prim = cm.doc.sel.primary();
+        var line = cm.getLine(prim.head.line);
+        var found = line.indexOf(data, Math.max(0, prim.head.ch - data.length));
+        if (found > -1 && found <= prim.head.ch)
+          input.composing.sel = simpleSelection(Pos(prim.head.line, found),
+                                                Pos(prim.head.line, found + data.length));
+      });
+      on(div, "compositionupdate", function(e) {
+        input.composing.data = e.data;
+      });
+      on(div, "compositionend", function(e) {
+        var ours = input.composing;
+        if (!ours) return;
+        if (e.data != ours.startData && !/\u200b/.test(e.data))
+          ours.data = e.data;
+        // Need a small delay to prevent other code (input event,
+        // selection polling) from doing damage when fired right after
+        // compositionend.
+        setTimeout(function() {
+          if (!ours.handled)
+            input.applyComposition(ours);
+          if (input.composing == ours)
+            input.composing = null;
+        }, 50);
+      });
+
+      on(div, "touchstart", function() {
+        input.forceCompositionEnd();
+      });
+
+      on(div, "input", function() {
+        if (input.composing) return;
+        if (!input.pollContent())
+          runInOp(input.cm, function() {regChange(cm);});
+      });
+
+      function onCopyCut(e) {
+        if (cm.somethingSelected()) {
+          lastCopied = cm.getSelections();
+          if (e.type == "cut") cm.replaceSelection("", null, "cut");
+        } else if (!cm.options.lineWiseCopyCut) {
+          return;
+        } else {
+          var ranges = copyableRanges(cm);
+          lastCopied = ranges.text;
+          if (e.type == "cut") {
+            cm.operation(function() {
+              cm.setSelections(ranges.ranges, 0, sel_dontScroll);
+              cm.replaceSelection("", null, "cut");
+            });
+          }
+        }
+        // iOS exposes the clipboard API, but seems to discard content inserted into it
+        if (e.clipboardData && !ios) {
+          e.preventDefault();
+          e.clipboardData.clearData();
+          e.clipboardData.setData("text/plain", lastCopied.join("\n"));
+        } else {
+          // Old-fashioned briefly-focus-a-textarea hack
+          var kludge = hiddenTextarea(), te = kludge.firstChild;
+          cm.display.lineSpace.insertBefore(kludge, cm.display.lineSpace.firstChild);
+          te.value = lastCopied.join("\n");
+          var hadFocus = document.activeElement;
+          selectInput(te);
+          setTimeout(function() {
+            cm.display.lineSpace.removeChild(kludge);
+            hadFocus.focus();
+          }, 50);
+        }
+      }
+      on(div, "copy", onCopyCut);
+      on(div, "cut", onCopyCut);
+    },
+
+    prepareSelection: function() {
+      var result = prepareSelection(this.cm, false);
+      result.focus = this.cm.state.focused;
+      return result;
+    },
+
+    showSelection: function(info) {
+      if (!info || !this.cm.display.view.length) return;
+      if (info.focus) this.showPrimarySelection();
+      this.showMultipleSelections(info);
+    },
+
+    showPrimarySelection: function() {
+      var sel = window.getSelection(), prim = this.cm.doc.sel.primary();
+      var curAnchor = domToPos(this.cm, sel.anchorNode, sel.anchorOffset);
+      var curFocus = domToPos(this.cm, sel.focusNode, sel.focusOffset);
+      if (curAnchor && !curAnchor.bad && curFocus && !curFocus.bad &&
+          cmp(minPos(curAnchor, curFocus), prim.from()) == 0 &&
+          cmp(maxPos(curAnchor, curFocus), prim.to()) == 0)
+        return;
+
+      var start = posToDOM(this.cm, prim.from());
+      var end = posToDOM(this.cm, prim.to());
+      if (!start && !end) return;
+
+      var view = this.cm.display.view;
+      var old = sel.rangeCount && sel.getRangeAt(0);
+      if (!start) {
+        start = {node: view[0].measure.map[2], offset: 0};
+      } else if (!end) { // FIXME dangerously hacky
+        var measure = view[view.length - 1].measure;
+        var map = measure.maps ? measure.maps[measure.maps.length - 1] : measure.map;
+        end = {node: map[map.length - 1], offset: map[map.length - 2] - map[map.length - 3]};
+      }
+
+      try { var rng = range(start.node, start.offset, end.offset, end.node); }
+      catch(e) {} // Our model of the DOM might be outdated, in which case the range we try to set can be impossible
+      if (rng) {
+        sel.removeAllRanges();
+        sel.addRange(rng);
+        if (old && sel.anchorNode == null) sel.addRange(old);
+        else if (gecko) this.startGracePeriod();
+      }
+      this.rememberSelection();
+    },
+
+    startGracePeriod: function() {
+      var input = this;
+      clearTimeout(this.gracePeriod);
+      this.gracePeriod = setTimeout(function() {
+        input.gracePeriod = false;
+        if (input.selectionChanged())
+          input.cm.operation(function() { input.cm.curOp.selectionChanged = true; });
+      }, 20);
+    },
+
+    showMultipleSelections: function(info) {
+      removeChildrenAndAdd(this.cm.display.cursorDiv, info.cursors);
+      removeChildrenAndAdd(this.cm.display.selectionDiv, info.selection);
+    },
+
+    rememberSelection: function() {
+      var sel = window.getSelection();
+      this.lastAnchorNode = sel.anchorNode; this.lastAnchorOffset = sel.anchorOffset;
+      this.lastFocusNode = sel.focusNode; this.lastFocusOffset = sel.focusOffset;
+    },
+
+    selectionInEditor: function() {
+      var sel = window.getSelection();
+      if (!sel.rangeCount) return false;
+      var node = sel.getRangeAt(0).commonAncestorContainer;
+      return contains(this.div, node);
+    },
+
+    focus: function() {
+      if (this.cm.options.readOnly != "nocursor") this.div.focus();
+    },
+    blur: function() { this.div.blur(); },
+    getField: function() { return this.div; },
+
+    supportsTouch: function() { return true; },
+
+    receivedFocus: function() {
+      var input = this;
+      if (this.selectionInEditor())
+        this.pollSelection();
+      else
+        runInOp(this.cm, function() { input.cm.curOp.selectionChanged = true; });
+
+      function poll() {
+        if (input.cm.state.focused) {
+          input.pollSelection();
+          input.polling.set(input.cm.options.pollInterval, poll);
+        }
+      }
+      this.polling.set(this.cm.options.pollInterval, poll);
+    },
+
+    selectionChanged: function() {
+      var sel = window.getSelection();
+      return sel.anchorNode != this.lastAnchorNode || sel.anchorOffset != this.lastAnchorOffset ||
+        sel.focusNode != this.lastFocusNode || sel.focusOffset != this.lastFocusOffset;
+    },
+
+    pollSelection: function() {
+      if (!this.composing && !this.gracePeriod && this.selectionChanged()) {
+        var sel = window.getSelection(), cm = this.cm;
+        this.rememberSelection();
+        var anchor = domToPos(cm, sel.anchorNode, sel.anchorOffset);
+        var head = domToPos(cm, sel.focusNode, sel.focusOffset);
+        if (anchor && head) runInOp(cm, function() {
+          setSelection(cm.doc, simpleSelection(anchor, head), sel_dontScroll);
+          if (anchor.bad || head.bad) cm.curOp.selectionChanged = true;
+        });
+      }
+    },
+
+    pollContent: function() {
+      var cm = this.cm, display = cm.display, sel = cm.doc.sel.primary();
+      var from = sel.from(), to = sel.to();
+      if (from.line < display.viewFrom || to.line > display.viewTo - 1) return false;
+
+      var fromIndex;
+      if (from.line == display.viewFrom || (fromIndex = findViewIndex(cm, from.line)) == 0) {
+        var fromLine = lineNo(display.view[0].line);
+        var fromNode = display.view[0].node;
+      } else {
+        var fromLine = lineNo(display.view[fromIndex].line);
+        var fromNode = display.view[fromIndex - 1].node.nextSibling;
+      }
+      var toIndex = findViewIndex(cm, to.line);
+      if (toIndex == display.view.length - 1) {
+        var toLine = display.viewTo - 1;
+        var toNode = display.lineDiv.lastChild;
+      } else {
+        var toLine = lineNo(display.view[toIndex + 1].line) - 1;
+        var toNode = display.view[toIndex + 1].node.previousSibling;
+      }
+
+      var newText = cm.doc.splitLines(domTextBetween(cm, fromNode, toNode, fromLine, toLine));
+      var oldText = getBetween(cm.doc, Pos(fromLine, 0), Pos(toLine, getLine(cm.doc, toLine).text.length));
+      while (newText.length > 1 && oldText.length > 1) {
+        if (lst(newText) == lst(oldText)) { newText.pop(); oldText.pop(); toLine--; }
+        else if (newText[0] == oldText[0]) { newText.shift(); oldText.shift(); fromLine++; }
+        else break;
+      }
+
+      var cutFront = 0, cutEnd = 0;
+      var newTop = newText[0], oldTop = oldText[0], maxCutFront = Math.min(newTop.length, oldTop.length);
+      while (cutFront < maxCutFront && newTop.charCodeAt(cutFront) == oldTop.charCodeAt(cutFront))
+        ++cutFront;
+      var newBot = lst(newText), oldBot = lst(oldText);
+      var maxCutEnd = Math.min(newBot.length - (newText.length == 1 ? cutFront : 0),
+                               oldBot.length - (oldText.length == 1 ? cutFront : 0));
+      while (cutEnd < maxCutEnd &&
+             newBot.charCodeAt(newBot.length - cutEnd - 1) == oldBot.charCodeAt(oldBot.length - cutEnd - 1))
+        ++cutEnd;
+
+      newText[newText.length - 1] = newBot.slice(0, newBot.length - cutEnd);
+      newText[0] = newText[0].slice(cutFront);
+
+      var chFrom = Pos(fromLine, cutFront);
+      var chTo = Pos(toLine, oldText.length ? lst(oldText).length - cutEnd : 0);
+      if (newText.length > 1 || newText[0] || cmp(chFrom, chTo)) {
+        replaceRange(cm.doc, newText, chFrom, chTo, "+input");
+        return true;
+      }
+    },
+
+    ensurePolled: function() {
+      this.forceCompositionEnd();
+    },
+    reset: function() {
+      this.forceCompositionEnd();
+    },
+    forceCompositionEnd: function() {
+      if (!this.composing || this.composing.handled) return;
+      this.applyComposition(this.composing);
+      this.composing.handled = true;
+      this.div.blur();
+      this.div.focus();
+    },
+    applyComposition: function(composing) {
+      if (composing.data && composing.data != composing.startData)
+        operation(this.cm, applyTextInput)(this.cm, composing.data, 0, composing.sel);
+    },
+
+    setUneditable: function(node) {
+      node.setAttribute("contenteditable", "false");
+    },
+
+    onKeyPress: function(e) {
+      e.preventDefault();
+      operation(this.cm, applyTextInput)(this.cm, String.fromCharCode(e.charCode == null ? e.keyCode : e.charCode), 0);
+    },
+
+    onContextMenu: nothing,
+    resetPosition: nothing,
+
+    needsContentAttribute: true
+  }, ContentEditableInput.prototype);
+
+  function posToDOM(cm, pos) {
+    var view = findViewForLine(cm, pos.line);
+    if (!view || view.hidden) return null;
+    var line = getLine(cm.doc, pos.line);
+    var info = mapFromLineView(view, line, pos.line);
+
+    var order = getOrder(line), side = "left";
+    if (order) {
+      var partPos = getBidiPartAt(order, pos.ch);
+      side = partPos % 2 ? "right" : "left";
+    }
+    var result = nodeAndOffsetInLineMap(info.map, pos.ch, side);
+    result.offset = result.collapse == "right" ? result.end : result.start;
+    return result;
+  }
+
+  function badPos(pos, bad) { if (bad) pos.bad = true; return pos; }
+
+  function domToPos(cm, node, offset) {
+    var lineNode;
+    if (node == cm.display.lineDiv) {
+      lineNode = cm.display.lineDiv.childNodes[offset];
+      if (!lineNode) return badPos(cm.clipPos(Pos(cm.display.viewTo - 1)), true);
+      node = null; offset = 0;
+    } else {
+      for (lineNode = node;; lineNode = lineNode.parentNode) {
+        if (!lineNode || lineNode == cm.display.lineDiv) return null;
+        if (lineNode.parentNode && lineNode.parentNode == cm.display.lineDiv) break;
+      }
+    }
+    for (var i = 0; i < cm.display.view.length; i++) {
+      var lineView = cm.display.view[i];
+      if (lineView.node == lineNode)
+        return locateNodeInLineView(lineView, node, offset);
+    }
+  }
+
+  function locateNodeInLineView(lineView, node, offset) {
+    var wrapper = lineView.text.firstChild, bad = false;
+    if (!node || !contains(wrapper, node)) return badPos(Pos(lineNo(lineView.line), 0), true);
+    if (node == wrapper) {
+      bad = true;
+      node = wrapper.childNodes[offset];
+      offset = 0;
+      if (!node) {
+        var line = lineView.rest ? lst(lineView.rest) : lineView.line;
+        return badPos(Pos(lineNo(line), line.text.length), bad);
+      }
+    }
+
+    var textNode = node.nodeType == 3 ? node : null, topNode = node;
+    if (!textNode && node.childNodes.length == 1 && node.firstChild.nodeType == 3) {
+      textNode = node.firstChild;
+      if (offset) offset = textNode.nodeValue.length;
+    }
+    while (topNode.parentNode != wrapper) topNode = topNode.parentNode;
+    var measure = lineView.measure, maps = measure.maps;
+
+    function find(textNode, topNode, offset) {
+      for (var i = -1; i < (maps ? maps.length : 0); i++) {
+        var map = i < 0 ? measure.map : maps[i];
+        for (var j = 0; j < map.length; j += 3) {
+          var curNode = map[j + 2];
+          if (curNode == textNode || curNode == topNode) {
+            var line = lineNo(i < 0 ? lineView.line : lineView.rest[i]);
+            var ch = map[j] + offset;
+            if (offset < 0 || curNode != textNode) ch = map[j + (offset ? 1 : 0)];
+            return Pos(line, ch);
+          }
+        }
+      }
+    }
+    var found = find(textNode, topNode, offset);
+    if (found) return badPos(found, bad);
+
+    // FIXME this is all really shaky. might handle the few cases it needs to handle, but likely to cause problems
+    for (var after = topNode.nextSibling, dist = textNode ? textNode.nodeValue.length - offset : 0; after; after = after.nextSibling) {
+      found = find(after, after.firstChild, 0);
+      if (found)
+        return badPos(Pos(found.line, found.ch - dist), bad);
+      else
+        dist += after.textContent.length;
+    }
+    for (var before = topNode.previousSibling, dist = offset; before; before = before.previousSibling) {
+      found = find(before, before.firstChild, -1);
+      if (found)
+        return badPos(Pos(found.line, found.ch + dist), bad);
+      else
+        dist += after.textContent.length;
+    }
+  }
+
+  function domTextBetween(cm, from, to, fromLine, toLine) {
+    var text = "", closing = false, lineSep = cm.doc.lineSeparator();
+    function recognizeMarker(id) { return function(marker) { return marker.id == id; }; }
+    function walk(node) {
+      if (node.nodeType == 1) {
+        var cmText = node.getAttribute("cm-text");
+        if (cmText != null) {
+          if (cmText == "") cmText = node.textContent.replace(/\u200b/g, "");
+          text += cmText;
+          return;
+        }
+        var markerID = node.getAttribute("cm-marker"), range;
+        if (markerID) {
+          var found = cm.findMarks(Pos(fromLine, 0), Pos(toLine + 1, 0), recognizeMarker(+markerID));
+          if (found.length && (range = found[0].find()))
+            text += getBetween(cm.doc, range.from, range.to).join(lineSep);
+          return;
+        }
+        if (node.getAttribute("contenteditable") == "false") return;
+        for (var i = 0; i < node.childNodes.length; i++)
+          walk(node.childNodes[i]);
+        if (/^(pre|div|p)$/i.test(node.nodeName))
+          closing = true;
+      } else if (node.nodeType == 3) {
+        var val = node.nodeValue;
+        if (!val) return;
+        if (closing) {
+          text += lineSep;
+          closing = false;
+        }
+        text += val;
+      }
+    }
+    for (;;) {
+      walk(from);
+      if (from == to) break;
+      from = from.nextSibling;
+    }
+    return text;
+  }
+
+  CodeMirror.inputStyles = {"textarea": TextareaInput, "contenteditable": ContentEditableInput};
 
   // SELECTION / CURSOR
 
@@ -11289,50 +7841,30 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // SELECTION DRAWING
 
-  // Redraw the selection and/or cursor
-  function drawSelection(cm) {
-    var display = cm.display, doc = cm.doc, result = {};
+  function updateSelection(cm) {
+    cm.display.input.showSelection(cm.display.input.prepareSelection());
+  }
+
+  function prepareSelection(cm, primary) {
+    var doc = cm.doc, result = {};
     var curFragment = result.cursors = document.createDocumentFragment();
     var selFragment = result.selection = document.createDocumentFragment();
 
     for (var i = 0; i < doc.sel.ranges.length; i++) {
+      if (primary === false && i == doc.sel.primIndex) continue;
       var range = doc.sel.ranges[i];
       var collapsed = range.empty();
       if (collapsed || cm.options.showCursorWhenSelecting)
-        drawSelectionCursor(cm, range, curFragment);
+        drawSelectionCursor(cm, range.head, curFragment);
       if (!collapsed)
         drawSelectionRange(cm, range, selFragment);
     }
-
-    // Move the hidden textarea near the cursor to prevent scrolling artifacts
-    if (cm.options.moveInputWithCursor) {
-      var headPos = cursorCoords(cm, doc.sel.primary().head, "div");
-      var wrapOff = display.wrapper.getBoundingClientRect(), lineOff = display.lineDiv.getBoundingClientRect();
-      result.teTop = Math.max(0, Math.min(display.wrapper.clientHeight - 10,
-                                          headPos.top + lineOff.top - wrapOff.top));
-      result.teLeft = Math.max(0, Math.min(display.wrapper.clientWidth - 10,
-                                           headPos.left + lineOff.left - wrapOff.left));
-    }
-
     return result;
   }
 
-  function showSelection(cm, drawn) {
-    removeChildrenAndAdd(cm.display.cursorDiv, drawn.cursors);
-    removeChildrenAndAdd(cm.display.selectionDiv, drawn.selection);
-    if (drawn.teTop != null) {
-      cm.display.inputDiv.style.top = drawn.teTop + "px";
-      cm.display.inputDiv.style.left = drawn.teLeft + "px";
-    }
-  }
-
-  function updateSelection(cm) {
-    showSelection(cm, drawSelection(cm));
-  }
-
   // Draws a cursor for the given range
-  function drawSelectionCursor(cm, range, output) {
-    var pos = cursorCoords(cm, range.head, "div", null, null, !cm.options.singleCursorHeightPerLine);
+  function drawSelectionCursor(cm, head, output) {
+    var pos = cursorCoords(cm, head, "div", null, null, !cm.options.singleCursorHeightPerLine);
 
     var cursor = output.appendChild(elt("div", "\u00a0", "CodeMirror-cursor"));
     cursor.style.left = pos.left + "px";
@@ -11353,7 +7885,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function drawSelectionRange(cm, range, output) {
     var display = cm.display, doc = cm.doc;
     var fragment = document.createDocumentFragment();
-    var padding = paddingH(cm.display), leftSide = padding.left, rightSide = display.lineSpace.offsetWidth - padding.right;
+    var padding = paddingH(cm.display), leftSide = padding.left;
+    var rightSide = Math.max(display.sizerWidth, displayWidth(cm) - display.sizer.offsetLeft) - padding.right;
 
     function add(left, top, width, bottom) {
       if (top < 0) top = 0;
@@ -11455,8 +7988,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     doc.iter(doc.frontier, Math.min(doc.first + doc.size, cm.display.viewTo + 500), function(line) {
       if (doc.frontier >= cm.display.viewFrom) { // Visible
-        var oldStyles = line.styles;
-        var highlighted = highlightLine(cm, line, state, true);
+        var oldStyles = line.styles, tooLong = line.text.length > cm.options.maxHighlightLength;
+        var highlighted = highlightLine(cm, line, tooLong ? copyState(doc.mode, state) : state, true);
         line.styles = highlighted.styles;
         var oldCls = line.styleClasses, newCls = highlighted.classes;
         if (newCls) line.styleClasses = newCls;
@@ -11465,9 +7998,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           oldCls != newCls && (!oldCls || !newCls || oldCls.bgClass != newCls.bgClass || oldCls.textClass != newCls.textClass);
         for (var i = 0; !ischange && i < oldStyles.length; ++i) ischange = oldStyles[i] != line.styles[i];
         if (ischange) changedLines.push(doc.frontier);
-        line.stateAfter = copyState(doc.mode, state);
+        line.stateAfter = tooLong ? state : copyState(doc.mode, state);
       } else {
-        processLine(cm, line.text, state);
+        if (line.text.length <= cm.options.maxHighlightLength)
+          processLine(cm, line.text, state);
         line.stateAfter = doc.frontier % 5 == 0 ? copyState(doc.mode, state) : null;
       }
       ++doc.frontier;
@@ -11532,13 +8066,21 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return data;
   }
 
+  function scrollGap(cm) { return scrollerGap - cm.display.nativeBarWidth; }
+  function displayWidth(cm) {
+    return cm.display.scroller.clientWidth - scrollGap(cm) - cm.display.barWidth;
+  }
+  function displayHeight(cm) {
+    return cm.display.scroller.clientHeight - scrollGap(cm) - cm.display.barHeight;
+  }
+
   // Ensure the lineView.wrapping.heights array is populated. This is
   // an array of bottom offsets for the lines that make up a drawn
   // line. When lineWrapping is on, there might be more than one
   // height.
   function ensureLineHeights(cm, lineView, rect) {
     var wrapping = cm.options.lineWrapping;
-    var curWidth = wrapping && cm.display.scroller.clientWidth;
+    var curWidth = wrapping && displayWidth(cm);
     if (!lineView.measure.heights || wrapping && lineView.measure.width != curWidth) {
       var heights = lineView.measure.heights = [];
       if (wrapping) {
@@ -11604,10 +8146,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function prepareMeasureForLine(cm, line) {
     var lineN = lineNo(line);
     var view = findViewForLine(cm, lineN);
-    if (view && !view.text)
+    if (view && !view.text) {
       view = null;
-    else if (view && view.changes)
+    } else if (view && view.changes) {
       updateLineForChanges(cm, view, lineN, getDimensions(cm));
+      cm.curOp.forceUpdate = true;
+    }
     if (!view)
       view = updateExternalMeasurement(cm, line);
 
@@ -11643,9 +8187,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   var nullRect = {left: 0, right: 0, top: 0, bottom: 0};
 
-  function measureCharInner(cm, prepared, ch, bias) {
-    var map = prepared.map;
-
+  function nodeAndOffsetInLineMap(map, ch, bias) {
     var node, start, end, collapse;
     // First, search the line map for the text node corresponding to,
     // or closest to, the target character.
@@ -11679,13 +8221,19 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         break;
       }
     }
+    return {node: node, start: start, end: end, collapse: collapse, coverStart: mStart, coverEnd: mEnd};
+  }
+
+  function measureCharInner(cm, prepared, ch, bias) {
+    var place = nodeAndOffsetInLineMap(prepared.map, ch, bias);
+    var node = place.node, start = place.start, end = place.end, collapse = place.collapse;
 
     var rect;
     if (node.nodeType == 3) { // If it is a text node, use a range to retrieve the coordinates.
       for (var i = 0; i < 4; i++) { // Retry a maximum of 4 times when nonsense rectangles are returned
-        while (start && isExtendingChar(prepared.line.text.charAt(mStart + start))) --start;
-        while (mStart + end < mEnd && isExtendingChar(prepared.line.text.charAt(mStart + end))) ++end;
-        if (ie && ie_version < 9 && start == 0 && end == mEnd - mStart) {
+        while (start && isExtendingChar(prepared.line.text.charAt(place.coverStart + start))) --start;
+        while (place.coverStart + end < place.coverEnd && isExtendingChar(prepared.line.text.charAt(place.coverStart + end))) ++end;
+        if (ie && ie_version < 9 && start == 0 && end == place.coverEnd - place.coverStart) {
           rect = node.parentNode.getBoundingClientRect();
         } else if (ie && cm.options.lineWrapping) {
           var rects = range(node, start, end).getClientRects();
@@ -11773,7 +8321,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // Converts a {top, bottom, left, right} box from line-local
   // coordinates into another coordinate system. Context may be one of
-  // "line", "div" (display.lineDiv), "local"/null (editor), or "page".
+  // "line", "div" (display.lineDiv), "local"/null (editor), "window",
+  // or "page".
   function intoCoordSystem(cm, lineObj, rect, context) {
     if (lineObj.widgets) for (var i = 0; i < lineObj.widgets.length; ++i) if (lineObj.widgets[i].above) {
       var size = widgetHeight(lineObj.widgets[i]);
@@ -11996,6 +8545,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       updateMaxLine: false,    // Set when the widest line needs to be determined anew
       scrollLeft: null, scrollTop: null, // Intermediate scroll position, not pushed to DOM yet
       scrollToPos: null,       // Used to scroll to a specific position
+      focus: false,
       id: ++nextOpId           // Unique ID
     };
     if (operationGroup) {
@@ -12014,12 +8564,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     var callbacks = group.delayedCallbacks, i = 0;
     do {
       for (; i < callbacks.length; i++)
-        callbacks[i]();
+        callbacks[i].call(null);
       for (var j = 0; j < group.ops.length; j++) {
         var op = group.ops[j];
         if (op.cursorActivityHandlers)
           while (op.cursorActivityCalled < op.cursorActivityHandlers.length)
-            op.cursorActivityHandlers[op.cursorActivityCalled++](op.cm);
+            op.cursorActivityHandlers[op.cursorActivityCalled++].call(null, op.cm);
       }
     } while (i < callbacks.length);
   }
@@ -12056,6 +8606,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   function endOperation_R1(op) {
     var cm = op.cm, display = cm.display;
+    maybeClipScrollbars(cm);
     if (op.updateMaxLine) findMaxLine(cm);
 
     op.mustUpdate = op.viewChanged || op.forceUpdate || op.scrollTop != null ||
@@ -12081,12 +8632,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     // updateDisplay_W2 will use these properties to do the actual resizing
     if (display.maxLineChanged && !cm.options.lineWrapping) {
       op.adjustWidthTo = measureChar(cm, display.maxLine, display.maxLine.text.length).left + 3;
-      op.maxScrollLeft = Math.max(0, display.sizer.offsetLeft + op.adjustWidthTo +
-                                  scrollerCutOff - display.scroller.clientWidth);
+      cm.display.sizerWidth = op.adjustWidthTo;
+      op.barMeasure.scrollWidth =
+        Math.max(display.scroller.clientWidth, display.sizer.offsetLeft + op.adjustWidthTo + scrollGap(cm) + cm.display.barWidth);
+      op.maxScrollLeft = Math.max(0, display.sizer.offsetLeft + op.adjustWidthTo - displayWidth(cm));
     }
 
     if (op.updatedDisplay || op.selectionChanged)
-      op.newSelectionNodes = drawSelection(cm);
+      op.preparedSelection = display.input.prepareSelection();
   }
 
   function endOperation_W2(op) {
@@ -12099,8 +8652,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       cm.display.maxLineChanged = false;
     }
 
-    if (op.newSelectionNodes)
-      showSelection(cm, op.newSelectionNodes);
+    if (op.preparedSelection)
+      cm.display.input.showSelection(op.preparedSelection);
     if (op.updatedDisplay)
       setDocumentHeight(cm, op.barMeasure);
     if (op.updatedDisplay || op.startHeight != cm.doc.height)
@@ -12109,14 +8662,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (op.selectionChanged) restartBlink(cm);
 
     if (cm.state.focused && op.updateInput)
-      resetInput(cm, op.typing);
+      cm.display.input.reset(op.typing);
+    if (op.focus && op.focus == activeElt()) ensureFocus(op.cm);
   }
 
   function endOperation_finish(op) {
     var cm = op.cm, display = cm.display, doc = cm.doc;
-
-    if (op.adjustWidthTo != null && Math.abs(op.barMeasure.scrollWidth - cm.display.scroller.scrollWidth) > 1)
-      updateScrollbars(cm);
 
     if (op.updatedDisplay) postUpdateDisplay(cm, op.update);
 
@@ -12126,12 +8677,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     // Propagate the scroll position to the actual DOM scroller
     if (op.scrollTop != null && (display.scroller.scrollTop != op.scrollTop || op.forceScroll)) {
-      var top = Math.max(0, Math.min(display.scroller.scrollHeight - display.scroller.clientHeight, op.scrollTop));
-      display.scroller.scrollTop = display.scrollbarV.scrollTop = doc.scrollTop = top;
+      doc.scrollTop = Math.max(0, Math.min(display.scroller.scrollHeight - display.scroller.clientHeight, op.scrollTop));
+      display.scrollbars.setScrollTop(doc.scrollTop);
+      display.scroller.scrollTop = doc.scrollTop;
     }
     if (op.scrollLeft != null && (display.scroller.scrollLeft != op.scrollLeft || op.forceScroll)) {
-      var left = Math.max(0, Math.min(display.scroller.scrollWidth - display.scroller.clientWidth, op.scrollLeft));
-      display.scroller.scrollLeft = display.scrollbarH.scrollLeft = doc.scrollLeft = left;
+      doc.scrollLeft = Math.max(0, Math.min(display.scroller.scrollWidth - displayWidth(cm), op.scrollLeft));
+      display.scrollbars.setScrollLeft(doc.scrollLeft);
+      display.scroller.scrollLeft = doc.scrollLeft;
       alignHorizontally(cm);
     }
     // If we need to scroll a specific position into view, do so.
@@ -12152,19 +8705,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (display.wrapper.offsetHeight)
       doc.scrollTop = cm.display.scroller.scrollTop;
 
-    // Apply workaround for two webkit bugs
-    if (op.updatedDisplay && webkit) {
-      if (cm.options.lineWrapping)
-        checkForWebkitWidthBug(cm, op.barMeasure); // (Issue #2420)
-      if (op.barMeasure.scrollWidth > op.barMeasure.clientWidth &&
-          op.barMeasure.scrollWidth < op.barMeasure.clientWidth + 1 &&
-          !hScrollbarTakesSpace(cm))
-        updateScrollbars(cm); // (Issue #2562)
-    }
-
     // Fire change events, and delayed event handlers
     if (op.changeObjs)
       signal(cm, "changes", cm, op.changeObjs);
+    if (op.update)
+      op.update.finish();
   }
 
   // Run the given function in an operation
@@ -12390,166 +8935,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return dirty;
   }
 
-  // INPUT HANDLING
-
-  // Poll for input changes, using the normal rate of polling. This
-  // runs as long as the editor is focused.
-  function slowPoll(cm) {
-    if (cm.display.pollingFast) return;
-    cm.display.poll.set(cm.options.pollInterval, function() {
-      readInput(cm);
-      if (cm.state.focused) slowPoll(cm);
-    });
-  }
-
-  // When an event has just come in that is likely to add or change
-  // something in the input textarea, we poll faster, to ensure that
-  // the change appears on the screen quickly.
-  function fastPoll(cm) {
-    var missed = false;
-    cm.display.pollingFast = true;
-    function p() {
-      var changed = readInput(cm);
-      if (!changed && !missed) {missed = true; cm.display.poll.set(60, p);}
-      else {cm.display.pollingFast = false; slowPoll(cm);}
-    }
-    cm.display.poll.set(20, p);
-  }
-
-  // This will be set to an array of strings when copying, so that,
-  // when pasting, we know what kind of selections the copied text
-  // was made out of.
-  var lastCopied = null;
-
-  // Read input from the textarea, and update the document to match.
-  // When something is selected, it is present in the textarea, and
-  // selected (unless it is huge, in which case a placeholder is
-  // used). When nothing is selected, the cursor sits after previously
-  // seen text (can be empty), which is stored in prevInput (we must
-  // not reset the textarea when typing, because that breaks IME).
-  function readInput(cm) {
-    var input = cm.display.input, prevInput = cm.display.prevInput, doc = cm.doc;
-    // Since this is called a *lot*, try to bail out as cheaply as
-    // possible when it is clear that nothing happened. hasSelection
-    // will be the case when there is a lot of text in the textarea,
-    // in which case reading its value would be expensive.
-    if (!cm.state.focused || (hasSelection(input) && !prevInput) || isReadOnly(cm) || cm.options.disableInput)
-      return false;
-    // See paste handler for more on the fakedLastChar kludge
-    if (cm.state.pasteIncoming && cm.state.fakedLastChar) {
-      input.value = input.value.substring(0, input.value.length - 1);
-      cm.state.fakedLastChar = false;
-    }
-    var text = input.value;
-    // If nothing changed, bail.
-    if (text == prevInput && !cm.somethingSelected()) return false;
-    // Work around nonsensical selection resetting in IE9/10, and
-    // inexplicable appearance of private area unicode characters on
-    // some key combos in Mac (#2689).
-    if (ie && ie_version >= 9 && cm.display.inputHasSelection === text ||
-        mac && /[\uf700-\uf7ff]/.test(text)) {
-      resetInput(cm);
-      return false;
-    }
-
-    var withOp = !cm.curOp;
-    if (withOp) startOperation(cm);
-    cm.display.shift = false;
-
-    if (text.charCodeAt(0) == 0x200b && doc.sel == cm.display.selForContextMenu && !prevInput)
-      prevInput = "\u200b";
-    // Find the part of the input that is actually new
-    var same = 0, l = Math.min(prevInput.length, text.length);
-    while (same < l && prevInput.charCodeAt(same) == text.charCodeAt(same)) ++same;
-    var inserted = text.slice(same), textLines = splitLines(inserted);
-
-    // When pasing N lines into N selections, insert one line per selection
-    var multiPaste = null;
-    if (cm.state.pasteIncoming && doc.sel.ranges.length > 1) {
-      if (lastCopied && lastCopied.join("\n") == inserted)
-        multiPaste = doc.sel.ranges.length % lastCopied.length == 0 && map(lastCopied, splitLines);
-      else if (textLines.length == doc.sel.ranges.length)
-        multiPaste = map(textLines, function(l) { return [l]; });
-    }
-
-    // Normal behavior is to insert the new text into every selection
-    for (var i = doc.sel.ranges.length - 1; i >= 0; i--) {
-      var range = doc.sel.ranges[i];
-      var from = range.from(), to = range.to();
-      // Handle deletion
-      if (same < prevInput.length)
-        from = Pos(from.line, from.ch - (prevInput.length - same));
-      // Handle overwrite
-      else if (cm.state.overwrite && range.empty() && !cm.state.pasteIncoming)
-        to = Pos(to.line, Math.min(getLine(doc, to.line).text.length, to.ch + lst(textLines).length));
-      var updateInput = cm.curOp.updateInput;
-      var changeEvent = {from: from, to: to, text: multiPaste ? multiPaste[i % multiPaste.length] : textLines,
-                         origin: cm.state.pasteIncoming ? "paste" : cm.state.cutIncoming ? "cut" : "+input"};
-      makeChange(cm.doc, changeEvent);
-      signalLater(cm, "inputRead", cm, changeEvent);
-      // When an 'electric' character is inserted, immediately trigger a reindent
-      if (inserted && !cm.state.pasteIncoming && cm.options.electricChars &&
-          cm.options.smartIndent && range.head.ch < 100 &&
-          (!i || doc.sel.ranges[i - 1].head.line != range.head.line)) {
-        var mode = cm.getModeAt(range.head);
-        var end = changeEnd(changeEvent);
-        if (mode.electricChars) {
-          for (var j = 0; j < mode.electricChars.length; j++)
-            if (inserted.indexOf(mode.electricChars.charAt(j)) > -1) {
-              indentLine(cm, end.line, "smart");
-              break;
-            }
-        } else if (mode.electricInput) {
-          if (mode.electricInput.test(getLine(doc, end.line).text.slice(0, end.ch)))
-            indentLine(cm, end.line, "smart");
-        }
-      }
-    }
-    ensureCursorVisible(cm);
-    cm.curOp.updateInput = updateInput;
-    cm.curOp.typing = true;
-
-    // Don't leave long text in the textarea, since it makes further polling slow
-    if (text.length > 1000 || text.indexOf("\n") > -1) input.value = cm.display.prevInput = "";
-    else cm.display.prevInput = text;
-    if (withOp) endOperation(cm);
-    cm.state.pasteIncoming = cm.state.cutIncoming = false;
-    return true;
-  }
-
-  // Reset the input to correspond to the selection (or to be empty,
-  // when not typing and nothing is selected)
-  function resetInput(cm, typing) {
-    var minimal, selected, doc = cm.doc;
-    if (cm.somethingSelected()) {
-      cm.display.prevInput = "";
-      var range = doc.sel.primary();
-      minimal = hasCopyEvent &&
-        (range.to().line - range.from().line > 100 || (selected = cm.getSelection()).length > 1000);
-      var content = minimal ? "-" : selected || cm.getSelection();
-      cm.display.input.value = content;
-      if (cm.state.focused) selectInput(cm.display.input);
-      if (ie && ie_version >= 9) cm.display.inputHasSelection = content;
-    } else if (!typing) {
-      cm.display.prevInput = cm.display.input.value = "";
-      if (ie && ie_version >= 9) cm.display.inputHasSelection = null;
-    }
-    cm.display.inaccurateSelection = minimal;
-  }
-
-  function focusInput(cm) {
-    if (cm.options.readOnly != "nocursor" && (!mobile || activeElt() != cm.display.input))
-      cm.display.input.focus();
-  }
-
-  function ensureFocus(cm) {
-    if (!cm.state.focused) { focusInput(cm); onFocus(cm); }
-  }
-
-  function isReadOnly(cm) {
-    return cm.options.readOnly || cm.doc.cantEdit;
-  }
-
   // EVENT HANDLERS
 
   // Attach the necessary event handlers when initializing the editor
@@ -12568,14 +8953,63 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       }));
     else
       on(d.scroller, "dblclick", function(e) { signalDOMEvent(cm, e) || e_preventDefault(e); });
-    // Prevent normal selection in the editor (we handle our own)
-    on(d.lineSpace, "selectstart", function(e) {
-      if (!eventInWidget(d, e)) e_preventDefault(e);
-    });
     // Some browsers fire contextmenu *after* opening the menu, at
     // which point we can't mess with it anymore. Context menu is
     // handled in onMouseDown for these browsers.
     if (!captureRightClick) on(d.scroller, "contextmenu", function(e) {onContextMenu(cm, e);});
+
+    // Used to suppress mouse event handling when a touch happens
+    var touchFinished, prevTouch = {end: 0};
+    function finishTouch() {
+      if (d.activeTouch) {
+        touchFinished = setTimeout(function() {d.activeTouch = null;}, 1000);
+        prevTouch = d.activeTouch;
+        prevTouch.end = +new Date;
+      }
+    };
+    function isMouseLikeTouchEvent(e) {
+      if (e.touches.length != 1) return false;
+      var touch = e.touches[0];
+      return touch.radiusX <= 1 && touch.radiusY <= 1;
+    }
+    function farAway(touch, other) {
+      if (other.left == null) return true;
+      var dx = other.left - touch.left, dy = other.top - touch.top;
+      return dx * dx + dy * dy > 20 * 20;
+    }
+    on(d.scroller, "touchstart", function(e) {
+      if (!isMouseLikeTouchEvent(e)) {
+        clearTimeout(touchFinished);
+        var now = +new Date;
+        d.activeTouch = {start: now, moved: false,
+                         prev: now - prevTouch.end <= 300 ? prevTouch : null};
+        if (e.touches.length == 1) {
+          d.activeTouch.left = e.touches[0].pageX;
+          d.activeTouch.top = e.touches[0].pageY;
+        }
+      }
+    });
+    on(d.scroller, "touchmove", function() {
+      if (d.activeTouch) d.activeTouch.moved = true;
+    });
+    on(d.scroller, "touchend", function(e) {
+      var touch = d.activeTouch;
+      if (touch && !eventInWidget(d, e) && touch.left != null &&
+          !touch.moved && new Date - touch.start < 300) {
+        var pos = cm.coordsChar(d.activeTouch, "page"), range;
+        if (!touch.prev || farAway(touch, touch.prev)) // Single tap
+          range = new Range(pos, pos);
+        else if (!touch.prev.prev || farAway(touch, touch.prev.prev)) // Double tap
+          range = cm.findWordAt(pos);
+        else // Triple tap
+          range = new Range(Pos(pos.line, 0), clipPos(cm.doc, Pos(pos.line + 1, 0)));
+        cm.setSelection(range.anchor, range.head);
+        cm.focus();
+        e_preventDefault(e);
+      }
+      finishTouch();
+    });
+    on(d.scroller, "touchcancel", finishTouch);
 
     // Sync scrolling between fake scrollbars and real scrollable
     // area, ensure viewport is updated when scrolling.
@@ -12586,111 +9020,51 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         signal(cm, "scroll", cm);
       }
     });
-    on(d.scrollbarV, "scroll", function() {
-      if (d.scroller.clientHeight) setScrollTop(cm, d.scrollbarV.scrollTop);
-    });
-    on(d.scrollbarH, "scroll", function() {
-      if (d.scroller.clientHeight) setScrollLeft(cm, d.scrollbarH.scrollLeft);
-    });
 
     // Listen to wheel events in order to try and update the viewport on time.
     on(d.scroller, "mousewheel", function(e){onScrollWheel(cm, e);});
     on(d.scroller, "DOMMouseScroll", function(e){onScrollWheel(cm, e);});
 
-    // Prevent clicks in the scrollbars from killing focus
-    function reFocus() { if (cm.state.focused) setTimeout(bind(focusInput, cm), 0); }
-    on(d.scrollbarH, "mousedown", reFocus);
-    on(d.scrollbarV, "mousedown", reFocus);
     // Prevent wrapper from ever scrolling
     on(d.wrapper, "scroll", function() { d.wrapper.scrollTop = d.wrapper.scrollLeft = 0; });
 
-    on(d.input, "keyup", function(e) { onKeyUp.call(cm, e); });
-    on(d.input, "input", function() {
-      if (ie && ie_version >= 9 && cm.display.inputHasSelection) cm.display.inputHasSelection = null;
-      fastPoll(cm);
-    });
-    on(d.input, "keydown", operation(cm, onKeyDown));
-    on(d.input, "keypress", operation(cm, onKeyPress));
-    on(d.input, "focus", bind(onFocus, cm));
-    on(d.input, "blur", bind(onBlur, cm));
+    d.dragFunctions = {
+      enter: function(e) {if (!signalDOMEvent(cm, e)) e_stop(e);},
+      over: function(e) {if (!signalDOMEvent(cm, e)) { onDragOver(cm, e); e_stop(e); }},
+      start: function(e){onDragStart(cm, e);},
+      drop: operation(cm, onDrop),
+      leave: function() {clearDragCursor(cm);}
+    };
 
-    function drag_(e) {
-      if (!signalDOMEvent(cm, e)) e_stop(e);
-    }
-    if (cm.options.dragDrop) {
-      on(d.scroller, "dragstart", function(e){onDragStart(cm, e);});
-      on(d.scroller, "dragenter", drag_);
-      on(d.scroller, "dragover", drag_);
-      on(d.scroller, "drop", operation(cm, onDrop));
-    }
-    on(d.scroller, "paste", function(e) {
-      if (eventInWidget(d, e)) return;
-      cm.state.pasteIncoming = true;
-      focusInput(cm);
-      fastPoll(cm);
-    });
-    on(d.input, "paste", function() {
-      // Workaround for webkit bug https://bugs.webkit.org/show_bug.cgi?id=90206
-      // Add a char to the end of textarea before paste occur so that
-      // selection doesn't span to the end of textarea.
-      if (webkit && !cm.state.fakedLastChar && !(new Date - cm.state.lastMiddleDown < 200)) {
-        var start = d.input.selectionStart, end = d.input.selectionEnd;
-        d.input.value += "$";
-        // The selection end needs to be set before the start, otherwise there
-        // can be an intermediate non-empty selection between the two, which
-        // can override the middle-click paste buffer on linux and cause the
-        // wrong thing to get pasted.
-        d.input.selectionEnd = end;
-        d.input.selectionStart = start;
-        cm.state.fakedLastChar = true;
-      }
-      cm.state.pasteIncoming = true;
-      fastPoll(cm);
-    });
+    var inp = d.input.getField();
+    on(inp, "keyup", function(e) { onKeyUp.call(cm, e); });
+    on(inp, "keydown", operation(cm, onKeyDown));
+    on(inp, "keypress", operation(cm, onKeyPress));
+    on(inp, "focus", bind(onFocus, cm));
+    on(inp, "blur", bind(onBlur, cm));
+  }
 
-    function prepareCopyCut(e) {
-      if (cm.somethingSelected()) {
-        lastCopied = cm.getSelections();
-        if (d.inaccurateSelection) {
-          d.prevInput = "";
-          d.inaccurateSelection = false;
-          d.input.value = lastCopied.join("\n");
-          selectInput(d.input);
-        }
-      } else {
-        var text = [], ranges = [];
-        for (var i = 0; i < cm.doc.sel.ranges.length; i++) {
-          var line = cm.doc.sel.ranges[i].head.line;
-          var lineRange = {anchor: Pos(line, 0), head: Pos(line + 1, 0)};
-          ranges.push(lineRange);
-          text.push(cm.getRange(lineRange.anchor, lineRange.head));
-        }
-        if (e.type == "cut") {
-          cm.setSelections(ranges, null, sel_dontScroll);
-        } else {
-          d.prevInput = "";
-          d.input.value = text.join("\n");
-          selectInput(d.input);
-        }
-        lastCopied = text;
-      }
-      if (e.type == "cut") cm.state.cutIncoming = true;
+  function dragDropChanged(cm, value, old) {
+    var wasOn = old && old != CodeMirror.Init;
+    if (!value != !wasOn) {
+      var funcs = cm.display.dragFunctions;
+      var toggle = value ? on : off;
+      toggle(cm.display.scroller, "dragstart", funcs.start);
+      toggle(cm.display.scroller, "dragenter", funcs.enter);
+      toggle(cm.display.scroller, "dragover", funcs.over);
+      toggle(cm.display.scroller, "dragleave", funcs.leave);
+      toggle(cm.display.scroller, "drop", funcs.drop);
     }
-    on(d.input, "cut", prepareCopyCut);
-    on(d.input, "copy", prepareCopyCut);
-
-    // Needed to handle Tab key in KHTML
-    if (khtml) on(d.sizer, "mouseup", function() {
-      if (activeElt() == d.input) d.input.blur();
-      focusInput(cm);
-    });
   }
 
   // Called when the window resizes
   function onResize(cm) {
-    // Might be a text scaling operation, clear size caches.
     var d = cm.display;
+    if (d.lastWrapHeight == d.wrapper.clientHeight && d.lastWrapWidth == d.wrapper.clientWidth)
+      return;
+    // Might be a text scaling operation, clear size caches.
     d.cachedCharWidth = d.cachedTextHeight = d.cachedPaddingH = null;
+    d.scrollbarsClipped = false;
     cm.setSize();
   }
 
@@ -12699,7 +9073,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // Return true when the given mouse event happened in a widget
   function eventInWidget(display, e) {
     for (var n = e_target(e); n != display.wrapper; n = n.parentNode) {
-      if (!n || n.ignoreEvents || n.parentNode == display.sizer && n != display.mover) return true;
+      if (!n || (n.nodeType == 1 && n.getAttribute("cm-ignore-events") == "true") ||
+          (n.parentNode == display.sizer && n != display.mover))
+        return true;
     }
   }
 
@@ -12710,11 +9086,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // coordinates beyond the right of the text.
   function posFromMouse(cm, e, liberal, forRect) {
     var display = cm.display;
-    if (!liberal) {
-      var target = e_target(e);
-      if (target == display.scrollbarH || target == display.scrollbarV ||
-          target == display.scrollbarFiller || target == display.gutterFiller) return null;
-    }
+    if (!liberal && e_target(e).getAttribute("cm-not-content") == "true") return null;
+
     var x, y, space = display.lineSpace.getBoundingClientRect();
     // Fails unpredictably on IE[67] when mouse is dragged around quickly.
     try { x = e.clientX - space.left; y = e.clientY - space.top; }
@@ -12733,8 +9106,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // middle-click-paste. Or it might be a click on something we should
   // not interfere with, such as a scrollbar or widget.
   function onMouseDown(e) {
-    if (signalDOMEvent(this, e)) return;
     var cm = this, display = cm.display;
+    if (display.activeTouch && display.input.supportsTouch() || signalDOMEvent(cm, e)) return;
     display.shift = e.shiftKey;
 
     if (eventInWidget(display, e)) {
@@ -12752,7 +9125,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     switch (e_button(e)) {
     case 1:
-      if (start)
+      // #3261: make sure, that we're not starting a second selection
+      if (cm.state.selectingText)
+        cm.state.selectingText(e);
+      else if (start)
         leftButtonDown(cm, e, start);
       else if (e_target(e) == display.scroller)
         e_preventDefault(e);
@@ -12760,18 +9136,20 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     case 2:
       if (webkit) cm.state.lastMiddleDown = +new Date;
       if (start) extendSelection(cm.doc, start);
-      setTimeout(bind(focusInput, cm), 20);
+      setTimeout(function() {display.input.focus();}, 20);
       e_preventDefault(e);
       break;
     case 3:
       if (captureRightClick) onContextMenu(cm, e);
+      else delayBlurEvent(cm);
       break;
     }
   }
 
   var lastClick, lastDoubleClick;
   function leftButtonDown(cm, e, start) {
-    setTimeout(bind(ensureFocus, cm), 0);
+    if (ie) setTimeout(bind(ensureFocus, cm), 0);
+    else cm.curOp.focus = activeElt();
 
     var now = +new Date, type;
     if (lastDoubleClick && lastDoubleClick.time > now - 400 && cmp(lastDoubleClick.pos, start) == 0) {
@@ -12784,9 +9162,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       lastClick = {time: now, pos: start};
     }
 
-    var sel = cm.doc.sel, modifier = mac ? e.metaKey : e.ctrlKey;
+    var sel = cm.doc.sel, modifier = mac ? e.metaKey : e.ctrlKey, contained;
     if (cm.options.dragDrop && dragAndDrop && !isReadOnly(cm) &&
-        type == "single" && sel.contains(start) > -1 && sel.somethingSelected())
+        type == "single" && (contained = sel.contains(start)) > -1 &&
+        (cmp((contained = sel.ranges[contained]).from(), start) < 0 || start.xRel > 0) &&
+        (cmp(contained.to(), start) > 0 || start.xRel < 0))
       leftButtonStartDrag(cm, e, start, modifier);
     else
       leftButtonSelect(cm, e, start, type, modifier);
@@ -12795,7 +9175,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // Start a text drag. When it ends, see if any dragging actually
   // happen, and treat as a click if it didn't.
   function leftButtonStartDrag(cm, e, start, modifier) {
-    var display = cm.display;
+    var display = cm.display, startTime = +new Date;
     var dragEnd = operation(cm, function(e2) {
       if (webkit) display.scroller.draggable = false;
       cm.state.draggingText = false;
@@ -12803,12 +9183,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       off(display.scroller, "drop", dragEnd);
       if (Math.abs(e.clientX - e2.clientX) + Math.abs(e.clientY - e2.clientY) < 10) {
         e_preventDefault(e2);
-        if (!modifier)
+        if (!modifier && +new Date - 200 < startTime)
           extendSelection(cm.doc, start);
-        focusInput(cm);
-        // Work around unexplainable focus problem in IE9 (#2127)
-        if (ie && ie_version == 9)
-          setTimeout(function() {document.body.focus(); focusInput(cm);}, 20);
+        // Work around unexplainable focus problem in IE9 (#2127) and Chrome (#3081)
+        if (webkit || ie && ie_version == 9)
+          setTimeout(function() {document.body.focus(); display.input.focus();}, 20);
+        else
+          display.input.focus();
       }
     });
     // Let the drag handler handle this.
@@ -12825,15 +9206,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     var display = cm.display, doc = cm.doc;
     e_preventDefault(e);
 
-    var ourRange, ourIndex, startSel = doc.sel;
+    var ourRange, ourIndex, startSel = doc.sel, ranges = startSel.ranges;
     if (addNew && !e.shiftKey) {
       ourIndex = doc.sel.contains(start);
       if (ourIndex > -1)
-        ourRange = doc.sel.ranges[ourIndex];
+        ourRange = ranges[ourIndex];
       else
         ourRange = new Range(start, start);
     } else {
       ourRange = doc.sel.primary();
+      ourIndex = doc.sel.primIndex;
     }
 
     if (e.altKey) {
@@ -12861,12 +9243,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       ourIndex = 0;
       setSelection(doc, new Selection([ourRange], 0), sel_mouse);
       startSel = doc.sel;
-    } else if (ourIndex > -1) {
-      replaceOneSelection(doc, ourIndex, ourRange, sel_mouse);
-    } else {
-      ourIndex = doc.sel.ranges.length;
-      setSelection(doc, normalizeSelection(doc.sel.ranges.concat([ourRange]), ourIndex),
+    } else if (ourIndex == -1) {
+      ourIndex = ranges.length;
+      setSelection(doc, normalizeSelection(ranges.concat([ourRange]), ourIndex),
                    {scroll: false, origin: "*mouse"});
+    } else if (ranges.length > 1 && ranges[ourIndex].empty() && type == "single" && !e.shiftKey) {
+      setSelection(doc, normalizeSelection(ranges.slice(0, ourIndex).concat(ranges.slice(ourIndex + 1)), 0),
+                   {scroll: false, origin: "*mouse"});
+      startSel = doc.sel;
+    } else {
+      replaceOneSelection(doc, ourIndex, ourRange, sel_mouse);
     }
 
     var lastPos = start;
@@ -12925,7 +9311,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       var cur = posFromMouse(cm, e, true, type == "rect");
       if (!cur) return;
       if (cmp(cur, lastPos) != 0) {
-        ensureFocus(cm);
+        cm.curOp.focus = activeElt();
         extendTo(cur);
         var visible = visibleLines(display, doc);
         if (cur.line >= visible.to || cur.line < visible.from)
@@ -12941,9 +9327,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
 
     function done(e) {
+      cm.state.selectingText = false;
       counter = Infinity;
       e_preventDefault(e);
-      focusInput(cm);
+      display.input.focus();
       off(document, "mousemove", move);
       off(document, "mouseup", up);
       doc.history.lastSelOrigin = null;
@@ -12954,6 +9341,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       else extend(e);
     });
     var up = operation(cm, done);
+    cm.state.selectingText = up;
     on(document, "mousemove", move);
     on(document, "mouseup", up);
   }
@@ -12993,6 +9381,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   function onDrop(e) {
     var cm = this;
+    clearDragCursor(cm);
     if (signalDOMEvent(cm, e) || eventInWidget(cm.display, e))
       return;
     e_preventDefault(e);
@@ -13009,7 +9398,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           text[i] = reader.result;
           if (++read == n) {
             pos = clipPos(cm.doc, pos);
-            var change = {from: pos, to: pos, text: splitLines(text.join("\n")), origin: "paste"};
+            var change = {from: pos, to: pos,
+                          text: cm.doc.splitLines(text.join(cm.doc.lineSeparator())),
+                          origin: "paste"};
             makeChange(cm.doc, change);
             setSelectionReplaceHistory(cm.doc, simpleSelection(pos, changeEnd(change)));
           }
@@ -13022,19 +9413,19 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (cm.state.draggingText && cm.doc.sel.contains(pos) > -1) {
         cm.state.draggingText(e);
         // Ensure the editor is re-focused
-        setTimeout(bind(focusInput, cm), 20);
+        setTimeout(function() {cm.display.input.focus();}, 20);
         return;
       }
       try {
         var text = e.dataTransfer.getData("Text");
         if (text) {
-          if (cm.state.draggingText && !(mac ? e.metaKey : e.ctrlKey))
+          if (cm.state.draggingText && !(mac ? e.altKey : e.ctrlKey))
             var selected = cm.listSelections();
           setSelectionNoUndo(cm.doc, simpleSelection(pos, pos));
           if (selected) for (var i = 0; i < selected.length; ++i)
             replaceRange(cm.doc, "", selected[i].anchor, selected[i].head, "drag");
           cm.replaceSelection(text, "around", "paste");
-          focusInput(cm);
+          cm.display.input.focus();
         }
       }
       catch(e){}
@@ -13063,6 +9454,25 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
   }
 
+  function onDragOver(cm, e) {
+    var pos = posFromMouse(cm, e);
+    if (!pos) return;
+    var frag = document.createDocumentFragment();
+    drawSelectionCursor(cm, pos, frag);
+    if (!cm.display.dragCursor) {
+      cm.display.dragCursor = elt("div", null, "CodeMirror-cursors CodeMirror-dragcursors");
+      cm.display.lineSpace.insertBefore(cm.display.dragCursor, cm.display.cursorDiv);
+    }
+    removeChildrenAndAdd(cm.display.dragCursor, frag);
+  }
+
+  function clearDragCursor(cm) {
+    if (cm.display.dragCursor) {
+      cm.display.lineSpace.removeChild(cm.display.dragCursor);
+      cm.display.dragCursor = null;
+    }
+  }
+
   // SCROLL EVENTS
 
   // Sync the scrollable area and scrollbars, ensure the viewport
@@ -13072,7 +9482,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     cm.doc.scrollTop = val;
     if (!gecko) updateDisplaySimple(cm, {top: val});
     if (cm.display.scroller.scrollTop != val) cm.display.scroller.scrollTop = val;
-    if (cm.display.scrollbarV.scrollTop != val) cm.display.scrollbarV.scrollTop = val;
+    cm.display.scrollbars.setScrollTop(val);
     if (gecko) updateDisplaySimple(cm);
     startWorker(cm, 100);
   }
@@ -13084,7 +9494,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     cm.doc.scrollLeft = val;
     alignHorizontally(cm);
     if (cm.display.scroller.scrollLeft != val) cm.display.scroller.scrollLeft = val;
-    if (cm.display.scrollbarH.scrollLeft != val) cm.display.scrollbarH.scrollLeft = val;
+    cm.display.scrollbars.setScrollLeft(val);
   }
 
   // Since the delta values reported on mouse wheel events are
@@ -13108,11 +9518,22 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   else if (chrome) wheelPixelsPerUnit = -.7;
   else if (safari) wheelPixelsPerUnit = -1/3;
 
-  function onScrollWheel(cm, e) {
+  var wheelEventDelta = function(e) {
     var dx = e.wheelDeltaX, dy = e.wheelDeltaY;
     if (dx == null && e.detail && e.axis == e.HORIZONTAL_AXIS) dx = e.detail;
     if (dy == null && e.detail && e.axis == e.VERTICAL_AXIS) dy = e.detail;
     else if (dy == null) dy = e.wheelDelta;
+    return {x: dx, y: dy};
+  };
+  CodeMirror.wheelEventPixels = function(e) {
+    var delta = wheelEventDelta(e);
+    delta.x *= wheelPixelsPerUnit;
+    delta.y *= wheelPixelsPerUnit;
+    return delta;
+  };
+
+  function onScrollWheel(cm, e) {
+    var delta = wheelEventDelta(e), dx = delta.x, dy = delta.y;
 
     var display = cm.display, scroll = display.scroller;
     // Quit if there's nothing to scroll here
@@ -13190,7 +9611,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
     // Ensure previous input has been read, so that the handler sees a
     // consistent view of the document
-    if (cm.display.pollingFast && readInput(cm)) cm.display.pollingFast = false;
+    cm.display.input.ensurePolled();
     var prevShift = cm.display.shift, done = false;
     try {
       if (isReadOnly(cm)) cm.state.suppressEdits = true;
@@ -13203,68 +9624,76 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return done;
   }
 
-  // Collect the currently active keymaps.
-  function allKeyMaps(cm) {
-    var maps = cm.state.keyMaps.slice(0);
-    if (cm.options.extraKeys) maps.push(cm.options.extraKeys);
-    maps.push(cm.options.keyMap);
-    return maps;
+  function lookupKeyForEditor(cm, name, handle) {
+    for (var i = 0; i < cm.state.keyMaps.length; i++) {
+      var result = lookupKey(name, cm.state.keyMaps[i], handle, cm);
+      if (result) return result;
+    }
+    return (cm.options.extraKeys && lookupKey(name, cm.options.extraKeys, handle, cm))
+      || lookupKey(name, cm.options.keyMap, handle, cm);
   }
 
-  var maybeTransition;
+  var stopSeq = new Delayed;
+  function dispatchKey(cm, name, e, handle) {
+    var seq = cm.state.keySeq;
+    if (seq) {
+      if (isModifierKey(name)) return "handled";
+      stopSeq.set(50, function() {
+        if (cm.state.keySeq == seq) {
+          cm.state.keySeq = null;
+          cm.display.input.reset();
+        }
+      });
+      name = seq + " " + name;
+    }
+    var result = lookupKeyForEditor(cm, name, handle);
+
+    if (result == "multi")
+      cm.state.keySeq = name;
+    if (result == "handled")
+      signalLater(cm, "keyHandled", cm, name, e);
+
+    if (result == "handled" || result == "multi") {
+      e_preventDefault(e);
+      restartBlink(cm);
+    }
+
+    if (seq && !result && /\'$/.test(name)) {
+      e_preventDefault(e);
+      return true;
+    }
+    return !!result;
+  }
+
   // Handle a key from the keydown event.
   function handleKeyBinding(cm, e) {
-    // Handle automatic keymap transitions
-    var startMap = getKeyMap(cm.options.keyMap), next = startMap.auto;
-    clearTimeout(maybeTransition);
-    if (next && !isModifierKey(e)) maybeTransition = setTimeout(function() {
-      if (getKeyMap(cm.options.keyMap) == startMap) {
-        cm.options.keyMap = (next.call ? next.call(null, cm) : next);
-        keyMapChanged(cm);
-      }
-    }, 50);
-
-    var name = keyName(e, true), handled = false;
+    var name = keyName(e, true);
     if (!name) return false;
-    var keymaps = allKeyMaps(cm);
 
-    if (e.shiftKey) {
+    if (e.shiftKey && !cm.state.keySeq) {
       // First try to resolve full name (including 'Shift-'). Failing
       // that, see if there is a cursor-motion command (starting with
       // 'go') bound to the keyname without 'Shift-'.
-      handled = lookupKey("Shift-" + name, keymaps, function(b) {return doHandleBinding(cm, b, true);})
-             || lookupKey(name, keymaps, function(b) {
-                  if (typeof b == "string" ? /^go[A-Z]/.test(b) : b.motion)
-                    return doHandleBinding(cm, b);
-                });
+      return dispatchKey(cm, "Shift-" + name, e, function(b) {return doHandleBinding(cm, b, true);})
+          || dispatchKey(cm, name, e, function(b) {
+               if (typeof b == "string" ? /^go[A-Z]/.test(b) : b.motion)
+                 return doHandleBinding(cm, b);
+             });
     } else {
-      handled = lookupKey(name, keymaps, function(b) { return doHandleBinding(cm, b); });
+      return dispatchKey(cm, name, e, function(b) { return doHandleBinding(cm, b); });
     }
-
-    if (handled) {
-      e_preventDefault(e);
-      restartBlink(cm);
-      signalLater(cm, "keyHandled", cm, name, e);
-    }
-    return handled;
   }
 
   // Handle a key from the keypress event
   function handleCharBinding(cm, e, ch) {
-    var handled = lookupKey("'" + ch + "'", allKeyMaps(cm),
-                            function(b) { return doHandleBinding(cm, b, true); });
-    if (handled) {
-      e_preventDefault(e);
-      restartBlink(cm);
-      signalLater(cm, "keyHandled", cm, "'" + ch + "'", e);
-    }
-    return handled;
+    return dispatchKey(cm, "'" + ch + "'", e,
+                       function(b) { return doHandleBinding(cm, b, true); });
   }
 
   var lastStoppedKey = null;
   function onKeyDown(e) {
     var cm = this;
-    ensureFocus(cm);
+    cm.curOp.focus = activeElt();
     if (signalDOMEvent(cm, e)) return;
     // IE does strange things with escape.
     if (ie && ie_version < 11 && e.keyCode == 27) e.returnValue = false;
@@ -13305,36 +9734,49 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   function onKeyPress(e) {
     var cm = this;
-    if (signalDOMEvent(cm, e) || e.ctrlKey && !e.altKey || mac && e.metaKey) return;
+    if (eventInWidget(cm.display, e) || signalDOMEvent(cm, e) || e.ctrlKey && !e.altKey || mac && e.metaKey) return;
     var keyCode = e.keyCode, charCode = e.charCode;
     if (presto && keyCode == lastStoppedKey) {lastStoppedKey = null; e_preventDefault(e); return;}
-    if (((presto && (!e.which || e.which < 10)) || khtml) && handleKeyBinding(cm, e)) return;
+    if ((presto && (!e.which || e.which < 10)) && handleKeyBinding(cm, e)) return;
     var ch = String.fromCharCode(charCode == null ? keyCode : charCode);
     if (handleCharBinding(cm, e, ch)) return;
-    if (ie && ie_version >= 9) cm.display.inputHasSelection = null;
-    fastPoll(cm);
+    cm.display.input.onKeyPress(e);
   }
 
   // FOCUS/BLUR EVENTS
 
+  function delayBlurEvent(cm) {
+    cm.state.delayingBlurEvent = true;
+    setTimeout(function() {
+      if (cm.state.delayingBlurEvent) {
+        cm.state.delayingBlurEvent = false;
+        onBlur(cm);
+      }
+    }, 100);
+  }
+
   function onFocus(cm) {
+    if (cm.state.delayingBlurEvent) cm.state.delayingBlurEvent = false;
+
     if (cm.options.readOnly == "nocursor") return;
     if (!cm.state.focused) {
       signal(cm, "focus", cm);
       cm.state.focused = true;
       addClass(cm.display.wrapper, "CodeMirror-focused");
-      // The prevInput test prevents this from firing when a context
-      // menu is closed (since the resetInput would kill the
+      // This test prevents this from firing when a context
+      // menu is closed (since the input reset would kill the
       // select-all detection hack)
       if (!cm.curOp && cm.display.selForContextMenu != cm.doc.sel) {
-        resetInput(cm);
-        if (webkit) setTimeout(bind(resetInput, cm, true), 0); // Issue #1730
+        cm.display.input.reset();
+        if (webkit) setTimeout(function() { cm.display.input.reset(true); }, 20); // Issue #1730
       }
+      cm.display.input.receivedFocus();
     }
-    slowPoll(cm);
     restartBlink(cm);
   }
   function onBlur(cm) {
+    if (cm.state.delayingBlurEvent) return;
+
     if (cm.state.focused) {
       signal(cm, "blur", cm);
       cm.state.focused = false;
@@ -13350,78 +9792,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // textarea (making it as unobtrusive as possible) to let the
   // right-click take effect on it.
   function onContextMenu(cm, e) {
-    if (signalDOMEvent(cm, e, "contextmenu")) return;
-    var display = cm.display;
-    if (eventInWidget(display, e) || contextMenuInGutter(cm, e)) return;
-
-    var pos = posFromMouse(cm, e), scrollPos = display.scroller.scrollTop;
-    if (!pos || presto) return; // Opera is difficult.
-
-    // Reset the current text selection only if the click is done outside of the selection
-    // and 'resetSelectionOnContextMenu' option is true.
-    var reset = cm.options.resetSelectionOnContextMenu;
-    if (reset && cm.doc.sel.contains(pos) == -1)
-      operation(cm, setSelection)(cm.doc, simpleSelection(pos), sel_dontScroll);
-
-    var oldCSS = display.input.style.cssText;
-    display.inputDiv.style.position = "absolute";
-    display.input.style.cssText = "position: fixed; width: 30px; height: 30px; top: " + (e.clientY - 5) +
-      "px; left: " + (e.clientX - 5) + "px; z-index: 1000; background: " +
-      (ie ? "rgba(255, 255, 255, .05)" : "transparent") +
-      "; outline: none; border-width: 0; outline: none; overflow: hidden; opacity: .05; filter: alpha(opacity=5);";
-    if (webkit) var oldScrollY = window.scrollY; // Work around Chrome issue (#2712)
-    focusInput(cm);
-    if (webkit) window.scrollTo(null, oldScrollY);
-    resetInput(cm);
-    // Adds "Select all" to context menu in FF
-    if (!cm.somethingSelected()) display.input.value = display.prevInput = " ";
-    display.selForContextMenu = cm.doc.sel;
-    clearTimeout(display.detectingSelectAll);
-
-    // Select-all will be greyed out if there's nothing to select, so
-    // this adds a zero-width space so that we can later check whether
-    // it got selected.
-    function prepareSelectAllHack() {
-      if (display.input.selectionStart != null) {
-        var selected = cm.somethingSelected();
-        var extval = display.input.value = "\u200b" + (selected ? display.input.value : "");
-        display.prevInput = selected ? "" : "\u200b";
-        display.input.selectionStart = 1; display.input.selectionEnd = extval.length;
-        // Re-set this, in case some other handler touched the
-        // selection in the meantime.
-        display.selForContextMenu = cm.doc.sel;
-      }
-    }
-    function rehide() {
-      display.inputDiv.style.position = "relative";
-      display.input.style.cssText = oldCSS;
-      if (ie && ie_version < 9) display.scrollbarV.scrollTop = display.scroller.scrollTop = scrollPos;
-      slowPoll(cm);
-
-      // Try to detect the user choosing select-all
-      if (display.input.selectionStart != null) {
-        if (!ie || (ie && ie_version < 9)) prepareSelectAllHack();
-        var i = 0, poll = function() {
-          if (display.selForContextMenu == cm.doc.sel && display.input.selectionStart == 0)
-            operation(cm, commands.selectAll)(cm);
-          else if (i++ < 10) display.detectingSelectAll = setTimeout(poll, 500);
-          else resetInput(cm);
-        };
-        display.detectingSelectAll = setTimeout(poll, 200);
-      }
-    }
-
-    if (ie && ie_version >= 9) prepareSelectAllHack();
-    if (captureRightClick) {
-      e_stop(e);
-      var mouseup = function() {
-        off(window, "mouseup", mouseup);
-        setTimeout(rehide, 20);
-      };
-      on(window, "mouseup", mouseup);
-    } else {
-      setTimeout(rehide, 50);
-    }
+    if (eventInWidget(cm.display, e) || contextMenuInGutter(cm, e)) return;
+    cm.display.input.onContextMenu(e);
   }
 
   function contextMenuInGutter(cm, e) {
@@ -13706,7 +10078,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     var lendiff = change.text.length - (to.line - from.line) - 1;
     // Remember that these lines changed, for updating the display
-    if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm.doc, change))
+    if (change.full)
+      regChange(cm);
+    else if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm.doc, change))
       regLineChange(cm, from.line, "text");
     else
       regChange(cm, from.line, to.line + 1, lendiff);
@@ -13728,7 +10102,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   function replaceRange(doc, code, from, to, origin) {
     if (!to) to = from;
     if (cmp(to, from) < 0) { var tmp = to; to = from; from = tmp; }
-    if (typeof code == "string") code = splitLines(code);
+    if (typeof code == "string") code = doc.splitLines(code);
     makeChange(doc, {from: from, to: to, text: code, origin: origin});
   }
 
@@ -13737,13 +10111,15 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // If an editor sits on the top or bottom of the window, partially
   // scrolled out of view, this ensures that the cursor is visible.
   function maybeScrollWindow(cm, coords) {
+    if (signalDOMEvent(cm, "scrollCursorIntoView")) return;
+
     var display = cm.display, box = display.sizer.getBoundingClientRect(), doScroll = null;
     if (coords.top + box.top < 0) doScroll = true;
     else if (coords.bottom + box.top > (window.innerHeight || document.documentElement.clientHeight)) doScroll = false;
     if (doScroll != null && !phantom) {
       var scrollNode = elt("div", "\u200b", null, "position: absolute; top: " +
                            (coords.top - display.viewOffset - paddingTop(cm.display)) + "px; height: " +
-                           (coords.bottom - coords.top + scrollerCutOff) + "px; left: " +
+                           (coords.bottom - coords.top + scrollGap(cm) + display.barHeight) + "px; left: " +
                            coords.left + "px; width: 2px;");
       cm.display.lineSpace.appendChild(scrollNode);
       scrollNode.scrollIntoView(doScroll);
@@ -13772,8 +10148,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         setScrollLeft(cm, scrollPos.scrollLeft);
         if (Math.abs(cm.doc.scrollLeft - startLeft) > 1) changed = true;
       }
-      if (!changed) return coords;
+      if (!changed) break;
     }
+    return coords;
   }
 
   // Scroll a given set of coordinates into view (immediately).
@@ -13791,7 +10168,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     var display = cm.display, snapMargin = textHeight(cm.display);
     if (y1 < 0) y1 = 0;
     var screentop = cm.curOp && cm.curOp.scrollTop != null ? cm.curOp.scrollTop : display.scroller.scrollTop;
-    var screen = display.scroller.clientHeight - scrollerCutOff, result = {};
+    var screen = displayHeight(cm), result = {};
     if (y2 - y1 > screen) y2 = y1 + screen;
     var docBottom = cm.doc.height + paddingVert(display);
     var atTop = y1 < snapMargin, atBottom = y2 > docBottom - snapMargin;
@@ -13803,7 +10180,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     }
 
     var screenleft = cm.curOp && cm.curOp.scrollLeft != null ? cm.curOp.scrollLeft : display.scroller.scrollLeft;
-    var screenw = display.scroller.clientWidth - scrollerCutOff - display.gutters.offsetWidth;
+    var screenw = displayWidth(cm) - (cm.options.fixedGutter ? display.gutters.offsetWidth : 0);
     var tooWide = x2 - x1 > screenw;
     if (tooWide) x2 = x1 + screenw;
     if (x1 < 10)
@@ -13812,7 +10189,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       result.scrollLeft = Math.max(0, x1 - (tooWide ? 0 : 10));
     else if (x2 > screenw + screenleft - 3)
       result.scrollLeft = x2 + (tooWide ? 0 : 10) - screenw;
-
     return result;
   }
 
@@ -13905,6 +10281,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     if (indentString != curSpaceString) {
       replaceRange(doc, indentString, Pos(n, 0), Pos(n, curSpaceString.length), "+input");
+      line.stateAfter = null;
+      return true;
     } else {
       // Ensure that, if the cursor was in the whitespace at the start
       // of the line, it is moved to the end of that space.
@@ -13917,7 +10295,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         }
       }
     }
-    line.stateAfter = null;
   }
 
   // Utility for applying a change to a line by handle or number,
@@ -14046,7 +10423,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   CodeMirror.prototype = {
     constructor: CodeMirror,
-    focus: function(){window.focus(); focusInput(this); fastPoll(this);},
+    focus: function(){window.focus(); this.display.input.focus();},
 
     setOption: function(option, value) {
       var options = this.options, old = options[option];
@@ -14060,12 +10437,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     getDoc: function() {return this.doc;},
 
     addKeyMap: function(map, bottom) {
-      this.state.keyMaps[bottom ? "push" : "unshift"](map);
+      this.state.keyMaps[bottom ? "push" : "unshift"](getKeyMap(map));
     },
     removeKeyMap: function(map) {
       var maps = this.state.keyMaps;
       for (var i = 0; i < maps.length; ++i)
-        if (maps[i] == map || (typeof maps[i] != "string" && maps[i].name == map)) {
+        if (maps[i] == map || maps[i].name == map) {
           maps.splice(i, 1);
           return true;
         }
@@ -14122,20 +10499,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     // Fetch the parser token for a given character. Useful for hacks
     // that want to inspect the mode state (say, for completion).
     getTokenAt: function(pos, precise) {
-      var doc = this.doc;
-      pos = clipPos(doc, pos);
-      var state = getStateBefore(this, pos.line, precise), mode = this.doc.mode;
-      var line = getLine(doc, pos.line);
-      var stream = new StringStream(line.text, this.options.tabSize);
-      while (stream.pos < pos.ch && !stream.eol()) {
-        stream.start = stream.pos;
-        var style = readToken(mode, stream, state);
-      }
-      return {start: stream.start,
-              end: stream.pos,
-              string: stream.current(),
-              type: style || null,
-              state: state};
+      return takeToken(this, pos, precise);
+    },
+
+    getLineTokens: function(line, precise) {
+      return takeToken(this, Pos(line), precise, true);
     },
 
     getTokenTypeAt: function(pos) {
@@ -14166,7 +10534,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     getHelpers: function(pos, type) {
       var found = [];
-      if (!helpers.hasOwnProperty(type)) return helpers;
+      if (!helpers.hasOwnProperty(type)) return found;
       var help = helpers[type], mode = this.getModeAt(pos);
       if (typeof mode[type] == "string") {
         if (help[mode[type]]) found.push(help[mode[type]]);
@@ -14216,10 +10584,15 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       return lineAtHeight(this.doc, height + this.display.viewOffset);
     },
     heightAtLine: function(line, mode) {
-      var end = false, last = this.doc.first + this.doc.size - 1;
-      if (line < this.doc.first) line = this.doc.first;
-      else if (line > last) { line = last; end = true; }
-      var lineObj = getLine(this.doc, line);
+      var end = false, lineObj;
+      if (typeof line == "number") {
+        var last = this.doc.first + this.doc.size - 1;
+        if (line < this.doc.first) line = this.doc.first;
+        else if (line > last) { line = last; end = true; }
+        lineObj = getLine(this.doc, line);
+      } else {
+        lineObj = line;
+      }
       return intoCoordSystem(this, lineObj, {top: 0, left: 0}, mode || "page").top +
         (end ? this.doc.height - heightAtLine(lineObj) : 0);
     },
@@ -14248,12 +10621,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       });
     }),
 
-    addLineWidget: methodOp(function(handle, node, options) {
-      return addLineWidget(this, handle, node, options);
-    }),
-
-    removeLineWidget: function(widget) { widget.clear(); },
-
     lineInfo: function(line) {
       if (typeof line == "number") {
         if (!isLine(this.doc, line)) return null;
@@ -14276,6 +10643,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       pos = cursorCoords(this, clipPos(this.doc, pos));
       var top = pos.bottom, left = pos.left;
       node.style.position = "absolute";
+      node.setAttribute("cm-ignore-events", "true");
+      this.display.input.setUneditable(node);
       display.sizer.appendChild(node);
       if (vert == "over") {
         top = pos.top;
@@ -14310,8 +10679,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
     execCommand: function(cmd) {
       if (commands.hasOwnProperty(cmd))
-        return commands[cmd](this);
+        return commands[cmd].call(null, this);
     },
+
+    triggerElectric: methodOp(function(text) { triggerElectric(this, text); }),
 
     findPosH: function(from, amount, unit, visually) {
       var dir = 1;
@@ -14402,7 +10773,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
       signal(this, "overwriteToggle", this, this.state.overwrite);
     },
-    hasFocus: function() { return activeElt() == this.display.input; },
+    hasFocus: function() { return this.display.input.getField() == activeElt(); },
 
     scrollTo: methodOp(function(x, y) {
       if (x != null || y != null) resolveScrollToPos(this);
@@ -14410,10 +10781,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (y != null) this.curOp.scrollTop = y;
     }),
     getScrollInfo: function() {
-      var scroller = this.display.scroller, co = scrollerCutOff;
+      var scroller = this.display.scroller;
       return {left: scroller.scrollLeft, top: scroller.scrollTop,
-              height: scroller.scrollHeight - co, width: scroller.scrollWidth - co,
-              clientHeight: scroller.clientHeight - co, clientWidth: scroller.clientWidth - co};
+              height: scroller.scrollHeight - scrollGap(this) - this.display.barHeight,
+              width: scroller.scrollWidth - scrollGap(this) - this.display.barWidth,
+              clientHeight: displayHeight(this), clientWidth: displayWidth(this)};
     },
 
     scrollIntoView: methodOp(function(range, margin) {
@@ -14477,14 +10849,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       old.cm = null;
       attachDoc(this, doc);
       clearCaches(this);
-      resetInput(this);
+      this.display.input.reset();
       this.scrollTo(doc.scrollLeft, doc.scrollTop);
       this.curOp.forceScroll = true;
       signalLater(this, "swapDoc", this, old);
       return old;
     }),
 
-    getInputField: function(){return this.display.input;},
+    getInputField: function(){return this.display.input.getField();},
     getWrapperElement: function(){return this.display.wrapper;},
     getScrollerElement: function(){return this.display.scroller;},
     getGutterElement: function(){return this.display.gutters;}
@@ -14525,12 +10897,31 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     clearCaches(cm);
     regChange(cm);
   }, true);
-  option("specialChars", /[\t\u0000-\u0019\u00ad\u200b-\u200f\u2028\u2029\ufeff]/g, function(cm, val) {
-    cm.options.specialChars = new RegExp(val.source + (val.test("\t") ? "" : "|\t"), "g");
-    cm.refresh();
-  }, true);
+  option("lineSeparator", null, function(cm, val) {
+    cm.doc.lineSep = val;
+    if (!val) return;
+    var newBreaks = [], lineNo = cm.doc.first;
+    cm.doc.iter(function(line) {
+      for (var pos = 0;;) {
+        var found = line.text.indexOf(val, pos);
+        if (found == -1) break;
+        pos = found + val.length;
+        newBreaks.push(Pos(lineNo, found));
+      }
+      lineNo++;
+    });
+    for (var i = newBreaks.length - 1; i >= 0; i--)
+      replaceRange(cm.doc, val, newBreaks[i], Pos(newBreaks[i].line, newBreaks[i].ch + val.length))
+  });
+  option("specialChars", /[\t\u0000-\u0019\u00ad\u200b-\u200f\u2028\u2029\ufeff]/g, function(cm, val, old) {
+    cm.state.specialChars = new RegExp(val.source + (val.test("\t") ? "" : "|\t"), "g");
+    if (old != CodeMirror.Init) cm.refresh();
+  });
   option("specialCharPlaceholder", defaultSpecialCharPlaceholder, function(cm) {cm.refresh();}, true);
   option("electricChars", true);
+  option("inputStyle", mobile ? "contenteditable" : "textarea", function() {
+    throw new Error("inputStyle can not (yet) be changed in a running editor"); // FIXME
+  }, true);
   option("rtlMoveVisually", !windows);
   option("wholeLineUpdateBefore", true);
 
@@ -14538,7 +10929,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     themeChanged(cm);
     guttersChanged(cm);
   }, true);
-  option("keyMap", "default", keyMapChanged);
+  option("keyMap", "default", function(cm, val, old) {
+    var next = getKeyMap(val);
+    var prev = old != CodeMirror.Init && getKeyMap(old);
+    if (prev && prev.detach) prev.detach(cm, next);
+    if (next.attach) next.attach(cm, prev || null);
+  });
   option("extraKeys", null);
 
   option("lineWrapping", false, wrappingChanged, true);
@@ -14550,7 +10946,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     cm.display.gutters.style.left = val ? compensateForHScroll(cm.display) + "px" : "0";
     cm.refresh();
   }, true);
-  option("coverGutterNextToScrollbar", false, updateScrollbars, true);
+  option("coverGutterNextToScrollbar", false, function(cm) {updateScrollbars(cm);}, true);
+  option("scrollbarStyle", "native", function(cm) {
+    initScrollbars(cm);
+    updateScrollbars(cm);
+    cm.display.scrollbars.setScrollTop(cm.doc.scrollTop);
+    cm.display.scrollbars.setScrollLeft(cm.doc.scrollLeft);
+  }, true);
   option("lineNumbers", false, function(cm) {
     setGuttersForLineNumbers(cm.options);
     guttersChanged(cm);
@@ -14560,6 +10962,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   option("showCursorWhenSelecting", false, updateSelection, true);
 
   option("resetSelectionOnContextMenu", true);
+  option("lineWiseCopyCut", true);
 
   option("readOnly", false, function(cm, val) {
     if (val == "nocursor") {
@@ -14568,11 +10971,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       cm.display.disabled = true;
     } else {
       cm.display.disabled = false;
-      if (!val) resetInput(cm);
+      if (!val) cm.display.input.reset();
     }
   });
-  option("disableInput", false, function(cm, val) {if (!val) resetInput(cm);}, true);
-  option("dragDrop", true);
+  option("disableInput", false, function(cm, val) {if (!val) cm.display.input.reset();}, true);
+  option("dragDrop", true, dragDropChanged);
 
   option("cursorBlinkRate", 530);
   option("cursorScrollMargin", 0);
@@ -14588,11 +10991,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   option("viewportMargin", 10, function(cm){cm.refresh();}, true);
   option("maxHighlightLength", 10000, resetModeState, true);
   option("moveInputWithCursor", true, function(cm, val) {
-    if (!val) cm.display.inputDiv.style.top = cm.display.inputDiv.style.left = 0;
+    if (!val) cm.display.input.resetPosition();
   });
 
   option("tabindex", null, function(cm, val) {
-    cm.display.input.tabIndex = val || "";
+    cm.display.input.getField().tabIndex = val || "";
   });
   option("autofocus", null);
 
@@ -14860,7 +11263,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
             } else if (cur.line > cm.doc.first) {
               var prev = getLine(cm.doc, cur.line - 1).text;
               if (prev)
-                cm.replaceRange(line.charAt(0) + "\n" + prev.charAt(prev.length - 1),
+                cm.replaceRange(line.charAt(0) + cm.doc.lineSeparator() +
+                                prev.charAt(prev.length - 1),
                                 Pos(cur.line - 1, prev.length - 1), Pos(cur.line, 1), "+transpose");
             }
           }
@@ -14874,7 +11278,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         var len = cm.listSelections().length;
         for (var i = 0; i < len; i++) {
           var range = cm.listSelections()[i];
-          cm.replaceRange("\n", range.anchor, range.head, "+input");
+          cm.replaceRange(cm.doc.lineSeparator(), range.anchor, range.head, "+input");
           cm.indentLine(range.from().line + 1, null, true);
           ensureCursorVisible(cm);
         }
@@ -14883,9 +11287,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     toggleOverwrite: function(cm) {cm.toggleOverwrite();}
   };
 
+
   // STANDARD KEYMAPS
 
   var keyMap = CodeMirror.keyMap = {};
+
   keyMap.basic = {
     "Left": "goCharLeft", "Right": "goCharRight", "Up": "goLineUp", "Down": "goLineDown",
     "End": "goLineEnd", "Home": "goLineStartSmart", "PageUp": "goPageUp", "PageDown": "goPageDown",
@@ -14907,6 +11313,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     "Ctrl-U": "undoSelection", "Shift-Ctrl-U": "redoSelection", "Alt-U": "redoSelection",
     fallthrough: "basic"
   };
+  // Very basic readline/emacs-style bindings, which are standard on Mac.
+  keyMap.emacsy = {
+    "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
+    "Alt-F": "goWordRight", "Alt-B": "goWordLeft", "Ctrl-A": "goLineStart", "Ctrl-E": "goLineEnd",
+    "Ctrl-V": "goPageDown", "Shift-Ctrl-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
+    "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
+  };
   keyMap.macDefault = {
     "Cmd-A": "selectAll", "Cmd-D": "deleteLine", "Cmd-Z": "undo", "Shift-Cmd-Z": "redo", "Cmd-Y": "redo",
     "Cmd-Home": "goDocStart", "Cmd-Up": "goDocStart", "Cmd-End": "goDocEnd", "Cmd-Down": "goDocEnd", "Alt-Left": "goGroupLeft",
@@ -14917,77 +11330,107 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     "Cmd-U": "undoSelection", "Shift-Cmd-U": "redoSelection", "Ctrl-Up": "goDocStart", "Ctrl-Down": "goDocEnd",
     fallthrough: ["basic", "emacsy"]
   };
-  // Very basic readline/emacs-style bindings, which are standard on Mac.
-  keyMap.emacsy = {
-    "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
-    "Alt-F": "goWordRight", "Alt-B": "goWordLeft", "Ctrl-A": "goLineStart", "Ctrl-E": "goLineEnd",
-    "Ctrl-V": "goPageDown", "Shift-Ctrl-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
-    "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
-  };
   keyMap["default"] = mac ? keyMap.macDefault : keyMap.pcDefault;
 
   // KEYMAP DISPATCH
 
-  function getKeyMap(val) {
-    if (typeof val == "string") return keyMap[val];
-    else return val;
+  function normalizeKeyName(name) {
+    var parts = name.split(/-(?!$)/), name = parts[parts.length - 1];
+    var alt, ctrl, shift, cmd;
+    for (var i = 0; i < parts.length - 1; i++) {
+      var mod = parts[i];
+      if (/^(cmd|meta|m)$/i.test(mod)) cmd = true;
+      else if (/^a(lt)?$/i.test(mod)) alt = true;
+      else if (/^(c|ctrl|control)$/i.test(mod)) ctrl = true;
+      else if (/^s(hift)$/i.test(mod)) shift = true;
+      else throw new Error("Unrecognized modifier name: " + mod);
+    }
+    if (alt) name = "Alt-" + name;
+    if (ctrl) name = "Ctrl-" + name;
+    if (cmd) name = "Cmd-" + name;
+    if (shift) name = "Shift-" + name;
+    return name;
   }
 
-  // Given an array of keymaps and a key name, call handle on any
-  // bindings found, until that returns a truthy value, at which point
-  // we consider the key handled. Implements things like binding a key
-  // to false stopping further handling and keymap fallthrough.
-  var lookupKey = CodeMirror.lookupKey = function(name, maps, handle) {
-    function lookup(map) {
-      map = getKeyMap(map);
-      var found = map[name];
-      if (found === false) return "stop";
-      if (found != null && handle(found)) return true;
-      if (map.nofallthrough) return "stop";
+  // This is a kludge to keep keymaps mostly working as raw objects
+  // (backwards compatibility) while at the same time support features
+  // like normalization and multi-stroke key bindings. It compiles a
+  // new normalized keymap, and then updates the old object to reflect
+  // this.
+  CodeMirror.normalizeKeyMap = function(keymap) {
+    var copy = {};
+    for (var keyname in keymap) if (keymap.hasOwnProperty(keyname)) {
+      var value = keymap[keyname];
+      if (/^(name|fallthrough|(de|at)tach)$/.test(keyname)) continue;
+      if (value == "...") { delete keymap[keyname]; continue; }
 
-      var fallthrough = map.fallthrough;
-      if (fallthrough == null) return false;
-      if (Object.prototype.toString.call(fallthrough) != "[object Array]")
-        return lookup(fallthrough);
-      for (var i = 0; i < fallthrough.length; ++i) {
-        var done = lookup(fallthrough[i]);
-        if (done) return done;
+      var keys = map(keyname.split(" "), normalizeKeyName);
+      for (var i = 0; i < keys.length; i++) {
+        var val, name;
+        if (i == keys.length - 1) {
+          name = keys.join(" ");
+          val = value;
+        } else {
+          name = keys.slice(0, i + 1).join(" ");
+          val = "...";
+        }
+        var prev = copy[name];
+        if (!prev) copy[name] = val;
+        else if (prev != val) throw new Error("Inconsistent bindings for " + name);
       }
-      return false;
+      delete keymap[keyname];
     }
+    for (var prop in copy) keymap[prop] = copy[prop];
+    return keymap;
+  };
 
-    for (var i = 0; i < maps.length; ++i) {
-      var done = lookup(maps[i]);
-      if (done) return done != "stop";
+  var lookupKey = CodeMirror.lookupKey = function(key, map, handle, context) {
+    map = getKeyMap(map);
+    var found = map.call ? map.call(key, context) : map[key];
+    if (found === false) return "nothing";
+    if (found === "...") return "multi";
+    if (found != null && handle(found)) return "handled";
+
+    if (map.fallthrough) {
+      if (Object.prototype.toString.call(map.fallthrough) != "[object Array]")
+        return lookupKey(key, map.fallthrough, handle, context);
+      for (var i = 0; i < map.fallthrough.length; i++) {
+        var result = lookupKey(key, map.fallthrough[i], handle, context);
+        if (result) return result;
+      }
     }
   };
 
   // Modifier key presses don't count as 'real' key presses for the
   // purpose of keymap fallthrough.
-  var isModifierKey = CodeMirror.isModifierKey = function(event) {
-    var name = keyNames[event.keyCode];
+  var isModifierKey = CodeMirror.isModifierKey = function(value) {
+    var name = typeof value == "string" ? value : keyNames[value.keyCode];
     return name == "Ctrl" || name == "Alt" || name == "Shift" || name == "Mod";
   };
 
   // Look up the name of a key as indicated by an event object.
   var keyName = CodeMirror.keyName = function(event, noShift) {
     if (presto && event.keyCode == 34 && event["char"]) return false;
-    var name = keyNames[event.keyCode];
+    var base = keyNames[event.keyCode], name = base;
     if (name == null || event.altGraphKey) return false;
-    if (event.altKey) name = "Alt-" + name;
-    if (flipCtrlCmd ? event.metaKey : event.ctrlKey) name = "Ctrl-" + name;
-    if (flipCtrlCmd ? event.ctrlKey : event.metaKey) name = "Cmd-" + name;
-    if (!noShift && event.shiftKey) name = "Shift-" + name;
+    if (event.altKey && base != "Alt") name = "Alt-" + name;
+    if ((flipCtrlCmd ? event.metaKey : event.ctrlKey) && base != "Ctrl") name = "Ctrl-" + name;
+    if ((flipCtrlCmd ? event.ctrlKey : event.metaKey) && base != "Cmd") name = "Cmd-" + name;
+    if (!noShift && event.shiftKey && base != "Shift") name = "Shift-" + name;
     return name;
   };
+
+  function getKeyMap(val) {
+    return typeof val == "string" ? keyMap[val] : val;
+  }
 
   // FROMTEXTAREA
 
   CodeMirror.fromTextArea = function(textarea, options) {
-    if (!options) options = {};
+    options = options ? copyObj(options) : {};
     options.value = textarea.value;
-    if (!options.tabindex && textarea.tabindex)
-      options.tabindex = textarea.tabindex;
+    if (!options.tabindex && textarea.tabIndex)
+      options.tabindex = textarea.tabIndex;
     if (!options.placeholder && textarea.placeholder)
       options.placeholder = textarea.placeholder;
     // Set autofocus to true if this textarea is focused, or if it has
@@ -15015,23 +11458,26 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       }
     }
 
+    options.finishInit = function(cm) {
+      cm.save = save;
+      cm.getTextArea = function() { return textarea; };
+      cm.toTextArea = function() {
+        cm.toTextArea = isNaN; // Prevent this from being ran twice
+        save();
+        textarea.parentNode.removeChild(cm.getWrapperElement());
+        textarea.style.display = "";
+        if (textarea.form) {
+          off(textarea.form, "submit", save);
+          if (typeof textarea.form.submit == "function")
+            textarea.form.submit = realSubmit;
+        }
+      };
+    };
+
     textarea.style.display = "none";
     var cm = CodeMirror(function(node) {
       textarea.parentNode.insertBefore(node, textarea.nextSibling);
     }, options);
-    cm.save = save;
-    cm.getTextArea = function() { return textarea; };
-    cm.toTextArea = function() {
-      cm.toTextArea = isNaN; // Prevent this from being ran twice
-      save();
-      textarea.parentNode.removeChild(cm.getWrapperElement());
-      textarea.style.display = "";
-      if (textarea.form) {
-        off(textarea.form, "submit", save);
-        if (typeof textarea.form.submit == "function")
-          textarea.form.submit = realSubmit;
-      }
-    };
     return cm;
   };
 
@@ -15124,10 +11570,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // marker continues beyond the start/end of the line. Markers have
   // links back to the lines they currently touch.
 
+  var nextMarkerId = 0;
+
   var TextMarker = CodeMirror.TextMarker = function(doc, type) {
     this.lines = [];
     this.type = type;
     this.doc = doc;
+    this.id = ++nextMarkerId;
   };
   eventMixin(TextMarker);
 
@@ -15259,7 +11708,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       // Showing up as a widget implies collapsed (widget replaces text)
       marker.collapsed = true;
       marker.widgetNode = elt("span", [marker.replacedWith], "CodeMirror-widget");
-      if (!options.handleMouseEvents) marker.widgetNode.ignoreEvents = true;
+      if (!options.handleMouseEvents) marker.widgetNode.setAttribute("cm-ignore-events", "true");
       if (options.insertLeft) marker.widgetNode.insertLeft = true;
     }
     if (marker.collapsed) {
@@ -15303,7 +11752,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (updateMaxLine) cm.curOp.updateMaxLine = true;
       if (marker.collapsed)
         regChange(cm, from.line, to.line + 1);
-      else if (marker.className || marker.title || marker.startStyle || marker.endStyle)
+      else if (marker.className || marker.title || marker.startStyle || marker.endStyle || marker.css)
         for (var i = from.line; i <= to.line; i++) regLineChange(cm, i, "text");
       if (marker.atomic) reCheckSelection(cm.doc);
       signalLater(cm, "markerAdded", cm, marker);
@@ -15443,6 +11892,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // spans partially within the change. Returns an array of span
   // arrays with one element for each line in (after) the change.
   function stretchSpansOverChange(doc, change) {
+    if (change.full) return null;
     var oldFirst = isLine(doc, change.from.line) && getLine(doc, change.from.line).markedSpans;
     var oldLast = isLine(doc, change.to.line) && getLine(doc, change.to.line).markedSpans;
     if (!oldFirst && !oldLast) return null;
@@ -15710,10 +12160,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // Line widgets are block elements displayed above or below a line.
 
-  var LineWidget = CodeMirror.LineWidget = function(cm, node, options) {
+  var LineWidget = CodeMirror.LineWidget = function(doc, node, options) {
     if (options) for (var opt in options) if (options.hasOwnProperty(opt))
       this[opt] = options[opt];
-    this.cm = cm;
+    this.doc = doc;
     this.node = node;
   };
   eventMixin(LineWidget);
@@ -15724,50 +12174,55 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   }
 
   LineWidget.prototype.clear = function() {
-    var cm = this.cm, ws = this.line.widgets, line = this.line, no = lineNo(line);
+    var cm = this.doc.cm, ws = this.line.widgets, line = this.line, no = lineNo(line);
     if (no == null || !ws) return;
     for (var i = 0; i < ws.length; ++i) if (ws[i] == this) ws.splice(i--, 1);
     if (!ws.length) line.widgets = null;
     var height = widgetHeight(this);
-    runInOp(cm, function() {
+    updateLineHeight(line, Math.max(0, line.height - height));
+    if (cm) runInOp(cm, function() {
       adjustScrollWhenAboveVisible(cm, line, -height);
       regLineChange(cm, no, "widget");
-      updateLineHeight(line, Math.max(0, line.height - height));
     });
   };
   LineWidget.prototype.changed = function() {
-    var oldH = this.height, cm = this.cm, line = this.line;
+    var oldH = this.height, cm = this.doc.cm, line = this.line;
     this.height = null;
     var diff = widgetHeight(this) - oldH;
     if (!diff) return;
-    runInOp(cm, function() {
+    updateLineHeight(line, line.height + diff);
+    if (cm) runInOp(cm, function() {
       cm.curOp.forceUpdate = true;
       adjustScrollWhenAboveVisible(cm, line, diff);
-      updateLineHeight(line, line.height + diff);
     });
   };
 
   function widgetHeight(widget) {
     if (widget.height != null) return widget.height;
+    var cm = widget.doc.cm;
+    if (!cm) return 0;
     if (!contains(document.body, widget.node)) {
       var parentStyle = "position: relative;";
       if (widget.coverGutter)
-        parentStyle += "margin-left: -" + widget.cm.getGutterElement().offsetWidth + "px;";
-      removeChildrenAndAdd(widget.cm.display.measure, elt("div", [widget.node], null, parentStyle));
+        parentStyle += "margin-left: -" + cm.display.gutters.offsetWidth + "px;";
+      if (widget.noHScroll)
+        parentStyle += "width: " + cm.display.wrapper.clientWidth + "px;";
+      removeChildrenAndAdd(cm.display.measure, elt("div", [widget.node], null, parentStyle));
     }
     return widget.height = widget.node.offsetHeight;
   }
 
-  function addLineWidget(cm, handle, node, options) {
-    var widget = new LineWidget(cm, node, options);
-    if (widget.noHScroll) cm.display.alignWidgets = true;
-    changeLine(cm.doc, handle, "widget", function(line) {
+  function addLineWidget(doc, handle, node, options) {
+    var widget = new LineWidget(doc, node, options);
+    var cm = doc.cm;
+    if (cm && widget.noHScroll) cm.display.alignWidgets = true;
+    changeLine(doc, handle, "widget", function(line) {
       var widgets = line.widgets || (line.widgets = []);
       if (widget.insertAt == null) widgets.push(widget);
       else widgets.splice(Math.min(widgets.length - 1, Math.max(0, widget.insertAt)), 0, widget);
       widget.line = line;
-      if (!lineIsHidden(cm.doc, line)) {
-        var aboveVisible = heightAtLine(line) < cm.doc.scrollTop;
+      if (cm && !lineIsHidden(doc, line)) {
+        var aboveVisible = heightAtLine(line) < doc.scrollTop;
         updateLineHeight(line, line.height + widgetHeight(widget));
         if (aboveVisible) addToScrollPos(cm, null, widget.height);
         cm.curOp.forceUpdate = true;
@@ -15830,12 +12285,35 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (inner.mode.blankLine) return inner.mode.blankLine(inner.state);
   }
 
-  function readToken(mode, stream, state) {
+  function readToken(mode, stream, state, inner) {
     for (var i = 0; i < 10; i++) {
+      if (inner) inner[0] = CodeMirror.innerMode(mode, state).mode;
       var style = mode.token(stream, state);
       if (stream.pos > stream.start) return style;
     }
     throw new Error("Mode " + mode.name + " failed to advance stream.");
+  }
+
+  // Utility for getTokenAt and getLineTokens
+  function takeToken(cm, pos, precise, asArray) {
+    function getObj(copy) {
+      return {start: stream.start, end: stream.pos,
+              string: stream.current(),
+              type: style || null,
+              state: copy ? copyState(doc.mode, state) : state};
+    }
+
+    var doc = cm.doc, mode = doc.mode, style;
+    pos = clipPos(doc, pos);
+    var line = getLine(doc, pos.line), state = getStateBefore(cm, pos.line, precise);
+    var stream = new StringStream(line.text, cm.options.tabSize), tokens;
+    if (asArray) tokens = [];
+    while ((asArray || stream.pos < pos.ch) && !stream.eol()) {
+      stream.start = stream.pos;
+      style = readToken(mode, stream, state);
+      if (asArray) tokens.push(getObj(true));
+    }
+    return asArray ? tokens : getObj();
   }
 
   // Run the given mode's parser over a line, calling f for each token.
@@ -15844,6 +12322,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     if (flattenSpans == null) flattenSpans = cm.options.flattenSpans;
     var curStart = 0, curStyle = null;
     var stream = new StringStream(text, cm.options.tabSize), style;
+    var inner = cm.options.addModeClass && [null];
     if (text == "") extractLineClasses(callBlankLine(mode, state), lineClasses);
     while (!stream.eol()) {
       if (stream.pos > cm.options.maxHighlightLength) {
@@ -15852,15 +12331,18 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         stream.pos = text.length;
         style = null;
       } else {
-        style = extractLineClasses(readToken(mode, stream, state), lineClasses);
+        style = extractLineClasses(readToken(mode, stream, state, inner), lineClasses);
       }
-      if (cm.options.addModeClass) {
-        var mName = CodeMirror.innerMode(mode, state).mode.name;
+      if (inner) {
+        var mName = inner[0].name;
         if (mName) style = "m-" + (style ? mName + " " + style : mName);
       }
       if (!flattenSpans || curStyle != style) {
-        if (curStart < stream.start) f(stream.start, curStyle);
-        curStart = stream.start; curStyle = style;
+        while (curStart < stream.start) {
+          curStart = Math.min(stream.start, curStart + 50000);
+          f(curStart, curStyle);
+        }
+        curStyle = style;
       }
       stream.start = stream.pos;
     }
@@ -15914,12 +12396,15 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return {styles: st, classes: lineClasses.bgClass || lineClasses.textClass ? lineClasses : null};
   }
 
-  function getLineStyles(cm, line) {
+  function getLineStyles(cm, line, updateFrontier) {
     if (!line.styles || line.styles[0] != cm.state.modeGen) {
-      var result = highlightLine(cm, line, line.stateAfter = getStateBefore(cm, lineNo(line)));
+      var state = getStateBefore(cm, lineNo(line));
+      var result = highlightLine(cm, line, line.text.length > cm.options.maxHighlightLength ? copyState(cm.doc.mode, state) : state);
+      line.stateAfter = state;
       line.styles = result.styles;
       if (result.classes) line.styleClasses = result.classes;
       else if (line.styleClasses) line.styleClasses = null;
+      if (updateFrontier === cm.doc.frontier) cm.doc.frontier++;
     }
     return line.styles;
   }
@@ -15932,7 +12417,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     var stream = new StringStream(text, cm.options.tabSize);
     stream.start = stream.pos = startAt || 0;
     if (text == "") callBlankLine(mode, state);
-    while (!stream.eol() && stream.pos <= cm.options.maxHighlightLength) {
+    while (!stream.eol()) {
       readToken(mode, stream, state);
       stream.start = stream.pos;
     }
@@ -15959,7 +12444,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     // is needed on Webkit to be able to get line-level bounding
     // rectangles for it (in measureChar).
     var content = elt("span", null, null, webkit ? "padding-right: .1px" : null);
-    var builder = {pre: elt("pre", [content]), content: content, col: 0, pos: 0, cm: cm};
+    var builder = {pre: elt("pre", [content], "CodeMirror-line"), content: content,
+                   col: 0, pos: 0, cm: cm,
+                   splitSpaces: (ie || webkit) && cm.getOption("lineWrapping")};
     lineView.measure = {};
 
     // Iterate over the logical lines that make up this visual line.
@@ -15969,12 +12456,11 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       builder.addToken = buildToken;
       // Optionally wire in some hacks into the token-rendering
       // algorithm, to deal with browser quirks.
-      if ((ie || webkit) && cm.getOption("lineWrapping"))
-        builder.addToken = buildTokenSplitSpaces(builder.addToken);
       if (hasBadBidiRects(cm.display.measure) && (order = getOrder(line)))
         builder.addToken = buildTokenBadBidi(builder.addToken, order);
       builder.map = [];
-      insertLineContent(line, builder, getLineStyles(cm, line));
+      var allowFrontierUpdate = lineView != cm.display.externalMeasured && lineNo(line);
+      insertLineContent(line, builder, getLineStyles(cm, line, allowFrontierUpdate));
       if (line.styleClasses) {
         if (line.styleClasses.bgClass)
           builder.bgClass = joinClasses(line.styleClasses.bgClass, builder.bgClass || "");
@@ -15996,26 +12482,33 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       }
     }
 
+    // See issue #2901
+    if (webkit && /\bcm-tab\b/.test(builder.content.lastChild.className))
+      builder.content.className = "cm-tab-wrap-hack";
+
     signal(cm, "renderLine", cm, lineView.line, builder.pre);
     if (builder.pre.className)
       builder.textClass = joinClasses(builder.pre.className, builder.textClass || "");
+
     return builder;
   }
 
   function defaultSpecialCharPlaceholder(ch) {
     var token = elt("span", "\u2022", "cm-invalidchar");
     token.title = "\\u" + ch.charCodeAt(0).toString(16);
+    token.setAttribute("aria-label", token.title);
     return token;
   }
 
   // Build up the DOM representation for a single token, and add it to
   // the line map. Takes care to render special characters separately.
-  function buildToken(builder, text, style, startStyle, endStyle, title) {
+  function buildToken(builder, text, style, startStyle, endStyle, title, css) {
     if (!text) return;
-    var special = builder.cm.options.specialChars, mustWrap = false;
+    var displayText = builder.splitSpaces ? text.replace(/ {3,}/g, splitSpaces) : text;
+    var special = builder.cm.state.specialChars, mustWrap = false;
     if (!special.test(text)) {
       builder.col += text.length;
-      var content = document.createTextNode(text);
+      var content = document.createTextNode(displayText);
       builder.map.push(builder.pos, builder.pos + text.length, content);
       if (ie && ie_version < 9) mustWrap = true;
       builder.pos += text.length;
@@ -16026,7 +12519,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         var m = special.exec(text);
         var skipped = m ? m.index - pos : text.length - pos;
         if (skipped) {
-          var txt = document.createTextNode(text.slice(pos, pos + skipped));
+          var txt = document.createTextNode(displayText.slice(pos, pos + skipped));
           if (ie && ie_version < 9) content.appendChild(elt("span", [txt]));
           else content.appendChild(txt);
           builder.map.push(builder.pos, builder.pos + skipped, txt);
@@ -16038,9 +12531,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         if (m[0] == "\t") {
           var tabSize = builder.cm.options.tabSize, tabWidth = tabSize - builder.col % tabSize;
           var txt = content.appendChild(elt("span", spaceStr(tabWidth), "cm-tab"));
+          txt.setAttribute("role", "presentation");
+          txt.setAttribute("cm-text", "\t");
           builder.col += tabWidth;
+        } else if (m[0] == "\r" || m[0] == "\n") {
+          var txt = content.appendChild(elt("span", m[0] == "\r" ? "␍" : "␤", "cm-invalidchar"));
+          txt.setAttribute("cm-text", m[0]);
+          builder.col += 1;
         } else {
           var txt = builder.cm.options.specialCharPlaceholder(m[0]);
+          txt.setAttribute("cm-text", m[0]);
           if (ie && ie_version < 9) content.appendChild(elt("span", [txt]));
           else content.appendChild(txt);
           builder.col += 1;
@@ -16049,33 +12549,28 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         builder.pos++;
       }
     }
-    if (style || startStyle || endStyle || mustWrap) {
+    if (style || startStyle || endStyle || mustWrap || css) {
       var fullStyle = style || "";
       if (startStyle) fullStyle += startStyle;
       if (endStyle) fullStyle += endStyle;
-      var token = elt("span", [content], fullStyle);
+      var token = elt("span", [content], fullStyle, css);
       if (title) token.title = title;
       return builder.content.appendChild(token);
     }
     builder.content.appendChild(content);
   }
 
-  function buildTokenSplitSpaces(inner) {
-    function split(old) {
-      var out = " ";
-      for (var i = 0; i < old.length - 2; ++i) out += i % 2 ? " " : "\u00a0";
-      out += " ";
-      return out;
-    }
-    return function(builder, text, style, startStyle, endStyle, title) {
-      inner(builder, text.replace(/ {3,}/g, split), style, startStyle, endStyle, title);
-    };
+  function splitSpaces(old) {
+    var out = " ";
+    for (var i = 0; i < old.length - 2; ++i) out += i % 2 ? " " : "\u00a0";
+    out += " ";
+    return out;
   }
 
   // Work around nonsense dimensions being reported for stretches of
   // right-to-left text.
   function buildTokenBadBidi(inner, order) {
-    return function(builder, text, style, startStyle, endStyle, title) {
+    return function(builder, text, style, startStyle, endStyle, title, css) {
       style = style ? style + " cm-force-border" : "cm-force-border";
       var start = builder.pos, end = start + text.length;
       for (;;) {
@@ -16084,8 +12579,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           var part = order[i];
           if (part.to > start && part.from <= start) break;
         }
-        if (part.to >= end) return inner(builder, text, style, startStyle, endStyle, title);
-        inner(builder, text.slice(0, part.to - start), style, startStyle, null, title);
+        if (part.to >= end) return inner(builder, text, style, startStyle, endStyle, title, css);
+        inner(builder, text.slice(0, part.to - start), style, startStyle, null, title, css);
         startStyle = null;
         text = text.slice(part.to - start);
         start = part.to;
@@ -16095,8 +12590,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   function buildCollapsedSpan(builder, size, marker, ignoreWidget) {
     var widget = !ignoreWidget && marker.widgetNode;
+    if (widget) builder.map.push(builder.pos, builder.pos + size, widget);
+    if (!ignoreWidget && builder.cm.display.input.needsContentAttribute) {
+      if (!widget)
+        widget = builder.content.appendChild(document.createElement("span"));
+      widget.setAttribute("cm-marker", marker.id);
+    }
     if (widget) {
-      builder.map.push(builder.pos, builder.pos + size, widget);
+      builder.cm.display.input.setUneditable(widget);
       builder.content.appendChild(widget);
     }
     builder.pos += size;
@@ -16112,18 +12613,24 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       return;
     }
 
-    var len = allText.length, pos = 0, i = 1, text = "", style;
+    var len = allText.length, pos = 0, i = 1, text = "", style, css;
     var nextChange = 0, spanStyle, spanEndStyle, spanStartStyle, title, collapsed;
     for (;;) {
       if (nextChange == pos) { // Update current marker set
-        spanStyle = spanEndStyle = spanStartStyle = title = "";
+        spanStyle = spanEndStyle = spanStartStyle = title = css = "";
         collapsed = null; nextChange = Infinity;
         var foundBookmarks = [];
         for (var j = 0; j < spans.length; ++j) {
           var sp = spans[j], m = sp.marker;
-          if (sp.from <= pos && (sp.to == null || sp.to > pos)) {
-            if (sp.to != null && nextChange > sp.to) { nextChange = sp.to; spanEndStyle = ""; }
+          if (m.type == "bookmark" && sp.from == pos && m.widgetNode) {
+            foundBookmarks.push(m);
+          } else if (sp.from <= pos && (sp.to == null || sp.to > pos || m.collapsed && sp.to == pos && sp.from == pos)) {
+            if (sp.to != null && sp.to != pos && nextChange > sp.to) {
+              nextChange = sp.to;
+              spanEndStyle = "";
+            }
             if (m.className) spanStyle += " " + m.className;
+            if (m.css) css = m.css;
             if (m.startStyle && sp.from == pos) spanStartStyle += " " + m.startStyle;
             if (m.endStyle && sp.to == nextChange) spanEndStyle += " " + m.endStyle;
             if (m.title && !title) title = m.title;
@@ -16132,12 +12639,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           } else if (sp.from > pos && nextChange > sp.from) {
             nextChange = sp.from;
           }
-          if (m.type == "bookmark" && sp.from == pos && m.widgetNode) foundBookmarks.push(m);
         }
         if (collapsed && (collapsed.from || 0) == pos) {
           buildCollapsedSpan(builder, (collapsed.to == null ? len + 1 : collapsed.to) - pos,
                              collapsed.marker, collapsed.from == null);
           if (collapsed.to == null) return;
+          if (collapsed.to == pos) collapsed = false;
         }
         if (!collapsed && foundBookmarks.length) for (var j = 0; j < foundBookmarks.length; ++j)
           buildCollapsedSpan(builder, 0, foundBookmarks[j]);
@@ -16151,7 +12658,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           if (!collapsed) {
             var tokenText = end > upto ? text.slice(0, upto - pos) : text;
             builder.addToken(builder, tokenText, style ? style + spanStyle : spanStyle,
-                             spanStartStyle, pos + tokenText.length == nextChange ? spanEndStyle : "", title);
+                             spanStartStyle, pos + tokenText.length == nextChange ? spanEndStyle : "", title, css);
           }
           if (end >= upto) {text = text.slice(upto - pos); pos = upto; break;}
           pos = end;
@@ -16180,17 +12687,24 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       updateLine(line, text, spans, estimateHeight);
       signalLater(line, "change", line, change);
     }
+    function linesFor(start, end) {
+      for (var i = start, result = []; i < end; ++i)
+        result.push(new Line(text[i], spansFor(i), estimateHeight));
+      return result;
+    }
 
     var from = change.from, to = change.to, text = change.text;
     var firstLine = getLine(doc, from.line), lastLine = getLine(doc, to.line);
     var lastText = lst(text), lastSpans = spansFor(text.length - 1), nlines = to.line - from.line;
 
     // Adjust the line structure
-    if (isWholeLineUpdate(doc, change)) {
+    if (change.full) {
+      doc.insert(0, linesFor(0, text.length));
+      doc.remove(text.length, doc.size - text.length);
+    } else if (isWholeLineUpdate(doc, change)) {
       // This is a whole-line replace. Treated specially to make
       // sure line objects move the way they are supposed to.
-      for (var i = 0, added = []; i < text.length - 1; ++i)
-        added.push(new Line(text[i], spansFor(i), estimateHeight));
+      var added = linesFor(0, text.length - 1);
       update(lastLine, lastLine.text, lastSpans);
       if (nlines) doc.remove(from.line, nlines);
       if (added.length) doc.insert(from.line, added);
@@ -16198,8 +12712,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (text.length == 1) {
         update(firstLine, firstLine.text.slice(0, from.ch) + lastText + firstLine.text.slice(to.ch), lastSpans);
       } else {
-        for (var added = [], i = 1; i < text.length - 1; ++i)
-          added.push(new Line(text[i], spansFor(i), estimateHeight));
+        var added = linesFor(1, text.length - 1);
         added.push(new Line(lastText + firstLine.text.slice(to.ch), lastSpans, estimateHeight));
         update(firstLine, firstLine.text.slice(0, from.ch) + text[0], spansFor(0));
         doc.insert(from.line + 1, added);
@@ -16210,8 +12723,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     } else {
       update(firstLine, firstLine.text.slice(0, from.ch) + text[0], spansFor(0));
       update(lastLine, lastText + lastLine.text.slice(to.ch), lastSpans);
-      for (var i = 1, added = []; i < text.length - 1; ++i)
-        added.push(new Line(text[i], spansFor(i), estimateHeight));
+      var added = linesFor(1, text.length - 1);
       if (nlines > 1) doc.remove(from.line + 1, nlines - 1);
       doc.insert(from.line + 1, added);
     }
@@ -16371,8 +12883,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   };
 
   var nextDocId = 0;
-  var Doc = CodeMirror.Doc = function(text, mode, firstLine) {
-    if (!(this instanceof Doc)) return new Doc(text, mode, firstLine);
+  var Doc = CodeMirror.Doc = function(text, mode, firstLine, lineSep) {
+    if (!(this instanceof Doc)) return new Doc(text, mode, firstLine, lineSep);
     if (firstLine == null) firstLine = 0;
 
     BranchChunk.call(this, [new LeafChunk([new Line("", null)])]);
@@ -16386,8 +12898,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     this.history = new History(null);
     this.id = ++nextDocId;
     this.modeOption = mode;
+    this.lineSep = lineSep;
 
-    if (typeof text == "string") text = splitLines(text);
+    if (typeof text == "string") text = this.splitLines(text);
     updateDoc(this, {from: start, to: start, text: text});
     setSelection(this, simpleSelection(start), sel_dontScroll);
   };
@@ -16417,12 +12930,12 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     getValue: function(lineSep) {
       var lines = getLines(this, this.first, this.first + this.size);
       if (lineSep === false) return lines;
-      return lines.join(lineSep || "\n");
+      return lines.join(lineSep || this.lineSeparator());
     },
     setValue: docMethodOp(function(code) {
       var top = Pos(this.first, 0), last = this.first + this.size - 1;
       makeChange(this, {from: top, to: Pos(last, getLine(this, last).text.length),
-                        text: splitLines(code), origin: "setValue"}, true);
+                        text: this.splitLines(code), origin: "setValue", full: true}, true);
       setSelection(this, simpleSelection(top));
     }),
     replaceRange: function(code, from, to, origin) {
@@ -16433,7 +12946,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     getRange: function(from, to, lineSep) {
       var lines = getBetween(this, clipPos(this, from), clipPos(this, to));
       if (lineSep === false) return lines;
-      return lines.join(lineSep || "\n");
+      return lines.join(lineSep || this.lineSeparator());
     },
 
     getLine: function(line) {var l = this.getLineHandle(line); return l && l.text;},
@@ -16499,13 +13012,13 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         lines = lines ? lines.concat(sel) : sel;
       }
       if (lineSep === false) return lines;
-      else return lines.join(lineSep || "\n");
+      else return lines.join(lineSep || this.lineSeparator());
     },
     getSelections: function(lineSep) {
       var parts = [], ranges = this.sel.ranges;
       for (var i = 0; i < ranges.length; i++) {
         var sel = getBetween(this, ranges[i].from(), ranges[i].to());
-        if (lineSep !== false) sel = sel.join(lineSep || "\n");
+        if (lineSep !== false) sel = sel.join(lineSep || this.lineSeparator());
         parts[i] = sel;
       }
       return parts;
@@ -16520,7 +13033,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       var changes = [], sel = this.sel;
       for (var i = 0; i < sel.ranges.length; i++) {
         var range = sel.ranges[i];
-        changes[i] = {from: range.from(), to: range.to(), text: splitLines(code[i]), origin: origin};
+        changes[i] = {from: range.from(), to: range.to(), text: this.splitLines(code[i]), origin: origin};
       }
       var newSel = collapse && collapse != "end" && computeReplacedSel(this, changes, collapse);
       for (var i = changes.length - 1; i >= 0; i--)
@@ -16567,22 +13080,26 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     },
 
     addLineClass: docMethodOp(function(handle, where, cls) {
-      return changeLine(this, handle, "class", function(line) {
-        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
+      return changeLine(this, handle, where == "gutter" ? "gutter" : "class", function(line) {
+        var prop = where == "text" ? "textClass"
+                 : where == "background" ? "bgClass"
+                 : where == "gutter" ? "gutterClass" : "wrapClass";
         if (!line[prop]) line[prop] = cls;
-        else if (new RegExp("(?:^|\\s)" + cls + "(?:$|\\s)").test(line[prop])) return false;
+        else if (classTest(cls).test(line[prop])) return false;
         else line[prop] += " " + cls;
         return true;
       });
     }),
     removeLineClass: docMethodOp(function(handle, where, cls) {
-      return changeLine(this, handle, "class", function(line) {
-        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
+      return changeLine(this, handle, where == "gutter" ? "gutter" : "class", function(line) {
+        var prop = where == "text" ? "textClass"
+                 : where == "background" ? "bgClass"
+                 : where == "gutter" ? "gutterClass" : "wrapClass";
         var cur = line[prop];
         if (!cur) return false;
         else if (cls == null) line[prop] = null;
         else {
-          var found = cur.match(new RegExp("(?:^|\\s+)" + cls + "(?:$|\\s+)"));
+          var found = cur.match(classTest(cls));
           if (!found) return false;
           var end = found.index + found[0].length;
           line[prop] = cur.slice(0, found.index) + (!found.index || end == cur.length ? "" : " ") + cur.slice(end) || null;
@@ -16591,13 +13108,19 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       });
     }),
 
+    addLineWidget: docMethodOp(function(handle, node, options) {
+      return addLineWidget(this, handle, node, options);
+    }),
+    removeLineWidget: function(widget) { widget.clear(); },
+
     markText: function(from, to, options) {
       return markText(this, clipPos(this, from), clipPos(this, to), options, "range");
     },
     setBookmark: function(pos, options) {
       var realOpts = {replacedWith: options && (options.nodeType == null ? options.widget : options),
                       insertLeft: options && options.insertLeft,
-                      clearWhenEmpty: false, shared: options && options.shared};
+                      clearWhenEmpty: false, shared: options && options.shared,
+                      handleMouseEvents: options && options.handleMouseEvents};
       pos = clipPos(this, pos);
       return markText(this, pos, pos, realOpts, "bookmark");
     },
@@ -16660,7 +13183,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     },
 
     copy: function(copyHistory) {
-      var doc = new Doc(getLines(this, this.first, this.first + this.size), this.modeOption, this.first);
+      var doc = new Doc(getLines(this, this.first, this.first + this.size),
+                        this.modeOption, this.first, this.lineSep);
       doc.scrollTop = this.scrollTop; doc.scrollLeft = this.scrollLeft;
       doc.sel = this.sel;
       doc.extend = false;
@@ -16676,7 +13200,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       var from = this.first, to = this.first + this.size;
       if (options.from != null && options.from > from) from = options.from;
       if (options.to != null && options.to < to) to = options.to;
-      var copy = new Doc(getLines(this, from, to), options.mode || this.modeOption, from);
+      var copy = new Doc(getLines(this, from, to), options.mode || this.modeOption, from, this.lineSep);
       if (options.sharedHist) copy.history = this.history;
       (this.linked || (this.linked = [])).push({doc: copy, sharedHist: options.sharedHist});
       copy.linked = [{doc: this, isParent: true, sharedHist: options.sharedHist}];
@@ -16705,14 +13229,20 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     iterLinkedDocs: function(f) {linkedDocs(this, f);},
 
     getMode: function() {return this.mode;},
-    getEditor: function() {return this.cm;}
+    getEditor: function() {return this.cm;},
+
+    splitLines: function(str) {
+      if (this.lineSep) return str.split(this.lineSep);
+      return splitLinesAuto(str);
+    },
+    lineSeparator: function() { return this.lineSep || "\n"; }
   });
 
   // Public alias.
   Doc.prototype.eachLine = Doc.prototype.iter;
 
   // Set up methods on CodeMirror's prototype to redirect to the editor's document.
-  var dontDelegate = "iter insert remove copy getEditor".split(" ");
+  var dontDelegate = "iter insert remove copy getEditor constructor".split(" ");
   for (var prop in Doc.prototype) if (Doc.prototype.hasOwnProperty(prop) && indexOf(dontDelegate, prop) < 0)
     CodeMirror.prototype[prop] = (function(method) {
       return function() {return method.apply(this.doc, arguments);};
@@ -17201,6 +13731,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // registering a (non-DOM) handler on the editor for the event name,
   // and preventDefault-ing the event in that handler.
   function signalDOMEvent(cm, e, override) {
+    if (typeof e == "string")
+      e = {type: e, preventDefault: function() { this.defaultPrevented = true; }};
     signal(cm, override || e.type, cm, e);
     return e_defaultPrevented(e) || e.codemirrorIgnore;
   }
@@ -17228,7 +13760,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   // MISC UTILITIES
 
   // Number of pixels added to scroller and sizer to hide scrollbar
-  var scrollerCutOff = 30;
+  var scrollerGap = 30;
 
   // Returned or thrown by various protocols to signal 'I'm not
   // handling this'.
@@ -17296,22 +13828,21 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (array[i] == elt) return i;
     return -1;
   }
-  if ([].indexOf) indexOf = function(array, elt) { return array.indexOf(elt); };
   function map(array, f) {
     var out = [];
     for (var i = 0; i < array.length; i++) out[i] = f(array[i], i);
     return out;
   }
-  if ([].map) map = function(array, f) { return array.map(f); };
+
+  function nothing() {}
 
   function createObj(base, props) {
     var inst;
     if (Object.create) {
       inst = Object.create(base);
     } else {
-      var ctor = function() {};
-      ctor.prototype = base;
-      inst = new ctor();
+      nothing.prototype = base;
+      inst = new nothing();
     }
     if (props) copyObj(props, inst);
     return inst;
@@ -17330,7 +13861,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return function(){return f.apply(null, args);};
   }
 
-  var nonASCIISingleCaseWordChar = /[\u00df\u0590-\u05f4\u0600-\u06ff\u3040-\u309f\u30a0-\u30ff\u3400-\u4db5\u4e00-\u9fcc\uac00-\ud7af]/;
+  var nonASCIISingleCaseWordChar = /[\u00df\u0587\u0590-\u05f4\u0600-\u06ff\u3040-\u309f\u30a0-\u30ff\u3400-\u4db5\u4e00-\u9fcc\uac00-\ud7af]/;
   var isWordCharBasic = CodeMirror.isWordChar = function(ch) {
     return /\w/.test(ch) || ch > "\x80" &&
       (ch.toUpperCase() != ch.toLowerCase() || nonASCIISingleCaseWordChar.test(ch));
@@ -17366,15 +13897,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   }
 
   var range;
-  if (document.createRange) range = function(node, start, end) {
+  if (document.createRange) range = function(node, start, end, endNode) {
     var r = document.createRange();
-    r.setEnd(node, end);
+    r.setEnd(endNode || node, end);
     r.setStart(node, start);
     return r;
   };
   else range = function(node, start, end) {
     var r = document.body.createTextRange();
-    r.moveToElementText(node.parentNode);
+    try { r.moveToElementText(node.parentNode); }
+    catch(e) { return r; }
     r.collapse(true);
     r.moveEnd("character", end);
     r.moveStart("character", start);
@@ -17391,14 +13923,23 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return removeChildren(parent).appendChild(e);
   }
 
-  function contains(parent, child) {
+  var contains = CodeMirror.contains = function(parent, child) {
+    if (child.nodeType == 3) // Android browser always returns false when child is a textnode
+      child = child.parentNode;
     if (parent.contains)
       return parent.contains(child);
-    while (child = child.parentNode)
+    do {
+      if (child.nodeType == 11) child = child.host;
       if (child == parent) return true;
-  }
+    } while (child = child.parentNode);
+  };
 
-  function activeElt() { return document.activeElement; }
+  function activeElt() {
+    var activeElement = document.activeElement;
+    while (activeElement && activeElement.root && activeElement.root.activeElement)
+      activeElement = activeElement.root.activeElement;
+    return activeElement;
+  }
   // Older versions of IE throws unspecified error when touching
   // document.activeElement in some cases (during loading, in iframe)
   if (ie && ie_version < 11) activeElt = function() {
@@ -17406,14 +13947,19 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     catch(e) { return document.body; }
   };
 
-  function classTest(cls) { return new RegExp("\\b" + cls + "\\b\\s*"); }
-  function rmClass(node, cls) {
-    var test = classTest(cls);
-    if (test.test(node.className)) node.className = node.className.replace(test, "");
-  }
-  function addClass(node, cls) {
-    if (!classTest(cls).test(node.className)) node.className += " " + cls;
-  }
+  function classTest(cls) { return new RegExp("(^|\\s)" + cls + "(?:$|\\s)\\s*"); }
+  var rmClass = CodeMirror.rmClass = function(node, cls) {
+    var current = node.className;
+    var match = classTest(cls).exec(current);
+    if (match) {
+      var after = current.slice(match.index + match[0].length);
+      node.className = current.slice(0, match.index) + (after ? match[1] + after : "");
+    }
+  };
+  var addClass = CodeMirror.addClass = function(node, cls) {
+    var current = node.className;
+    if (!classTest(cls).test(current)) node.className += (current ? " " : "") + cls;
+  };
   function joinClasses(a, b) {
     var as = a.split(" ");
     for (var i = 0; i < as.length; i++)
@@ -17448,7 +13994,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     on(window, "resize", function() {
       if (resizeTimer == null) resizeTimer = setTimeout(function() {
         resizeTimer = null;
-        knownScrollbarWidth = null;
         forEachCodeMirror(onResize);
       }, 100);
     });
@@ -17469,16 +14014,6 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     return "draggable" in div || "dragDrop" in div;
   }();
 
-  var knownScrollbarWidth;
-  function scrollbarWidth(measure) {
-    if (knownScrollbarWidth != null) return knownScrollbarWidth;
-    var test = elt("div", null, null, "width: 50px; height: 50px; overflow-x: scroll");
-    removeChildrenAndAdd(measure, test);
-    if (test.offsetWidth)
-      knownScrollbarWidth = test.offsetHeight - test.clientHeight;
-    return knownScrollbarWidth || 0;
-  }
-
   var zwspSupported;
   function zeroWidthElement(measure) {
     if (zwspSupported == null) {
@@ -17487,8 +14022,10 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
       if (measure.firstChild.offsetHeight != 0)
         zwspSupported = test.offsetWidth <= 1 && test.offsetHeight > 2 && !(ie && ie_version < 8);
     }
-    if (zwspSupported) return elt("span", "\u200b");
-    else return elt("span", "\u00a0", null, "display: inline-block; width: 1px; margin-right: -1px");
+    var node = zwspSupported ? elt("span", "\u200b") :
+      elt("span", "\u00a0", null, "display: inline-block; width: 1px; margin-right: -1px");
+    node.setAttribute("cm-text", "");
+    return node;
   }
 
   // Feature-detect IE's crummy client rect reporting for bidi text
@@ -17504,7 +14041,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // See if "".split is the broken IE version, if so, provide an
   // alternative way to split lines.
-  var splitLines = CodeMirror.splitLines = "\n\nb".split(/\n/).length != 3 ? function(string) {
+  var splitLinesAuto = CodeMirror.splitLines = "\n\nb".split(/\n/).length != 3 ? function(string) {
     var pos = 0, result = [], l = string.length;
     while (pos <= l) {
       var nl = string.indexOf("\n", pos);
@@ -17851,6 +14388,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         lst(order).to -= m[0].length;
         order.push(new BidiSpan(0, len - m[0].length, len));
       }
+      if (order[0].level == 2)
+        order.unshift(new BidiSpan(1, order[0].to, order[0].to));
       if (order[0].level != lst(order).level)
         order.push(new BidiSpan(order[0].level, len, len));
 
@@ -17860,98 +14399,99 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   // THE END
 
-  CodeMirror.version = "4.7.0";
+  CodeMirror.version = "5.6.0";
 
   return CodeMirror;
 });
 
-},{}],49:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 module.exports = function (element) {
-    var self = this,
-        Combokeys = self.constructor;
+  var self = this
+  var Combokeys = self.constructor
 
-    /**
-     * a list of all the callbacks setup via Combokeys.bind()
-     *
-     * @type {Object}
-     */
-    self.callbacks = {};
+  /**
+   * a list of all the callbacks setup via Combokeys.bind()
+   *
+   * @type {Object}
+   */
+  self.callbacks = {}
 
-    /**
-     * direct map of string combinations to callbacks used for trigger()
-     *
-     * @type {Object}
-     */
-    self.directMap = {};
+  /**
+   * direct map of string combinations to callbacks used for trigger()
+   *
+   * @type {Object}
+   */
+  self.directMap = {}
 
-    /**
-     * keeps track of what level each sequence is at since multiple
-     * sequences can start out with the same sequence
-     *
-     * @type {Object}
-     */
-    self.sequenceLevels = {};
+  /**
+   * keeps track of what level each sequence is at since multiple
+   * sequences can start out with the same sequence
+   *
+   * @type {Object}
+   */
+  self.sequenceLevels = {}
 
-    /**
-     * variable to store the setTimeout call
-     *
-     * @type {null|number}
-     */
-    self.resetTimer;
+  /**
+   * variable to store the setTimeout call
+   *
+   * @type {null|number}
+   */
+  self.resetTimer
 
-    /**
-     * temporary state where we will ignore the next keyup
-     *
-     * @type {boolean|string}
-     */
-    self.ignoreNextKeyup = false;
+  /**
+   * temporary state where we will ignore the next keyup
+   *
+   * @type {boolean|string}
+   */
+  self.ignoreNextKeyup = false
 
-    /**
-     * temporary state where we will ignore the next keypress
-     *
-     * @type {boolean}
-     */
-    self.ignoreNextKeypress = false;
+  /**
+   * temporary state where we will ignore the next keypress
+   *
+   * @type {boolean}
+   */
+  self.ignoreNextKeypress = false
 
-    /**
-     * are we currently inside of a sequence?
-     * type of action ("keyup" or "keydown" or "keypress") or false
-     *
-     * @type {boolean|string}
-     */
-    self.nextExpectedAction = false;
+  /**
+   * are we currently inside of a sequence?
+   * type of action ("keyup" or "keydown" or "keypress") or false
+   *
+   * @type {boolean|string}
+   */
+  self.nextExpectedAction = false
 
-    self.element = element;
+  self.element = element
 
-    self.addEvents();
+  self.addEvents()
 
-    Combokeys.instances.push(self);
-    return self;
-};
+  Combokeys.instances.push(self)
+  return self
+}
 
-module.exports.prototype.bind = require("./prototype/bind");
-module.exports.prototype.bindMultiple = require("./prototype/bindMultiple");
-module.exports.prototype.unbind = require("./prototype/unbind");
-module.exports.prototype.trigger = require("./prototype/trigger");
-module.exports.prototype.reset = require("./prototype/reset.js");
-module.exports.prototype.stopCallback = require("./prototype/stopCallback");
-module.exports.prototype.handleKey = require("./prototype/handleKey");
-module.exports.prototype.addEvents = require("./prototype/addEvents");
-module.exports.prototype.bindSingle = require("./prototype/bindSingle");
-module.exports.prototype.getKeyInfo = require("./prototype/getKeyInfo");
-module.exports.prototype.pickBestAction = require("./prototype/pickBestAction");
-module.exports.prototype.getReverseMap = require("./prototype/getReverseMap");
-module.exports.prototype.getMatches = require("./prototype/getMatches");
-module.exports.prototype.resetSequences = require("./prototype/resetSequences");
-module.exports.prototype.fireCallback = require("./prototype/fireCallback");
-module.exports.prototype.bindSequence = require("./prototype/bindSequence");
-module.exports.prototype.resetSequenceTimer = require("./prototype/resetSequenceTimer");
+module.exports.prototype.bind = require('./prototype/bind')
+module.exports.prototype.bindMultiple = require('./prototype/bindMultiple')
+module.exports.prototype.unbind = require('./prototype/unbind')
+module.exports.prototype.trigger = require('./prototype/trigger')
+module.exports.prototype.reset = require('./prototype/reset.js')
+module.exports.prototype.stopCallback = require('./prototype/stopCallback')
+module.exports.prototype.handleKey = require('./prototype/handleKey')
+module.exports.prototype.addEvents = require('./prototype/addEvents')
+module.exports.prototype.bindSingle = require('./prototype/bindSingle')
+module.exports.prototype.getKeyInfo = require('./prototype/getKeyInfo')
+module.exports.prototype.pickBestAction = require('./prototype/pickBestAction')
+module.exports.prototype.getReverseMap = require('./prototype/getReverseMap')
+module.exports.prototype.getMatches = require('./prototype/getMatches')
+module.exports.prototype.resetSequences = require('./prototype/resetSequences')
+module.exports.prototype.fireCallback = require('./prototype/fireCallback')
+module.exports.prototype.bindSequence = require('./prototype/bindSequence')
+module.exports.prototype.resetSequenceTimer = require('./prototype/resetSequenceTimer')
+module.exports.prototype.detach = require('./prototype/detach')
 
-module.exports.instances = [];
-module.exports.reset = require("./reset");
+module.exports.instances = []
+module.exports.reset = require('./reset')
 
 /**
  * variable to store the flipped version of MAP from above
@@ -17960,30 +14500,26 @@ module.exports.reset = require("./reset");
  *
  * @type {Object|undefined}
  */
-module.exports.REVERSE_MAP = null;
+module.exports.REVERSE_MAP = null
 
-},{"./prototype/addEvents":50,"./prototype/bind":51,"./prototype/bindMultiple":52,"./prototype/bindSequence":53,"./prototype/bindSingle":54,"./prototype/fireCallback":55,"./prototype/getKeyInfo":56,"./prototype/getMatches":57,"./prototype/getReverseMap":58,"./prototype/handleKey":59,"./prototype/pickBestAction":62,"./prototype/reset.js":63,"./prototype/resetSequenceTimer":64,"./prototype/resetSequences":65,"./prototype/stopCallback":66,"./prototype/trigger":67,"./prototype/unbind":68,"./reset":69}],50:[function(require,module,exports){
+},{"./prototype/addEvents":36,"./prototype/bind":37,"./prototype/bindMultiple":38,"./prototype/bindSequence":39,"./prototype/bindSingle":40,"./prototype/detach":41,"./prototype/fireCallback":42,"./prototype/getKeyInfo":43,"./prototype/getMatches":44,"./prototype/getReverseMap":45,"./prototype/handleKey":46,"./prototype/pickBestAction":49,"./prototype/reset.js":50,"./prototype/resetSequenceTimer":51,"./prototype/resetSequences":52,"./prototype/stopCallback":53,"./prototype/trigger":54,"./prototype/unbind":55,"./reset":56}],36:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 module.exports = function () {
-    var self = this,
-        addEvent,
-        element = self.element,
-        handleKeyEvent,
-        boundHandler;
+  var self = this
+  var on = require('dom-event')
+  var element = self.element
 
-    handleKeyEvent = require("./handleKeyEvent");
+  self.eventHandler = require('./handleKeyEvent').bind(self)
 
-    addEvent = require("../../helpers/addEvent");
-    boundHandler = handleKeyEvent.bind(self);
-    addEvent(element, "keypress", boundHandler);
-    addEvent(element, "keydown", boundHandler);
-    addEvent(element, "keyup", boundHandler);
-};
+  on(element, 'keypress', self.eventHandler)
+  on(element, 'keydown', self.eventHandler)
+  on(element, 'keyup', self.eventHandler)
+}
 
-},{"../../helpers/addEvent":70,"./handleKeyEvent":60}],51:[function(require,module,exports){
+},{"./handleKeyEvent":47,"dom-event":67}],37:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * binds an event to Combokeys
  *
@@ -17998,17 +14534,17 @@ module.exports = function () {
  * @param {string=} action - "keypress", "keydown", or "keyup"
  * @returns void
  */
-module.exports = function(keys, callback, action) {
-    var self = this;
+module.exports = function (keys, callback, action) {
+  var self = this
 
-    keys = keys instanceof Array ? keys : [keys];
-    self.bindMultiple(keys, callback, action);
-    return self;
-};
+  keys = keys instanceof Array ? keys : [keys]
+  self.bindMultiple(keys, callback, action)
+  return self
+}
 
-},{}],52:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * binds multiple combinations to the same callback
@@ -18019,16 +14555,16 @@ module.exports = function(keys, callback, action) {
  * @returns void
  */
 module.exports = function (combinations, callback, action) {
-    var self = this;
+  var self = this
 
-    for (var j = 0; j < combinations.length; ++j) {
-        self.bindSingle(combinations[j], callback, action);
-    }
-};
+  for (var j = 0; j < combinations.length; ++j) {
+    self.bindSingle(combinations[j], callback, action)
+  }
+}
 
-},{}],53:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * binds a key sequence to an event
@@ -18040,75 +14576,75 @@ module.exports = function (combinations, callback, action) {
  * @returns void
  */
 module.exports = function (combo, keys, callback, action) {
-    var self = this;
+  var self = this
 
-    // start off by adding a sequence level record for this combination
-    // and setting the level to 0
-    self.sequenceLevels[combo] = 0;
+  // start off by adding a sequence level record for this combination
+  // and setting the level to 0
+  self.sequenceLevels[combo] = 0
 
-    /**
-     * callback to increase the sequence level for this sequence and reset
-     * all other sequences that were active
-     *
-     * @param {string} nextAction
-     * @returns {Function}
-     */
-    function increaseSequence(nextAction) {
-        return function() {
-            self.nextExpectedAction = nextAction;
-            ++self.sequenceLevels[combo];
-            self.resetSequenceTimer();
-        };
+  /**
+   * callback to increase the sequence level for this sequence and reset
+   * all other sequences that were active
+   *
+   * @param {string} nextAction
+   * @returns {Function}
+   */
+  function increaseSequence (nextAction) {
+    return function () {
+      self.nextExpectedAction = nextAction
+      ++self.sequenceLevels[combo]
+      self.resetSequenceTimer()
+    }
+  }
+
+  /**
+   * wraps the specified callback inside of another function in order
+   * to reset all sequence counters as soon as this sequence is done
+   *
+   * @param {Event} e
+   * @returns void
+   */
+  function callbackAndReset (e) {
+    var characterFromEvent
+    self.fireCallback(callback, e, combo)
+
+    // we should ignore the next key up if the action is key down
+    // or keypress.  this is so if you finish a sequence and
+    // release the key the final key will not trigger a keyup
+    if (action !== 'keyup') {
+      characterFromEvent = require('../../helpers/characterFromEvent')
+      self.ignoreNextKeyup = characterFromEvent(e)
     }
 
-    /**
-     * wraps the specified callback inside of another function in order
-     * to reset all sequence counters as soon as this sequence is done
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function callbackAndReset(e) {
-        var characterFromEvent;
-        self.fireCallback(callback, e, combo);
+    // weird race condition if a sequence ends with the key
+    // another sequence begins with
+    setTimeout(
+      function () {
+        self.resetSequences()
+      },
+      10
+    )
+  }
 
-        // we should ignore the next key up if the action is key down
-        // or keypress.  this is so if you finish a sequence and
-        // release the key the final key will not trigger a keyup
-        if (action !== "keyup") {
-            characterFromEvent = require("../../helpers/characterFromEvent");
-            self.ignoreNextKeyup = characterFromEvent(e);
-        }
+  // loop through keys one at a time and bind the appropriate callback
+  // function.  for any key leading up to the final one it should
+  // increase the sequence. after the final, it should reset all sequences
+  //
+  // if an action is specified in the original bind call then that will
+  // be used throughout.  otherwise we will pass the action that the
+  // next key in the sequence should match.  this allows a sequence
+  // to mix and match keypress and keydown events depending on which
+  // ones are better suited to the key provided
+  for (var j = 0; j < keys.length; ++j) {
+    var isFinal = j + 1 === keys.length
+    var wrappedCallback = isFinal ? callbackAndReset : increaseSequence(action || self.getKeyInfo(keys[j + 1]).action)
+    self.bindSingle(keys[j], wrappedCallback, action, combo, j)
+  }
+}
 
-        // weird race condition if a sequence ends with the key
-        // another sequence begins with
-        setTimeout(
-            function() {
-                self.resetSequences();
-            },
-            10
-        );
-    }
-
-    // loop through keys one at a time and bind the appropriate callback
-    // function.  for any key leading up to the final one it should
-    // increase the sequence. after the final, it should reset all sequences
-    //
-    // if an action is specified in the original bind call then that will
-    // be used throughout.  otherwise we will pass the action that the
-    // next key in the sequence should match.  this allows a sequence
-    // to mix and match keypress and keydown events depending on which
-    // ones are better suited to the key provided
-    for (var j = 0; j < keys.length; ++j) {
-        var isFinal = j + 1 === keys.length;
-        var wrappedCallback = isFinal ? callbackAndReset : increaseSequence(action || self.getKeyInfo(keys[j + 1]).action);
-        self.bindSingle(keys[j], wrappedCallback, action, combo, j);
-    }
-};
-
-},{"../../helpers/characterFromEvent":71}],54:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":57}],40:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * binds a single keyboard combination
@@ -18121,52 +14657,63 @@ module.exports = function (combo, keys, callback, action) {
  * @returns void
  */
 module.exports = function (combination, callback, action, sequenceName, level) {
-    var self = this;
+  var self = this
 
-    // store a direct mapped reference for use with Combokeys.trigger
-    self.directMap[combination + ":" + action] = callback;
+  // store a direct mapped reference for use with Combokeys.trigger
+  self.directMap[combination + ':' + action] = callback
 
-    // make sure multiple spaces in a row become a single space
-    combination = combination.replace(/\s+/g, " ");
+  // make sure multiple spaces in a row become a single space
+  combination = combination.replace(/\s+/g, ' ')
 
-    var sequence = combination.split(" "),
-        info;
+  var sequence = combination.split(' ')
+  var info
 
-    // if this pattern is a sequence of keys then run through this method
-    // to reprocess each pattern one key at a time
-    if (sequence.length > 1) {
-        self.bindSequence(combination, sequence, callback, action);
-        return;
-    }
+  // if this pattern is a sequence of keys then run through this method
+  // to reprocess each pattern one key at a time
+  if (sequence.length > 1) {
+    self.bindSequence(combination, sequence, callback, action)
+    return
+  }
 
-    info = self.getKeyInfo(combination, action);
+  info = self.getKeyInfo(combination, action)
 
-    // make sure to initialize array if this is the first time
-    // a callback is added for this key
-    self.callbacks[info.key] = self.callbacks[info.key] || [];
+  // make sure to initialize array if this is the first time
+  // a callback is added for this key
+  self.callbacks[info.key] = self.callbacks[info.key] || []
 
-    // remove an existing match if there is one
-    self.getMatches(info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
+  // remove an existing match if there is one
+  self.getMatches(info.key, info.modifiers, {type: info.action}, sequenceName, combination, level)
 
-    // add this call back to the array
-    // if it is a sequence put it at the beginning
-    // if not put it at the end
-    //
-    // this is important because the way these are processed expects
-    // the sequence ones to come first
-    self.callbacks[info.key][sequenceName ? "unshift" : "push"]({
-        callback: callback,
-        modifiers: info.modifiers,
-        action: info.action,
-        seq: sequenceName,
-        level: level,
-        combo: combination
-    });
-};
+  // add this call back to the array
+  // if it is a sequence put it at the beginning
+  // if not put it at the end
+  //
+  // this is important because the way these are processed expects
+  // the sequence ones to come first
+  self.callbacks[info.key][sequenceName ? 'unshift' : 'push']({
+    callback: callback,
+    modifiers: info.modifiers,
+    action: info.action,
+    seq: sequenceName,
+    level: level,
+    combo: combination
+  })
+}
 
-},{}],55:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
+var off = require('dom-event').off
+module.exports = function () {
+  var self = this
+  var element = self.element
+
+  off(element, 'keypress', self.eventHandler)
+  off(element, 'keydown', self.eventHandler)
+  off(element, 'keyup', self.eventHandler)
+}
+
+},{"dom-event":67}],42:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * actually calls the callback function
@@ -18179,26 +14726,26 @@ module.exports = function (combination, callback, action, sequenceName, level) {
  * @returns void
  */
 module.exports = function (callback, e, combo, sequence) {
-    var self = this,
-        preventDefault,
-        stopPropagation;
+  var self = this
+  var preventDefault
+  var stopPropagation
 
-    // if this event should not happen stop here
-    if (self.stopCallback(e, e.target || e.srcElement, combo, sequence)) {
-        return;
-    }
+  // if this event should not happen stop here
+  if (self.stopCallback(e, e.target || e.srcElement, combo, sequence)) {
+    return
+  }
 
-    if (callback(e, combo) === false) {
-        preventDefault = require("../../helpers/preventDefault");
-        preventDefault(e);
-        stopPropagation = require("../../helpers/stopPropagation");
-        stopPropagation(e);
-    }
-};
+  if (callback(e, combo) === false) {
+    preventDefault = require('../../helpers/preventDefault')
+    preventDefault(e)
+    stopPropagation = require('../../helpers/stopPropagation')
+    stopPropagation(e)
+  }
+}
 
-},{"../../helpers/preventDefault":75,"../../helpers/stopPropagation":80}],56:[function(require,module,exports){
+},{"../../helpers/preventDefault":61,"../../helpers/stopPropagation":66}],43:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * Gets info for a specific key combination
@@ -18208,60 +14755,60 @@ module.exports = function (callback, e, combo, sequence) {
  * @returns {Object}
  */
 module.exports = function (combination, action) {
-    var self = this,
-        keysFromString,
-        keys,
-        key,
-        j,
-        modifiers = [],
-        SPECIAL_ALIASES,
-        SHIFT_MAP,
-        isModifier;
+  var self = this
+  var keysFromString
+  var keys
+  var key
+  var j
+  var modifiers = []
+  var SPECIAL_ALIASES
+  var SHIFT_MAP
+  var isModifier
 
-    keysFromString = require("../../helpers/keysFromString");
-    // take the keys from this pattern and figure out what the actual
-    // pattern is all about
-    keys = keysFromString(combination);
+  keysFromString = require('../../helpers/keysFromString')
+  // take the keys from this pattern and figure out what the actual
+  // pattern is all about
+  keys = keysFromString(combination)
 
-    SPECIAL_ALIASES = require("../../helpers/special-aliases");
-    SHIFT_MAP = require("../../helpers/shift-map");
-    isModifier = require("../../helpers/isModifier");
-    for (j = 0; j < keys.length; ++j) {
-        key = keys[j];
+  SPECIAL_ALIASES = require('../../helpers/special-aliases')
+  SHIFT_MAP = require('../../helpers/shift-map')
+  isModifier = require('../../helpers/isModifier')
+  for (j = 0; j < keys.length; ++j) {
+    key = keys[j]
 
-        // normalize key names
-        if (SPECIAL_ALIASES[key]) {
-            key = SPECIAL_ALIASES[key];
-        }
-
-        // if this is not a keypress event then we should
-        // be smart about using shift keys
-        // this will only work for US keyboards however
-        if (action && action !== "keypress" && SHIFT_MAP[key]) {
-            key = SHIFT_MAP[key];
-            modifiers.push("shift");
-        }
-
-        // if this key is a modifier then add it to the list of modifiers
-        if (isModifier(key)) {
-            modifiers.push(key);
-        }
+    // normalize key names
+    if (SPECIAL_ALIASES[key]) {
+      key = SPECIAL_ALIASES[key]
     }
 
-    // depending on what the key combination is
-    // we will try to pick the best event for it
-    action = self.pickBestAction(key, modifiers, action);
+    // if this is not a keypress event then we should
+    // be smart about using shift keys
+    // this will only work for US keyboards however
+    if (action && action !== 'keypress' && SHIFT_MAP[key]) {
+      key = SHIFT_MAP[key]
+      modifiers.push('shift')
+    }
 
-    return {
-        key: key,
-        modifiers: modifiers,
-        action: action
-    };
-};
+    // if this key is a modifier then add it to the list of modifiers
+    if (isModifier(key)) {
+      modifiers.push(key)
+    }
+  }
 
-},{"../../helpers/isModifier":73,"../../helpers/keysFromString":74,"../../helpers/shift-map":76,"../../helpers/special-aliases":77}],57:[function(require,module,exports){
+  // depending on what the key combination is
+  // we will try to pick the best event for it
+  action = self.pickBestAction(key, modifiers, action)
+
+  return {
+    key: key,
+    modifiers: modifiers,
+    action: action
+  }
+}
+
+},{"../../helpers/isModifier":59,"../../helpers/keysFromString":60,"../../helpers/shift-map":62,"../../helpers/special-aliases":63}],44:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * finds all callbacks that match based on the keycode, modifiers,
@@ -18276,73 +14823,77 @@ module.exports = function (combination, action) {
  * @returns {Array}
  */
 module.exports = function (character, modifiers, e, sequenceName, combination, level) {
-    var self = this,
-        j,
-        callback,
-        matches = [],
-        action = e.type,
-        isModifier,
-        modifiersMatch;
+  var self = this
+  var j
+  var callback
+  var matches = []
+  var action = e.type
+  var isModifier
+  var modifiersMatch
 
-    // if there are no events related to this keycode
-    if (!self.callbacks[character]) {
-        return [];
+  if (action === 'keypress') {
+    // 'any-character' callbacks are only on `keypress`
+    var anyCharCallbacks = self.callbacks['any-character'] || []
+    anyCharCallbacks.forEach(function (callback) {
+      matches.push(callback)
+    })
+  }
+
+  if (!self.callbacks[character]) {return matches}
+
+  isModifier = require('../../helpers/isModifier')
+  // if a modifier key is coming up on its own we should allow it
+  if (action === 'keyup' && isModifier(character)) {
+    modifiers = [character]
+  }
+
+  // loop through all callbacks for the key that was pressed
+  // and see if any of them match
+  for (j = 0; j < self.callbacks[character].length; ++j) {
+    callback = self.callbacks[character][j]
+
+    // if a sequence name is not specified, but this is a sequence at
+    // the wrong level then move onto the next match
+    if (!sequenceName && callback.seq && self.sequenceLevels[callback.seq] !== callback.level) {
+      continue
     }
 
-    isModifier = require("../../helpers/isModifier");
-    // if a modifier key is coming up on its own we should allow it
-    if (action === "keyup" && isModifier(character)) {
-        modifiers = [character];
+    // if the action we are looking for doesn't match the action we got
+    // then we should keep going
+    if (action !== callback.action) {
+      continue
     }
 
-    // loop through all callbacks for the key that was pressed
-    // and see if any of them match
-    for (j = 0; j < self.callbacks[character].length; ++j) {
-        callback = self.callbacks[character][j];
+    // if this is a keypress event and the meta key and control key
+    // are not pressed that means that we need to only look at the
+    // character, otherwise check the modifiers as well
+    //
+    // chrome will not fire a keypress if meta or control is down
+    // safari will fire a keypress if meta or meta+shift is down
+    // firefox will fire a keypress if meta or control is down
+    modifiersMatch = require('./modifiersMatch')
+    if ((action === 'keypress' && !e.metaKey && !e.ctrlKey) || modifiersMatch(modifiers, callback.modifiers)) {
+      // when you bind a combination or sequence a second time it
+      // should overwrite the first one.  if a sequenceName or
+      // combination is specified in this call it does just that
+      //
+      // @todo make deleting its own method?
+      var deleteCombo = !sequenceName && callback.combo === combination
+      var deleteSequence = sequenceName && callback.seq === sequenceName && callback.level === level
+      if (deleteCombo || deleteSequence) {
+        self.callbacks[character].splice(j, 1)
+      }
 
-        // if a sequence name is not specified, but this is a sequence at
-        // the wrong level then move onto the next match
-        if (!sequenceName && callback.seq && self.sequenceLevels[callback.seq] !== callback.level) {
-            continue;
-        }
-
-        // if the action we are looking for doesn't match the action we got
-        // then we should keep going
-        if (action !== callback.action) {
-            continue;
-        }
-
-        // if this is a keypress event and the meta key and control key
-        // are not pressed that means that we need to only look at the
-        // character, otherwise check the modifiers as well
-        //
-        // chrome will not fire a keypress if meta or control is down
-        // safari will fire a keypress if meta or meta+shift is down
-        // firefox will fire a keypress if meta or control is down
-        modifiersMatch = require("./modifiersMatch");
-        if ((action === "keypress" && !e.metaKey && !e.ctrlKey) || modifiersMatch(modifiers, callback.modifiers)) {
-
-            // when you bind a combination or sequence a second time it
-            // should overwrite the first one.  if a sequenceName or
-            // combination is specified in this call it does just that
-            //
-            // @todo make deleting its own method?
-            var deleteCombo = !sequenceName && callback.combo === combination;
-            var deleteSequence = sequenceName && callback.seq === sequenceName && callback.level === level;
-            if (deleteCombo || deleteSequence) {
-                self.callbacks[character].splice(j, 1);
-            }
-
-            matches.push(callback);
-        }
+      matches.push(callback)
     }
+  }
 
-    return matches;
-};
+  return matches
+}
 
-},{"../../helpers/isModifier":73,"./modifiersMatch":61}],58:[function(require,module,exports){
+},{"../../helpers/isModifier":59,"./modifiersMatch":48}],45:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * reverses the map lookup so that we can look for specific keys
@@ -18351,32 +14902,31 @@ module.exports = function (character, modifiers, e, sequenceName, combination, l
  * @return {Object}
  */
 module.exports = function () {
-    var self = this,
-        constructor = self.constructor,
-        SPECIAL_KEYS_MAP;
+  var self = this
+  var constructor = self.constructor
+  var SPECIAL_KEYS_MAP
 
-    if (!constructor.REVERSE_MAP) {
-        constructor.REVERSE_MAP = {};
-        SPECIAL_KEYS_MAP = require("../../helpers/special-keys-map");
-        for (var key in SPECIAL_KEYS_MAP) {
+  if (!constructor.REVERSE_MAP) {
+    constructor.REVERSE_MAP = {}
+    SPECIAL_KEYS_MAP = require('../../helpers/special-keys-map')
+    for (var key in SPECIAL_KEYS_MAP) {
+      // pull out the numeric keypad from here cause keypress should
+      // be able to detect the keys from the character
+      if (key > 95 && key < 112) {
+        continue
+      }
 
-            // pull out the numeric keypad from here cause keypress should
-            // be able to detect the keys from the character
-            if (key > 95 && key < 112) {
-                continue;
-            }
-
-            if (SPECIAL_KEYS_MAP.hasOwnProperty(key)) {
-                constructor.REVERSE_MAP[SPECIAL_KEYS_MAP[key]] = key;
-            }
-        }
+      if (SPECIAL_KEYS_MAP.hasOwnProperty(key)) {
+        constructor.REVERSE_MAP[SPECIAL_KEYS_MAP[key]] = key
+      }
     }
-    return constructor.REVERSE_MAP;
-};
+  }
+  return constructor.REVERSE_MAP
+}
 
-},{"../../helpers/special-keys-map":79}],59:[function(require,module,exports){
+},{"../../helpers/special-keys-map":65}],46:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * handles a character key event
@@ -18387,93 +14937,91 @@ module.exports = function () {
  * @returns void
  */
 module.exports = function (character, modifiers, e) {
-    var self = this,
-        callbacks,
-        j,
-        doNotReset = {},
-        maxLevel = 0,
-        processedSequenceCallback = false,
-        isModifier,
-        ignoreThisKeypress;
+  var self = this
+  var callbacks
+  var j
+  var doNotReset = {}
+  var maxLevel = 0
+  var processedSequenceCallback = false
+  var isModifier
+  var ignoreThisKeypress
 
-    callbacks = self.getMatches(character, modifiers, e);
-    // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
-    for (j = 0; j < callbacks.length; ++j) {
-        if (callbacks[j].seq) {
-            maxLevel = Math.max(maxLevel, callbacks[j].level);
-        }
+  callbacks = self.getMatches(character, modifiers, e)
+  // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
+  for (j = 0; j < callbacks.length; ++j) {
+    if (callbacks[j].seq) {
+      maxLevel = Math.max(maxLevel, callbacks[j].level)
+    }
+  }
+
+  // loop through matching callbacks for this key event
+  for (j = 0; j < callbacks.length; ++j) {
+    // fire for all sequence callbacks
+    // this is because if for example you have multiple sequences
+    // bound such as "g i" and "g t" they both need to fire the
+    // callback for matching g cause otherwise you can only ever
+    // match the first one
+    if (callbacks[j].seq) {
+      // only fire callbacks for the maxLevel to prevent
+      // subsequences from also firing
+      //
+      // for example 'a option b' should not cause 'option b' to fire
+      // even though 'option b' is part of the other sequence
+      //
+      // any sequences that do not match here will be discarded
+      // below by the resetSequences call
+      if (callbacks[j].level !== maxLevel) {
+        continue
+      }
+
+      processedSequenceCallback = true
+
+      // keep a list of which sequences were matches for later
+      doNotReset[callbacks[j].seq] = 1
+      self.fireCallback(callbacks[j].callback, e, callbacks[j].combo, callbacks[j].seq)
+      continue
     }
 
-    // loop through matching callbacks for this key event
-    for (j = 0; j < callbacks.length; ++j) {
-
-        // fire for all sequence callbacks
-        // this is because if for example you have multiple sequences
-        // bound such as "g i" and "g t" they both need to fire the
-        // callback for matching g cause otherwise you can only ever
-        // match the first one
-        if (callbacks[j].seq) {
-
-            // only fire callbacks for the maxLevel to prevent
-            // subsequences from also firing
-            //
-            // for example 'a option b' should not cause 'option b' to fire
-            // even though 'option b' is part of the other sequence
-            //
-            // any sequences that do not match here will be discarded
-            // below by the resetSequences call
-            if (callbacks[j].level !== maxLevel) {
-                continue;
-            }
-
-            processedSequenceCallback = true;
-
-            // keep a list of which sequences were matches for later
-            doNotReset[callbacks[j].seq] = 1;
-            self.fireCallback(callbacks[j].callback, e, callbacks[j].combo, callbacks[j].seq);
-            continue;
-        }
-
-        // if there were no sequence matches but we are still here
-        // that means this is a regular match so we should fire that
-        if (!processedSequenceCallback) {
-            self.fireCallback(callbacks[j].callback, e, callbacks[j].combo);
-        }
+    // if there were no sequence matches but we are still here
+    // that means this is a regular match so we should fire that
+    if (!processedSequenceCallback) {
+      self.fireCallback(callbacks[j].callback, e, callbacks[j].combo)
     }
+  }
 
-    // if the key you pressed matches the type of sequence without
-    // being a modifier (ie "keyup" or "keypress") then we should
-    // reset all sequences that were not matched by this event
-    //
-    // this is so, for example, if you have the sequence "h a t" and you
-    // type "h e a r t" it does not match.  in this case the "e" will
-    // cause the sequence to reset
-    //
-    // modifier keys are ignored because you can have a sequence
-    // that contains modifiers such as "enter ctrl+space" and in most
-    // cases the modifier key will be pressed before the next key
-    //
-    // also if you have a sequence such as "ctrl+b a" then pressing the
-    // "b" key will trigger a "keypress" and a "keydown"
-    //
-    // the "keydown" is expected when there is a modifier, but the
-    // "keypress" ends up matching the nextExpectedAction since it occurs
-    // after and that causes the sequence to reset
-    //
-    // we ignore keypresses in a sequence that directly follow a keydown
-    // for the same character
-    ignoreThisKeypress = e.type === "keypress" && self.ignoreNextKeypress;
-    isModifier = require("../../helpers/isModifier");
-    if (e.type === self.nextExpectedAction && !isModifier(character) && !ignoreThisKeypress) {
-        self.resetSequences(doNotReset);
-    }
+  // if the key you pressed matches the type of sequence without
+  // being a modifier (ie "keyup" or "keypress") then we should
+  // reset all sequences that were not matched by this event
+  //
+  // this is so, for example, if you have the sequence "h a t" and you
+  // type "h e a r t" it does not match.  in this case the "e" will
+  // cause the sequence to reset
+  //
+  // modifier keys are ignored because you can have a sequence
+  // that contains modifiers such as "enter ctrl+space" and in most
+  // cases the modifier key will be pressed before the next key
+  //
+  // also if you have a sequence such as "ctrl+b a" then pressing the
+  // "b" key will trigger a "keypress" and a "keydown"
+  //
+  // the "keydown" is expected when there is a modifier, but the
+  // "keypress" ends up matching the nextExpectedAction since it occurs
+  // after and that causes the sequence to reset
+  //
+  // we ignore keypresses in a sequence that directly follow a keydown
+  // for the same character
+  ignoreThisKeypress = e.type === 'keypress' && self.ignoreNextKeypress
+  isModifier = require('../../helpers/isModifier')
+  if (e.type === self.nextExpectedAction && !isModifier(character) && !ignoreThisKeypress) {
+    self.resetSequences(doNotReset)
+  }
 
-    self.ignoreNextKeypress = processedSequenceCallback && e.type === "keydown";
-};
+  self.ignoreNextKeypress = processedSequenceCallback && e.type === 'keydown'
+}
 
-},{"../../helpers/isModifier":73}],60:[function(require,module,exports){
+},{"../../helpers/isModifier":59}],47:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * handles a keydown event
@@ -18482,36 +15030,36 @@ module.exports = function (character, modifiers, e) {
  * @returns void
  */
 module.exports = function (e) {
-    var self = this,
-        characterFromEvent,
-        eventModifiers;
+  var self = this
+  var characterFromEvent
+  var eventModifiers
 
-    // normalize e.which for key events
-    // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-    if (typeof e.which !== "number") {
-        e.which = e.keyCode;
-    }
-    characterFromEvent = require("../../helpers/characterFromEvent");
-    var character = characterFromEvent(e);
+  // normalize e.which for key events
+  // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+  if (typeof e.which !== 'number') {
+    e.which = e.keyCode
+  }
+  characterFromEvent = require('../../helpers/characterFromEvent')
+  var character = characterFromEvent(e)
 
-    // no character found then stop
-    if (!character) {
-        return;
-    }
+  // no character found then stop
+  if (!character) {
+    return
+  }
 
-    // need to use === for the character check because the character can be 0
-    if (e.type === "keyup" && self.ignoreNextKeyup === character) {
-        self.ignoreNextKeyup = false;
-        return;
-    }
+  // need to use === for the character check because the character can be 0
+  if (e.type === 'keyup' && self.ignoreNextKeyup === character) {
+    self.ignoreNextKeyup = false
+    return
+  }
 
-    eventModifiers = require("../../helpers/eventModifiers");
-    self.handleKey(character, eventModifiers(e), e);
-};
+  eventModifiers = require('../../helpers/eventModifiers')
+  self.handleKey(character, eventModifiers(e), e)
+}
 
-},{"../../helpers/characterFromEvent":71,"../../helpers/eventModifiers":72}],61:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":57,"../../helpers/eventModifiers":58}],48:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * checks if two arrays are equal
@@ -18521,12 +15069,12 @@ module.exports = function (e) {
  * @returns {boolean}
  */
 module.exports = function (modifiers1, modifiers2) {
-    return modifiers1.sort().join(",") === modifiers2.sort().join(",");
-};
+  return modifiers1.sort().join(',') === modifiers2.sort().join(',')
+}
 
-},{}],62:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * picks the best action based on the key combination
@@ -18536,26 +15084,26 @@ module.exports = function (modifiers1, modifiers2) {
  * @param {string=} action passed in
  */
 module.exports = function (key, modifiers, action) {
-    var self = this;
+  var self = this
 
-    // if no action was picked in we should try to pick the one
-    // that we think would work best for this key
-    if (!action) {
-        action = self.getReverseMap()[key] ? "keydown" : "keypress";
-    }
+  // if no action was picked in we should try to pick the one
+  // that we think would work best for this key
+  if (!action) {
+    action = self.getReverseMap()[key] ? 'keydown' : 'keypress'
+  }
 
-    // modifier keys don't work as expected with keypress,
-    // switch to keydown
-    if (action === "keypress" && modifiers.length) {
-        action = "keydown";
-    }
+  // modifier keys don't work as expected with keypress,
+  // switch to keydown
+  if (action === 'keypress' && modifiers.length) {
+    action = 'keydown'
+  }
 
-    return action;
-};
+  return action
+}
 
-},{}],63:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * resets the library back to its initial state. This is useful
@@ -18564,16 +15112,16 @@ module.exports = function (key, modifiers, action) {
  *
  * @returns void
  */
-module.exports = function() {
-    var self = this;
-    self.callbacks = {};
-    self.directMap = {};
-    return this;
-};
+module.exports = function () {
+  var self = this
+  self.callbacks = {}
+  self.directMap = {}
+  return this
+}
 
-},{}],64:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * called to set a 1 second timeout on the specified sequence
  *
@@ -18583,20 +15131,20 @@ module.exports = function() {
  * @returns void
  */
 module.exports = function () {
-    var self = this;
+  var self = this
 
-    clearTimeout(self.resetTimer);
-    self.resetTimer = setTimeout(
-        function() {
-        self.resetSequences();
-        },
-        1000
-    );
-};
+  clearTimeout(self.resetTimer)
+  self.resetTimer = setTimeout(
+    function () {
+      self.resetSequences()
+    },
+    1000
+  )
+}
 
-},{}],65:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * resets all sequence counters except for the ones passed in
@@ -18605,29 +15153,29 @@ module.exports = function () {
  * @returns void
  */
 module.exports = function (doNotReset) {
-    var self = this;
+  var self = this
 
-    doNotReset = doNotReset || {};
+  doNotReset = doNotReset || {}
 
-    var activeSequences = false,
-        key;
+  var activeSequences = false
+  var key
 
-    for (key in self.sequenceLevels) {
-        if (doNotReset[key]) {
-            activeSequences = true;
-            continue;
-        }
-        self.sequenceLevels[key] = 0;
+  for (key in self.sequenceLevels) {
+    if (doNotReset[key]) {
+      activeSequences = true
+      continue
     }
+    self.sequenceLevels[key] = 0
+  }
 
-    if (!activeSequences) {
-        self.nextExpectedAction = false;
-    }
-};
+  if (!activeSequences) {
+    self.nextExpectedAction = false
+  }
+}
 
-},{}],66:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
 * should we stop this event before firing off callbacks
@@ -18636,20 +15184,21 @@ module.exports = function (doNotReset) {
 * @param {Element} element
 * @return {boolean}
 */
-module.exports = function(e, element) {
+module.exports = function (e, element) {
+  // if the element has the class "combokeys" then no need to stop
+  if ((' ' + element.className + ' ').indexOf(' combokeys ') > -1) {
+    return false
+  }
 
-    // if the element has the class "combokeys" then no need to stop
-    if ((" " + element.className + " ").indexOf(" combokeys ") > -1) {
-        return false;
-    }
+  var tagName = element.tagName.toLowerCase()
 
-    // stop for input, select, and textarea
-    return element.tagName === "INPUT" || element.tagName === "SELECT" || element.tagName === "TEXTAREA" || element.isContentEditable;
-};
+  // stop for input, select, and textarea
+  return tagName === 'input' || tagName === 'select' || tagName === 'textarea' || element.isContentEditable
+}
 
-},{}],67:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * triggers an event that has already been bound
  *
@@ -18657,16 +15206,17 @@ module.exports = function(e, element) {
  * @param {string=} action
  * @returns void
  */
-module.exports = function(keys, action) {
-    if (directMap[keys + ":" + action]) {
-        directMap[keys + ":" + action]({}, keys);
-    }
-    return this;
-};
+module.exports = function (keys, action) {
+  var self = this
+  if (self.directMap[keys + ':' + action]) {
+    self.directMap[keys + ':' + action]({}, keys)
+  }
+  return this
+}
 
-},{}],68:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * unbinds an event to Combokeys
  *
@@ -18684,48 +15234,27 @@ module.exports = function(keys, action) {
  * @param {string} action
  * @returns void
  */
-module.exports = function(keys, action) {
-    var self = this;
+module.exports = function (keys, action) {
+  var self = this
 
-    return self.bind(keys, function() {}, action);
-};
+  return self.bind(keys, function () {}, action)
+}
 
-},{}],69:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 module.exports = function () {
-    var self = this;
+  var self = this
 
-    self.instances.forEach(function(combokeys) {
-        combokeys.reset();
-    });
-};
+  self.instances.forEach(function (combokeys) {
+    combokeys.reset()
+  })
+}
 
-},{}],70:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
-
-/**
- * cross browser add event method
- *
- * @param {Element|HTMLDocument} object
- * @param {string} type
- * @param {Function} callback
- * @returns void
- */
-module.exports = function (object, type, callback) {
-    if (object.addEventListener) {
-        object.addEventListener(type, callback, false);
-        return;
-    }
-
-    object.attachEvent("on" + type, callback);
-};
-
-},{}],71:[function(require,module,exports){
-/* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * takes the event and returns the key character
@@ -18734,52 +15263,51 @@ module.exports = function (object, type, callback) {
  * @return {string}
  */
 module.exports = function (e) {
-    var SPECIAL_KEYS_MAP,
-        SPECIAL_CHARACTERS_MAP;
-    SPECIAL_KEYS_MAP = require("./special-keys-map");
-    SPECIAL_CHARACTERS_MAP = require("./special-characters-map");
+  var SPECIAL_KEYS_MAP,
+  SPECIAL_CHARACTERS_MAP
+  SPECIAL_KEYS_MAP = require('./special-keys-map')
+  SPECIAL_CHARACTERS_MAP = require('./special-characters-map')
 
+  // for keypress events we should return the character as is
+  if (e.type === 'keypress') {
+    var character = String.fromCharCode(e.which)
 
-    // for keypress events we should return the character as is
-    if (e.type === "keypress") {
-        var character = String.fromCharCode(e.which);
-
-        // if the shift key is not pressed then it is safe to assume
-        // that we want the character to be lowercase.  this means if
-        // you accidentally have caps lock on then your key bindings
-        // will continue to work
-        //
-        // the only side effect that might not be desired is if you
-        // bind something like 'A' cause you want to trigger an
-        // event when capital A is pressed caps lock will no longer
-        // trigger the event.  shift+a will though.
-        if (!e.shiftKey) {
-            character = character.toLowerCase();
-        }
-
-        return character;
+    // if the shift key is not pressed then it is safe to assume
+    // that we want the character to be lowercase.  this means if
+    // you accidentally have caps lock on then your key bindings
+    // will continue to work
+    //
+    // the only side effect that might not be desired is if you
+    // bind something like 'A' cause you want to trigger an
+    // event when capital A is pressed caps lock will no longer
+    // trigger the event.  shift+a will though.
+    if (!e.shiftKey) {
+      character = character.toLowerCase()
     }
 
-    // for non keypress events the special maps are needed
-    if (SPECIAL_KEYS_MAP[e.which]) {
-        return SPECIAL_KEYS_MAP[e.which];
-    }
+    return character
+  }
 
-    if (SPECIAL_CHARACTERS_MAP[e.which]) {
-        return SPECIAL_CHARACTERS_MAP[e.which];
-    }
+  // for non keypress events the special maps are needed
+  if (SPECIAL_KEYS_MAP[e.which]) {
+    return SPECIAL_KEYS_MAP[e.which]
+  }
 
-    // if it is not in the special map
+  if (SPECIAL_CHARACTERS_MAP[e.which]) {
+    return SPECIAL_CHARACTERS_MAP[e.which]
+  }
 
-    // with keydown and keyup events the character seems to always
-    // come in as an uppercase character whether you are pressing shift
-    // or not.  we should make sure it is always lowercase for comparisons
-    return String.fromCharCode(e.which).toLowerCase();
-};
+  // if it is not in the special map
 
-},{"./special-characters-map":78,"./special-keys-map":79}],72:[function(require,module,exports){
+  // with keydown and keyup events the character seems to always
+  // come in as an uppercase character whether you are pressing shift
+  // or not.  we should make sure it is always lowercase for comparisons
+  return String.fromCharCode(e.which).toLowerCase()
+}
+
+},{"./special-characters-map":64,"./special-keys-map":65}],58:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * takes a key event and figures out what the modifiers are
@@ -18788,30 +15316,30 @@ module.exports = function (e) {
  * @returns {Array}
  */
 module.exports = function (e) {
-    var modifiers = [];
+  var modifiers = []
 
-    if (e.shiftKey) {
-        modifiers.push("shift");
-    }
+  if (e.shiftKey) {
+    modifiers.push('shift')
+  }
 
-    if (e.altKey) {
-        modifiers.push("alt");
-    }
+  if (e.altKey) {
+    modifiers.push('alt')
+  }
 
-    if (e.ctrlKey) {
-        modifiers.push("ctrl");
-    }
+  if (e.ctrlKey) {
+    modifiers.push('ctrl')
+  }
 
-    if (e.metaKey) {
-        modifiers.push("meta");
-    }
+  if (e.metaKey) {
+    modifiers.push('meta')
+  }
 
-    return modifiers;
-};
+  return modifiers
+}
 
-},{}],73:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * determines if the keycode specified is a modifier key or not
@@ -18820,12 +15348,12 @@ module.exports = function (e) {
  * @returns {boolean}
  */
 module.exports = function (key) {
-    return key === "shift" || key === "ctrl" || key === "alt" || key === "meta";
-};
+  return key === 'shift' || key === 'ctrl' || key === 'alt' || key === 'meta'
+}
 
-},{}],74:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * Converts from a string key combination to an array
@@ -18834,16 +15362,16 @@ module.exports = function (key) {
  * @return {Array}
  */
 module.exports = function (combination) {
-    if (combination === "+") {
-        return ["+"];
-    }
+  if (combination === '+') {
+    return ['+']
+  }
 
-    return combination.split("+");
-};
+  return combination.split('+')
+}
 
-},{}],75:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * prevents default for this event
@@ -18852,17 +15380,17 @@ module.exports = function (combination) {
  * @returns void
  */
 module.exports = function (e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-        return;
-    }
+  if (e.preventDefault) {
+    e.preventDefault()
+    return
+  }
 
-    e.returnValue = false;
-};
+  e.returnValue = false
+}
 
-},{}],76:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * this is a mapping of keys that require shift on a US keypad
  * back to the non shift equivelents
@@ -18874,30 +15402,30 @@ module.exports = function (e) {
  * @type {Object}
  */
 module.exports = {
-    "~": "`",
-    "!": "1",
-    "@": "2",
-    "#": "3",
-    "$": "4",
-    "%": "5",
-    "^": "6",
-    "&": "7",
-    "*": "8",
-    "(": "9",
-    ")": "0",
-    "_": "-",
-    "+": "=",
-    ":": ";",
-    "\"": "'",
-    "<": ",",
-    ">": ".",
-    "?": "/",
-    "|": "\\"
-};
+  '~': '`',
+  '!': '1',
+  '@': '2',
+  '#': '3',
+  '$': '4',
+  '%': '5',
+  '^': '6',
+  '&': '7',
+  '*': '8',
+  '(': '9',
+  ')': '0',
+  '_': '-',
+  '+': '=',
+  ':': ';',
+  '"': "'",
+  '<': ',',
+  '>': '.',
+  '?': '/',
+  '|': '\\'
+}
 
-},{}],77:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * this is a list of special strings you can use to map
  * to modifier keys when you specify your keyboard shortcuts
@@ -18905,16 +15433,16 @@ module.exports = {
  * @type {Object}
  */
 module.exports = {
-    "option": "alt",
-    "command": "meta",
-    "return": "enter",
-    "escape": "esc",
-    "mod": /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "meta" : "ctrl"
-};
+  'option': 'alt',
+  'command': 'meta',
+  'return': 'enter',
+  'escape': 'esc',
+  'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
+}
 
-},{}],78:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * mapping for special characters so they can support
  *
@@ -18924,27 +15452,27 @@ module.exports = {
  * @type {Object}
  */
 module.exports = {
-    106: "*",
-    107: "+",
-    109: "-",
-    110: ".",
-    111: "/",
-    186: ";",
-    187: "=",
-    188: ",",
-    189: "-",
-    190: ".",
-    191: "/",
-    192: "`",
-    219: "[",
-    220: "\\",
-    221: "]",
-    222: "'"
-};
+  106: '*',
+  107: '+',
+  109: '-',
+  110: '.',
+  111: '/',
+  186: ';',
+  187: '=',
+  188: ',',
+  189: '-',
+  190: '.',
+  191: '/',
+  192: '`',
+  219: '[',
+  220: '\\',
+  221: ']',
+  222: "'"
+}
 
-},{}],79:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 /**
  * mapping of special keycodes to their corresponding keys
  *
@@ -18955,48 +15483,50 @@ module.exports = {
  * @type {Object}
  */
 module.exports = {
-    8: "backspace",
-    9: "tab",
-    13: "enter",
-    16: "shift",
-    17: "ctrl",
-    18: "alt",
-    20: "capslock",
-    27: "esc",
-    32: "space",
-    33: "pageup",
-    34: "pagedown",
-    35: "end",
-    36: "home",
-    37: "left",
-    38: "up",
-    39: "right",
-    40: "down",
-    45: "ins",
-    46: "del",
-    91: "meta",
-    93: "meta",
-    224: "meta"
-};
+  8: 'backspace',
+  9: 'tab',
+  13: 'enter',
+  16: 'shift',
+  17: 'ctrl',
+  18: 'alt',
+  20: 'capslock',
+  27: 'esc',
+  32: 'space',
+  33: 'pageup',
+  34: 'pagedown',
+  35: 'end',
+  36: 'home',
+  37: 'left',
+  38: 'up',
+  39: 'right',
+  40: 'down',
+  45: 'ins',
+  46: 'del',
+  91: 'meta',
+  93: 'meta',
+  187: 'plus',
+  189: 'minus',
+  224: 'meta'
+}
 
 /**
  * loop through the f keys, f1 to f19 and add them to the map
  * programatically
  */
 for (var i = 1; i < 20; ++i) {
-    module.exports[111 + i] = "f" + i;
+  module.exports[111 + i] = 'f' + i
 }
 
 /**
  * loop through to map numbers on the numeric keypad
  */
 for (i = 0; i <= 9; ++i) {
-    module.exports[i + 96] = i;
+  module.exports[i + 96] = i
 }
 
-},{}],80:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 /* eslint-env node, browser */
-"use strict";
+'use strict'
 
 /**
  * stops propogation for this event
@@ -19005,21 +15535,32 @@ for (i = 0; i <= 9; ++i) {
  * @returns void
  */
 module.exports = function (e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-        return;
-    }
+  if (e.stopPropagation) {
+    e.stopPropagation()
+    return
+  }
 
-    e.cancelBubble = true;
-};
+  e.cancelBubble = true
+}
 
-},{}],81:[function(require,module,exports){
-/* eslint-env node, browser */
-"use strict";
+},{}],67:[function(require,module,exports){
+module.exports = on;
+module.exports.on = on;
+module.exports.off = off;
 
-module.exports = require("./Combokeys");
+function on (element, event, callback, capture) {
+  !element.addEventListener && (event = 'on' + event);
+  (element.addEventListener || element.attachEvent).call(element, event, callback, capture);
+  return callback;
+}
 
-},{"./Combokeys":49}],82:[function(require,module,exports){
+function off (element, event, callback, capture) {
+  !element.removeEventListener && (event = 'on' + event);
+  (element.removeEventListener || element.detachEvent).call(element, event, callback, capture);
+  return callback;
+}
+
+},{}],68:[function(require,module,exports){
 /* See LICENSE file for terms of use */
 
 /*
@@ -19390,7 +15931,7 @@ if (typeof module !== 'undefined') {
     module.exports = JsDiff;
 }
 
-},{}],83:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -19417,1839 +15958,34 @@ if (typeof module !== 'undefined') {
   })
 
   return function (fn) {
-    loaded ? fn() : fns.push(fn)
+    loaded ? setTimeout(fn, 0) : fns.push(fn)
   }
 
 });
 
-},{}],84:[function(require,module,exports){
-/*! drop 0.5.4 */
-/*! tether 0.6.5 */
-
-
-(function(root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define(factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory(require,exports,module);
-  } else {
-    root.Tether = factory();
-  }
-}(this, function(require,exports,module) {
-
-(function() {
-  var Evented, addClass, defer, deferred, extend, flush, getBounds, getOffsetParent, getOrigin, getScrollBarSize, getScrollParent, hasClass, node, removeClass, uniqueId, updateClasses, zeroPosCache,
-    __hasProp = {}.hasOwnProperty,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    __slice = [].slice;
-
-  if (this.Tether == null) {
-    this.Tether = {
-      modules: []
-    };
-  }
-
-  getScrollParent = function(el) {
-    var parent, position, scrollParent, style, _ref;
-    position = getComputedStyle(el).position;
-    if (position === 'fixed') {
-      return el;
-    }
-    scrollParent = void 0;
-    parent = el;
-    while (parent = parent.parentNode) {
-      try {
-        style = getComputedStyle(parent);
-      } catch (_error) {}
-      if (style == null) {
-        return parent;
-      }
-      if (/(auto|scroll)/.test(style['overflow'] + style['overflow-y'] + style['overflow-x'])) {
-        if (position !== 'absolute' || ((_ref = style['position']) === 'relative' || _ref === 'absolute' || _ref === 'fixed')) {
-          return parent;
-        }
-      }
-    }
-    return document.body;
-  };
-
-  uniqueId = (function() {
-    var id;
-    id = 0;
-    return function() {
-      return id++;
-    };
-  })();
-
-  zeroPosCache = {};
-
-  getOrigin = function(doc) {
-    var id, k, node, v, _ref;
-    node = doc._tetherZeroElement;
-    if (node == null) {
-      node = doc.createElement('div');
-      node.setAttribute('data-tether-id', uniqueId());
-      extend(node.style, {
-        top: 0,
-        left: 0,
-        position: 'absolute'
-      });
-      doc.body.appendChild(node);
-      doc._tetherZeroElement = node;
-    }
-    id = node.getAttribute('data-tether-id');
-    if (zeroPosCache[id] == null) {
-      zeroPosCache[id] = {};
-      _ref = node.getBoundingClientRect();
-      for (k in _ref) {
-        v = _ref[k];
-        zeroPosCache[id][k] = v;
-      }
-      defer(function() {
-        return zeroPosCache[id] = void 0;
-      });
-    }
-    return zeroPosCache[id];
-  };
-
-  node = null;
-
-  getBounds = function(el) {
-    var box, doc, docEl, k, origin, v, _ref;
-    if (el === document) {
-      doc = document;
-      el = document.documentElement;
-    } else {
-      doc = el.ownerDocument;
-    }
-    docEl = doc.documentElement;
-    box = {};
-    _ref = el.getBoundingClientRect();
-    for (k in _ref) {
-      v = _ref[k];
-      box[k] = v;
-    }
-    origin = getOrigin(doc);
-    box.top -= origin.top;
-    box.left -= origin.left;
-    if (box.width == null) {
-      box.width = document.body.scrollWidth - box.left - box.right;
-    }
-    if (box.height == null) {
-      box.height = document.body.scrollHeight - box.top - box.bottom;
-    }
-    box.top = box.top - docEl.clientTop;
-    box.left = box.left - docEl.clientLeft;
-    box.right = doc.body.clientWidth - box.width - box.left;
-    box.bottom = doc.body.clientHeight - box.height - box.top;
-    return box;
-  };
-
-  getOffsetParent = function(el) {
-    return el.offsetParent || document.documentElement;
-  };
-
-  getScrollBarSize = function() {
-    var inner, outer, width, widthContained, widthScroll;
-    inner = document.createElement('div');
-    inner.style.width = '100%';
-    inner.style.height = '200px';
-    outer = document.createElement('div');
-    extend(outer.style, {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      pointerEvents: 'none',
-      visibility: 'hidden',
-      width: '200px',
-      height: '150px',
-      overflow: 'hidden'
-    });
-    outer.appendChild(inner);
-    document.body.appendChild(outer);
-    widthContained = inner.offsetWidth;
-    outer.style.overflow = 'scroll';
-    widthScroll = inner.offsetWidth;
-    if (widthContained === widthScroll) {
-      widthScroll = outer.clientWidth;
-    }
-    document.body.removeChild(outer);
-    width = widthContained - widthScroll;
-    return {
-      width: width,
-      height: width
-    };
-  };
-
-  extend = function(out) {
-    var args, key, obj, val, _i, _len, _ref;
-    if (out == null) {
-      out = {};
-    }
-    args = [];
-    Array.prototype.push.apply(args, arguments);
-    _ref = args.slice(1);
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      obj = _ref[_i];
-      if (obj) {
-        for (key in obj) {
-          if (!__hasProp.call(obj, key)) continue;
-          val = obj[key];
-          out[key] = val;
-        }
-      }
-    }
-    return out;
-  };
-
-  removeClass = function(el, name) {
-    var cls, _i, _len, _ref, _results;
-    if (el.classList != null) {
-      _ref = name.split(' ');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        cls = _ref[_i];
-        if (cls.trim()) {
-          _results.push(el.classList.remove(cls));
-        }
-      }
-      return _results;
-    } else {
-      return el.className = el.className.replace(new RegExp("(^| )" + (name.split(' ').join('|')) + "( |$)", 'gi'), ' ');
-    }
-  };
-
-  addClass = function(el, name) {
-    var cls, _i, _len, _ref, _results;
-    if (el.classList != null) {
-      _ref = name.split(' ');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        cls = _ref[_i];
-        if (cls.trim()) {
-          _results.push(el.classList.add(cls));
-        }
-      }
-      return _results;
-    } else {
-      removeClass(el, name);
-      return el.className += " " + name;
-    }
-  };
-
-  hasClass = function(el, name) {
-    if (el.classList != null) {
-      return el.classList.contains(name);
-    } else {
-      return new RegExp("(^| )" + name + "( |$)", 'gi').test(el.className);
-    }
-  };
-
-  updateClasses = function(el, add, all) {
-    var cls, _i, _j, _len, _len1, _results;
-    for (_i = 0, _len = all.length; _i < _len; _i++) {
-      cls = all[_i];
-      if (__indexOf.call(add, cls) < 0) {
-        if (hasClass(el, cls)) {
-          removeClass(el, cls);
-        }
-      }
-    }
-    _results = [];
-    for (_j = 0, _len1 = add.length; _j < _len1; _j++) {
-      cls = add[_j];
-      if (!hasClass(el, cls)) {
-        _results.push(addClass(el, cls));
-      } else {
-        _results.push(void 0);
-      }
-    }
-    return _results;
-  };
-
-  deferred = [];
-
-  defer = function(fn) {
-    return deferred.push(fn);
-  };
-
-  flush = function() {
-    var fn, _results;
-    _results = [];
-    while (fn = deferred.pop()) {
-      _results.push(fn());
-    }
-    return _results;
-  };
-
-  Evented = (function() {
-    function Evented() {}
-
-    Evented.prototype.on = function(event, handler, ctx, once) {
-      var _base;
-      if (once == null) {
-        once = false;
-      }
-      if (this.bindings == null) {
-        this.bindings = {};
-      }
-      if ((_base = this.bindings)[event] == null) {
-        _base[event] = [];
-      }
-      return this.bindings[event].push({
-        handler: handler,
-        ctx: ctx,
-        once: once
-      });
-    };
-
-    Evented.prototype.once = function(event, handler, ctx) {
-      return this.on(event, handler, ctx, true);
-    };
-
-    Evented.prototype.off = function(event, handler) {
-      var i, _ref, _results;
-      if (((_ref = this.bindings) != null ? _ref[event] : void 0) == null) {
-        return;
-      }
-      if (handler == null) {
-        return delete this.bindings[event];
-      } else {
-        i = 0;
-        _results = [];
-        while (i < this.bindings[event].length) {
-          if (this.bindings[event][i].handler === handler) {
-            _results.push(this.bindings[event].splice(i, 1));
-          } else {
-            _results.push(i++);
-          }
-        }
-        return _results;
-      }
-    };
-
-    Evented.prototype.trigger = function() {
-      var args, ctx, event, handler, i, once, _ref, _ref1, _results;
-      event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if ((_ref = this.bindings) != null ? _ref[event] : void 0) {
-        i = 0;
-        _results = [];
-        while (i < this.bindings[event].length) {
-          _ref1 = this.bindings[event][i], handler = _ref1.handler, ctx = _ref1.ctx, once = _ref1.once;
-          handler.apply(ctx != null ? ctx : this, args);
-          if (once) {
-            _results.push(this.bindings[event].splice(i, 1));
-          } else {
-            _results.push(i++);
-          }
-        }
-        return _results;
-      }
-    };
-
-    return Evented;
-
-  })();
-
-  this.Tether.Utils = {
-    getScrollParent: getScrollParent,
-    getBounds: getBounds,
-    getOffsetParent: getOffsetParent,
-    extend: extend,
-    addClass: addClass,
-    removeClass: removeClass,
-    hasClass: hasClass,
-    updateClasses: updateClasses,
-    defer: defer,
-    flush: flush,
-    uniqueId: uniqueId,
-    Evented: Evented,
-    getScrollBarSize: getScrollBarSize
-  };
-
-}).call(this);
-
-(function() {
-  var MIRROR_LR, MIRROR_TB, OFFSET_MAP, Tether, addClass, addOffset, attachmentToOffset, autoToFixedAttachment, defer, extend, flush, getBounds, getOffsetParent, getOuterSize, getScrollBarSize, getScrollParent, getSize, now, offsetToPx, parseAttachment, parseOffset, position, removeClass, tethers, transformKey, updateClasses, within, _Tether, _ref,
-    __slice = [].slice,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-  if (this.Tether == null) {
-    throw new Error("You must include the utils.js file before tether.js");
-  }
-
-  Tether = this.Tether;
-
-  _ref = Tether.Utils, getScrollParent = _ref.getScrollParent, getSize = _ref.getSize, getOuterSize = _ref.getOuterSize, getBounds = _ref.getBounds, getOffsetParent = _ref.getOffsetParent, extend = _ref.extend, addClass = _ref.addClass, removeClass = _ref.removeClass, updateClasses = _ref.updateClasses, defer = _ref.defer, flush = _ref.flush, getScrollBarSize = _ref.getScrollBarSize;
-
-  within = function(a, b, diff) {
-    if (diff == null) {
-      diff = 1;
-    }
-    return (a + diff >= b && b >= a - diff);
-  };
-
-  transformKey = (function() {
-    var el, key, _i, _len, _ref1;
-    el = document.createElement('div');
-    _ref1 = ['transform', 'webkitTransform', 'OTransform', 'MozTransform', 'msTransform'];
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      key = _ref1[_i];
-      if (el.style[key] !== void 0) {
-        return key;
-      }
-    }
-  })();
-
-  tethers = [];
-
-  position = function() {
-    var tether, _i, _len;
-    for (_i = 0, _len = tethers.length; _i < _len; _i++) {
-      tether = tethers[_i];
-      tether.position(false);
-    }
-    return flush();
-  };
-
-  now = function() {
-    var _ref1;
-    return (_ref1 = typeof performance !== "undefined" && performance !== null ? typeof performance.now === "function" ? performance.now() : void 0 : void 0) != null ? _ref1 : +(new Date);
-  };
-
-  (function() {
-    var event, lastCall, lastDuration, pendingTimeout, tick, _i, _len, _ref1, _results;
-    lastCall = null;
-    lastDuration = null;
-    pendingTimeout = null;
-    tick = function() {
-      if ((lastDuration != null) && lastDuration > 16) {
-        lastDuration = Math.min(lastDuration - 16, 250);
-        pendingTimeout = setTimeout(tick, 250);
-        return;
-      }
-      if ((lastCall != null) && (now() - lastCall) < 10) {
-        return;
-      }
-      if (pendingTimeout != null) {
-        clearTimeout(pendingTimeout);
-        pendingTimeout = null;
-      }
-      lastCall = now();
-      position();
-      return lastDuration = now() - lastCall;
-    };
-    _ref1 = ['resize', 'scroll', 'touchmove'];
-    _results = [];
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      event = _ref1[_i];
-      _results.push(window.addEventListener(event, tick));
-    }
-    return _results;
-  })();
-
-  MIRROR_LR = {
-    center: 'center',
-    left: 'right',
-    right: 'left'
-  };
-
-  MIRROR_TB = {
-    middle: 'middle',
-    top: 'bottom',
-    bottom: 'top'
-  };
-
-  OFFSET_MAP = {
-    top: 0,
-    left: 0,
-    middle: '50%',
-    center: '50%',
-    bottom: '100%',
-    right: '100%'
-  };
-
-  autoToFixedAttachment = function(attachment, relativeToAttachment) {
-    var left, top;
-    left = attachment.left, top = attachment.top;
-    if (left === 'auto') {
-      left = MIRROR_LR[relativeToAttachment.left];
-    }
-    if (top === 'auto') {
-      top = MIRROR_TB[relativeToAttachment.top];
-    }
-    return {
-      left: left,
-      top: top
-    };
-  };
-
-  attachmentToOffset = function(attachment) {
-    var _ref1, _ref2;
-    return {
-      left: (_ref1 = OFFSET_MAP[attachment.left]) != null ? _ref1 : attachment.left,
-      top: (_ref2 = OFFSET_MAP[attachment.top]) != null ? _ref2 : attachment.top
-    };
-  };
-
-  addOffset = function() {
-    var left, offsets, out, top, _i, _len, _ref1;
-    offsets = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    out = {
-      top: 0,
-      left: 0
-    };
-    for (_i = 0, _len = offsets.length; _i < _len; _i++) {
-      _ref1 = offsets[_i], top = _ref1.top, left = _ref1.left;
-      if (typeof top === 'string') {
-        top = parseFloat(top, 10);
-      }
-      if (typeof left === 'string') {
-        left = parseFloat(left, 10);
-      }
-      out.top += top;
-      out.left += left;
-    }
-    return out;
-  };
-
-  offsetToPx = function(offset, size) {
-    if (typeof offset.left === 'string' && offset.left.indexOf('%') !== -1) {
-      offset.left = parseFloat(offset.left, 10) / 100 * size.width;
-    }
-    if (typeof offset.top === 'string' && offset.top.indexOf('%') !== -1) {
-      offset.top = parseFloat(offset.top, 10) / 100 * size.height;
-    }
-    return offset;
-  };
-
-  parseAttachment = parseOffset = function(value) {
-    var left, top, _ref1;
-    _ref1 = value.split(' '), top = _ref1[0], left = _ref1[1];
-    return {
-      top: top,
-      left: left
-    };
-  };
-
-  _Tether = (function() {
-    _Tether.modules = [];
-
-    function _Tether(options) {
-      this.position = __bind(this.position, this);
-      var module, _i, _len, _ref1, _ref2;
-      tethers.push(this);
-      this.history = [];
-      this.setOptions(options, false);
-      _ref1 = Tether.modules;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        module = _ref1[_i];
-        if ((_ref2 = module.initialize) != null) {
-          _ref2.call(this);
-        }
-      }
-      this.position();
-    }
-
-    _Tether.prototype.getClass = function(key) {
-      var _ref1, _ref2;
-      if ((_ref1 = this.options.classes) != null ? _ref1[key] : void 0) {
-        return this.options.classes[key];
-      } else if (((_ref2 = this.options.classes) != null ? _ref2[key] : void 0) !== false) {
-        if (this.options.classPrefix) {
-          return "" + this.options.classPrefix + "-" + key;
-        } else {
-          return key;
-        }
-      } else {
-        return '';
-      }
-    };
-
-    _Tether.prototype.setOptions = function(options, position) {
-      var defaults, key, _i, _len, _ref1, _ref2;
-      this.options = options;
-      if (position == null) {
-        position = true;
-      }
-      defaults = {
-        offset: '0 0',
-        targetOffset: '0 0',
-        targetAttachment: 'auto auto',
-        classPrefix: 'tether'
-      };
-      this.options = extend(defaults, this.options);
-      _ref1 = this.options, this.element = _ref1.element, this.target = _ref1.target, this.targetModifier = _ref1.targetModifier;
-      if (this.target === 'viewport') {
-        this.target = document.body;
-        this.targetModifier = 'visible';
-      } else if (this.target === 'scroll-handle') {
-        this.target = document.body;
-        this.targetModifier = 'scroll-handle';
-      }
-      _ref2 = ['element', 'target'];
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        key = _ref2[_i];
-        if (this[key] == null) {
-          throw new Error("Tether Error: Both element and target must be defined");
-        }
-        if (this[key].jquery != null) {
-          this[key] = this[key][0];
-        } else if (typeof this[key] === 'string') {
-          this[key] = document.querySelector(this[key]);
-        }
-      }
-      addClass(this.element, this.getClass('element'));
-      addClass(this.target, this.getClass('target'));
-      if (!this.options.attachment) {
-        throw new Error("Tether Error: You must provide an attachment");
-      }
-      this.targetAttachment = parseAttachment(this.options.targetAttachment);
-      this.attachment = parseAttachment(this.options.attachment);
-      this.offset = parseOffset(this.options.offset);
-      this.targetOffset = parseOffset(this.options.targetOffset);
-      if (this.scrollParent != null) {
-        this.disable();
-      }
-      if (this.targetModifier === 'scroll-handle') {
-        this.scrollParent = this.target;
-      } else {
-        this.scrollParent = getScrollParent(this.target);
-      }
-      if (this.options.enabled !== false) {
-        return this.enable(position);
-      }
-    };
-
-    _Tether.prototype.getTargetBounds = function() {
-      var bounds, fitAdj, hasBottomScroll, height, out, scrollBottom, scrollPercentage, style, target;
-      if (this.targetModifier != null) {
-        switch (this.targetModifier) {
-          case 'visible':
-            if (this.target === document.body) {
-              return {
-                top: pageYOffset,
-                left: pageXOffset,
-                height: innerHeight,
-                width: innerWidth
-              };
-            } else {
-              bounds = getBounds(this.target);
-              out = {
-                height: bounds.height,
-                width: bounds.width,
-                top: bounds.top,
-                left: bounds.left
-              };
-              out.height = Math.min(out.height, bounds.height - (pageYOffset - bounds.top));
-              out.height = Math.min(out.height, bounds.height - ((bounds.top + bounds.height) - (pageYOffset + innerHeight)));
-              out.height = Math.min(innerHeight, out.height);
-              out.height -= 2;
-              out.width = Math.min(out.width, bounds.width - (pageXOffset - bounds.left));
-              out.width = Math.min(out.width, bounds.width - ((bounds.left + bounds.width) - (pageXOffset + innerWidth)));
-              out.width = Math.min(innerWidth, out.width);
-              out.width -= 2;
-              if (out.top < pageYOffset) {
-                out.top = pageYOffset;
-              }
-              if (out.left < pageXOffset) {
-                out.left = pageXOffset;
-              }
-              return out;
-            }
-            break;
-          case 'scroll-handle':
-            target = this.target;
-            if (target === document.body) {
-              target = document.documentElement;
-              bounds = {
-                left: pageXOffset,
-                top: pageYOffset,
-                height: innerHeight,
-                width: innerWidth
-              };
-            } else {
-              bounds = getBounds(target);
-            }
-            style = getComputedStyle(target);
-            hasBottomScroll = target.scrollWidth > target.clientWidth || 'scroll' === [style.overflow, style.overflowX] || this.target !== document.body;
-            scrollBottom = 0;
-            if (hasBottomScroll) {
-              scrollBottom = 15;
-            }
-            height = bounds.height - parseFloat(style.borderTopWidth) - parseFloat(style.borderBottomWidth) - scrollBottom;
-            out = {
-              width: 15,
-              height: height * 0.975 * (height / target.scrollHeight),
-              left: bounds.left + bounds.width - parseFloat(style.borderLeftWidth) - 15
-            };
-            fitAdj = 0;
-            if (height < 408 && this.target === document.body) {
-              fitAdj = -0.00011 * Math.pow(height, 2) - 0.00727 * height + 22.58;
-            }
-            if (this.target !== document.body) {
-              out.height = Math.max(out.height, 24);
-            }
-            scrollPercentage = this.target.scrollTop / (target.scrollHeight - height);
-            out.top = scrollPercentage * (height - out.height - fitAdj) + bounds.top + parseFloat(style.borderTopWidth);
-            if (this.target === document.body) {
-              out.height = Math.max(out.height, 24);
-            }
-            return out;
-        }
-      } else {
-        return getBounds(this.target);
-      }
-    };
-
-    _Tether.prototype.clearCache = function() {
-      return this._cache = {};
-    };
-
-    _Tether.prototype.cache = function(k, getter) {
-      if (this._cache == null) {
-        this._cache = {};
-      }
-      if (this._cache[k] == null) {
-        this._cache[k] = getter.call(this);
-      }
-      return this._cache[k];
-    };
-
-    _Tether.prototype.enable = function(position) {
-      if (position == null) {
-        position = true;
-      }
-      addClass(this.target, this.getClass('enabled'));
-      addClass(this.element, this.getClass('enabled'));
-      this.enabled = true;
-      if (this.scrollParent !== document) {
-        this.scrollParent.addEventListener('scroll', this.position);
-      }
-      if (position) {
-        return this.position();
-      }
-    };
-
-    _Tether.prototype.disable = function() {
-      removeClass(this.target, this.getClass('enabled'));
-      removeClass(this.element, this.getClass('enabled'));
-      this.enabled = false;
-      if (this.scrollParent != null) {
-        return this.scrollParent.removeEventListener('scroll', this.position);
-      }
-    };
-
-    _Tether.prototype.destroy = function() {
-      var i, tether, _i, _len, _results;
-      this.disable();
-      _results = [];
-      for (i = _i = 0, _len = tethers.length; _i < _len; i = ++_i) {
-        tether = tethers[i];
-        if (tether === this) {
-          tethers.splice(i, 1);
-          break;
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
-    };
-
-    _Tether.prototype.updateAttachClasses = function(elementAttach, targetAttach) {
-      var add, all, side, sides, _i, _j, _len, _len1, _ref1,
-        _this = this;
-      if (elementAttach == null) {
-        elementAttach = this.attachment;
-      }
-      if (targetAttach == null) {
-        targetAttach = this.targetAttachment;
-      }
-      sides = ['left', 'top', 'bottom', 'right', 'middle', 'center'];
-      if ((_ref1 = this._addAttachClasses) != null ? _ref1.length : void 0) {
-        this._addAttachClasses.splice(0, this._addAttachClasses.length);
-      }
-      add = this._addAttachClasses != null ? this._addAttachClasses : this._addAttachClasses = [];
-      if (elementAttach.top) {
-        add.push("" + (this.getClass('element-attached')) + "-" + elementAttach.top);
-      }
-      if (elementAttach.left) {
-        add.push("" + (this.getClass('element-attached')) + "-" + elementAttach.left);
-      }
-      if (targetAttach.top) {
-        add.push("" + (this.getClass('target-attached')) + "-" + targetAttach.top);
-      }
-      if (targetAttach.left) {
-        add.push("" + (this.getClass('target-attached')) + "-" + targetAttach.left);
-      }
-      all = [];
-      for (_i = 0, _len = sides.length; _i < _len; _i++) {
-        side = sides[_i];
-        all.push("" + (this.getClass('element-attached')) + "-" + side);
-      }
-      for (_j = 0, _len1 = sides.length; _j < _len1; _j++) {
-        side = sides[_j];
-        all.push("" + (this.getClass('target-attached')) + "-" + side);
-      }
-      return defer(function() {
-        if (_this._addAttachClasses == null) {
-          return;
-        }
-        updateClasses(_this.element, _this._addAttachClasses, all);
-        updateClasses(_this.target, _this._addAttachClasses, all);
-        return _this._addAttachClasses = void 0;
-      });
-    };
-
-    _Tether.prototype.position = function(flushChanges) {
-      var elementPos, elementStyle, height, left, manualOffset, manualTargetOffset, module, next, offset, offsetBorder, offsetParent, offsetParentSize, offsetParentStyle, offsetPosition, ret, scrollLeft, scrollTop, scrollbarSize, side, targetAttachment, targetOffset, targetPos, targetSize, top, width, _i, _j, _len, _len1, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6,
-        _this = this;
-      if (flushChanges == null) {
-        flushChanges = true;
-      }
-      if (!this.enabled) {
-        return;
-      }
-      this.clearCache();
-      targetAttachment = autoToFixedAttachment(this.targetAttachment, this.attachment);
-      this.updateAttachClasses(this.attachment, targetAttachment);
-      elementPos = this.cache('element-bounds', function() {
-        return getBounds(_this.element);
-      });
-      width = elementPos.width, height = elementPos.height;
-      if (width === 0 && height === 0 && (this.lastSize != null)) {
-        _ref1 = this.lastSize, width = _ref1.width, height = _ref1.height;
-      } else {
-        this.lastSize = {
-          width: width,
-          height: height
-        };
-      }
-      targetSize = targetPos = this.cache('target-bounds', function() {
-        return _this.getTargetBounds();
-      });
-      offset = offsetToPx(attachmentToOffset(this.attachment), {
-        width: width,
-        height: height
-      });
-      targetOffset = offsetToPx(attachmentToOffset(targetAttachment), targetSize);
-      manualOffset = offsetToPx(this.offset, {
-        width: width,
-        height: height
-      });
-      manualTargetOffset = offsetToPx(this.targetOffset, targetSize);
-      offset = addOffset(offset, manualOffset);
-      targetOffset = addOffset(targetOffset, manualTargetOffset);
-      left = targetPos.left + targetOffset.left - offset.left;
-      top = targetPos.top + targetOffset.top - offset.top;
-      _ref2 = Tether.modules;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        module = _ref2[_i];
-        ret = module.position.call(this, {
-          left: left,
-          top: top,
-          targetAttachment: targetAttachment,
-          targetPos: targetPos,
-          attachment: this.attachment,
-          elementPos: elementPos,
-          offset: offset,
-          targetOffset: targetOffset,
-          manualOffset: manualOffset,
-          manualTargetOffset: manualTargetOffset,
-          scrollbarSize: scrollbarSize
-        });
-        if ((ret == null) || typeof ret !== 'object') {
-          continue;
-        } else if (ret === false) {
-          return false;
-        } else {
-          top = ret.top, left = ret.left;
-        }
-      }
-      next = {
-        page: {
-          top: top,
-          left: left
-        },
-        viewport: {
-          top: top - pageYOffset,
-          bottom: pageYOffset - top - height + innerHeight,
-          left: left - pageXOffset,
-          right: pageXOffset - left - width + innerWidth
-        }
-      };
-      if (document.body.scrollWidth > window.innerWidth) {
-        scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
-        next.viewport.bottom -= scrollbarSize.height;
-      }
-      if (document.body.scrollHeight > window.innerHeight) {
-        scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
-        next.viewport.right -= scrollbarSize.width;
-      }
-      if (((_ref3 = document.body.style.position) !== '' && _ref3 !== 'static') || ((_ref4 = document.body.parentElement.style.position) !== '' && _ref4 !== 'static')) {
-        next.page.bottom = document.body.scrollHeight - top - height;
-        next.page.right = document.body.scrollWidth - left - width;
-      }
-      if (((_ref5 = this.options.optimizations) != null ? _ref5.moveElement : void 0) !== false && (this.targetModifier == null)) {
-        offsetParent = this.cache('target-offsetparent', function() {
-          return getOffsetParent(_this.target);
-        });
-        offsetPosition = this.cache('target-offsetparent-bounds', function() {
-          return getBounds(offsetParent);
-        });
-        offsetParentStyle = getComputedStyle(offsetParent);
-        elementStyle = getComputedStyle(this.element);
-        offsetParentSize = offsetPosition;
-        offsetBorder = {};
-        _ref6 = ['Top', 'Left', 'Bottom', 'Right'];
-        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
-          side = _ref6[_j];
-          offsetBorder[side.toLowerCase()] = parseFloat(offsetParentStyle["border" + side + "Width"]);
-        }
-        offsetPosition.right = document.body.scrollWidth - offsetPosition.left - offsetParentSize.width + offsetBorder.right;
-        offsetPosition.bottom = document.body.scrollHeight - offsetPosition.top - offsetParentSize.height + offsetBorder.bottom;
-        if (next.page.top >= (offsetPosition.top + offsetBorder.top) && next.page.bottom >= offsetPosition.bottom) {
-          if (next.page.left >= (offsetPosition.left + offsetBorder.left) && next.page.right >= offsetPosition.right) {
-            scrollTop = offsetParent.scrollTop;
-            scrollLeft = offsetParent.scrollLeft;
-            next.offset = {
-              top: next.page.top - offsetPosition.top + scrollTop - offsetBorder.top,
-              left: next.page.left - offsetPosition.left + scrollLeft - offsetBorder.left
-            };
-          }
-        }
-      }
-      this.move(next);
-      this.history.unshift(next);
-      if (this.history.length > 3) {
-        this.history.pop();
-      }
-      if (flushChanges) {
-        flush();
-      }
-      return true;
-    };
-
-    _Tether.prototype.move = function(position) {
-      var css, elVal, found, key, moved, offsetParent, point, same, transcribe, type, val, write, writeCSS, _i, _len, _ref1, _ref2,
-        _this = this;
-      if (this.element.parentNode == null) {
-        return;
-      }
-      same = {};
-      for (type in position) {
-        same[type] = {};
-        for (key in position[type]) {
-          found = false;
-          _ref1 = this.history;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            point = _ref1[_i];
-            if (!within((_ref2 = point[type]) != null ? _ref2[key] : void 0, position[type][key])) {
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            same[type][key] = true;
-          }
-        }
-      }
-      css = {
-        top: '',
-        left: '',
-        right: '',
-        bottom: ''
-      };
-      transcribe = function(same, pos) {
-        var xPos, yPos, _ref3;
-        if (((_ref3 = _this.options.optimizations) != null ? _ref3.gpu : void 0) !== false) {
-          if (same.top) {
-            css.top = 0;
-            yPos = pos.top;
-          } else {
-            css.bottom = 0;
-            yPos = -pos.bottom;
-          }
-          if (same.left) {
-            css.left = 0;
-            xPos = pos.left;
-          } else {
-            css.right = 0;
-            xPos = -pos.right;
-          }
-          css[transformKey] = "translateX(" + (Math.round(xPos)) + "px) translateY(" + (Math.round(yPos)) + "px)";
-          if (transformKey !== 'msTransform') {
-            return css[transformKey] += " translateZ(0)";
-          }
-        } else {
-          if (same.top) {
-            css.top = "" + pos.top + "px";
-          } else {
-            css.bottom = "" + pos.bottom + "px";
-          }
-          if (same.left) {
-            return css.left = "" + pos.left + "px";
-          } else {
-            return css.right = "" + pos.right + "px";
-          }
-        }
-      };
-      moved = false;
-      if ((same.page.top || same.page.bottom) && (same.page.left || same.page.right)) {
-        css.position = 'absolute';
-        transcribe(same.page, position.page);
-      } else if ((same.viewport.top || same.viewport.bottom) && (same.viewport.left || same.viewport.right)) {
-        css.position = 'fixed';
-        transcribe(same.viewport, position.viewport);
-      } else if ((same.offset != null) && same.offset.top && same.offset.left) {
-        css.position = 'absolute';
-        offsetParent = this.cache('target-offsetparent', function() {
-          return getOffsetParent(_this.target);
-        });
-        if (getOffsetParent(this.element) !== offsetParent) {
-          defer(function() {
-            _this.element.parentNode.removeChild(_this.element);
-            return offsetParent.appendChild(_this.element);
-          });
-        }
-        transcribe(same.offset, position.offset);
-        moved = true;
-      } else {
-        css.position = 'absolute';
-        transcribe({
-          top: true,
-          left: true
-        }, position.page);
-      }
-      if (!moved && this.element.parentNode.tagName !== 'BODY') {
-        this.element.parentNode.removeChild(this.element);
-        document.body.appendChild(this.element);
-      }
-      writeCSS = {};
-      write = false;
-      for (key in css) {
-        val = css[key];
-        elVal = this.element.style[key];
-        if (elVal !== '' && val !== '' && (key === 'top' || key === 'left' || key === 'bottom' || key === 'right')) {
-          elVal = parseFloat(elVal);
-          val = parseFloat(val);
-        }
-        if (elVal !== val) {
-          write = true;
-          writeCSS[key] = css[key];
-        }
-      }
-      if (write) {
-        return defer(function() {
-          return extend(_this.element.style, writeCSS);
-        });
-      }
-    };
-
-    return _Tether;
-
-  })();
-
-  Tether.position = position;
-
-  this.Tether = extend(_Tether, Tether);
-
-}).call(this);
-
-(function() {
-  var BOUNDS_FORMAT, MIRROR_ATTACH, defer, extend, getBoundingRect, getBounds, getOuterSize, getSize, updateClasses, _ref,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  _ref = this.Tether.Utils, getOuterSize = _ref.getOuterSize, getBounds = _ref.getBounds, getSize = _ref.getSize, extend = _ref.extend, updateClasses = _ref.updateClasses, defer = _ref.defer;
-
-  MIRROR_ATTACH = {
-    left: 'right',
-    right: 'left',
-    top: 'bottom',
-    bottom: 'top',
-    middle: 'middle'
-  };
-
-  BOUNDS_FORMAT = ['left', 'top', 'right', 'bottom'];
-
-  getBoundingRect = function(tether, to) {
-    var i, pos, side, size, style, _i, _len;
-    if (to === 'scrollParent') {
-      to = tether.scrollParent;
-    } else if (to === 'window') {
-      to = [pageXOffset, pageYOffset, innerWidth + pageXOffset, innerHeight + pageYOffset];
-    }
-    if (to === document) {
-      to = to.documentElement;
-    }
-    if (to.nodeType != null) {
-      pos = size = getBounds(to);
-      style = getComputedStyle(to);
-      to = [pos.left, pos.top, size.width + pos.left, size.height + pos.top];
-      for (i = _i = 0, _len = BOUNDS_FORMAT.length; _i < _len; i = ++_i) {
-        side = BOUNDS_FORMAT[i];
-        side = side[0].toUpperCase() + side.substr(1);
-        if (side === 'Top' || side === 'Left') {
-          to[i] += parseFloat(style["border" + side + "Width"]);
-        } else {
-          to[i] -= parseFloat(style["border" + side + "Width"]);
-        }
-      }
-    }
-    return to;
-  };
-
-  this.Tether.modules.push({
-    position: function(_arg) {
-      var addClasses, allClasses, attachment, bounds, changeAttachX, changeAttachY, cls, constraint, eAttachment, height, left, oob, oobClass, p, pin, pinned, pinnedClass, removeClass, side, tAttachment, targetAttachment, targetHeight, targetSize, targetWidth, to, top, width, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
-        _this = this;
-      top = _arg.top, left = _arg.left, targetAttachment = _arg.targetAttachment;
-      if (!this.options.constraints) {
-        return true;
-      }
-      removeClass = function(prefix) {
-        var side, _i, _len, _results;
-        _this.removeClass(prefix);
-        _results = [];
-        for (_i = 0, _len = BOUNDS_FORMAT.length; _i < _len; _i++) {
-          side = BOUNDS_FORMAT[_i];
-          _results.push(_this.removeClass("" + prefix + "-" + side));
-        }
-        return _results;
-      };
-      _ref1 = this.cache('element-bounds', function() {
-        return getBounds(_this.element);
-      }), height = _ref1.height, width = _ref1.width;
-      if (width === 0 && height === 0 && (this.lastSize != null)) {
-        _ref2 = this.lastSize, width = _ref2.width, height = _ref2.height;
-      }
-      targetSize = this.cache('target-bounds', function() {
-        return _this.getTargetBounds();
-      });
-      targetHeight = targetSize.height;
-      targetWidth = targetSize.width;
-      tAttachment = {};
-      eAttachment = {};
-      allClasses = [this.getClass('pinned'), this.getClass('out-of-bounds')];
-      _ref3 = this.options.constraints;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        constraint = _ref3[_i];
-        if (constraint.outOfBoundsClass) {
-          allClasses.push(constraint.outOfBoundsClass);
-        }
-        if (constraint.pinnedClass) {
-          allClasses.push(constraint.pinnedClass);
-        }
-      }
-      for (_j = 0, _len1 = allClasses.length; _j < _len1; _j++) {
-        cls = allClasses[_j];
-        _ref4 = ['left', 'top', 'right', 'bottom'];
-        for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
-          side = _ref4[_k];
-          allClasses.push("" + cls + "-" + side);
-        }
-      }
-      addClasses = [];
-      tAttachment = extend({}, targetAttachment);
-      eAttachment = extend({}, this.attachment);
-      _ref5 = this.options.constraints;
-      for (_l = 0, _len3 = _ref5.length; _l < _len3; _l++) {
-        constraint = _ref5[_l];
-        to = constraint.to, attachment = constraint.attachment, pin = constraint.pin;
-        if (attachment == null) {
-          attachment = '';
-        }
-        if (__indexOf.call(attachment, ' ') >= 0) {
-          _ref6 = attachment.split(' '), changeAttachY = _ref6[0], changeAttachX = _ref6[1];
-        } else {
-          changeAttachX = changeAttachY = attachment;
-        }
-        bounds = getBoundingRect(this, to);
-        if (changeAttachY === 'target' || changeAttachY === 'both') {
-          if (top < bounds[1] && tAttachment.top === 'top') {
-            top += targetHeight;
-            tAttachment.top = 'bottom';
-          }
-          if (top + height > bounds[3] && tAttachment.top === 'bottom') {
-            top -= targetHeight;
-            tAttachment.top = 'top';
-          }
-        }
-        if (changeAttachY === 'together') {
-          if (top < bounds[1] && tAttachment.top === 'top') {
-            if (eAttachment.top === 'bottom') {
-              top += targetHeight;
-              tAttachment.top = 'bottom';
-              top += height;
-              eAttachment.top = 'top';
-            } else if (eAttachment.top === 'top') {
-              top += targetHeight;
-              tAttachment.top = 'bottom';
-              top -= height;
-              eAttachment.top = 'bottom';
-            }
-          }
-          if (top + height > bounds[3] && tAttachment.top === 'bottom') {
-            if (eAttachment.top === 'top') {
-              top -= targetHeight;
-              tAttachment.top = 'top';
-              top -= height;
-              eAttachment.top = 'bottom';
-            } else if (eAttachment.top === 'bottom') {
-              top -= targetHeight;
-              tAttachment.top = 'top';
-              top += height;
-              eAttachment.top = 'top';
-            }
-          }
-          if (tAttachment.top === 'middle') {
-            if (top + height > bounds[3] && eAttachment.top === 'top') {
-              top -= height;
-              eAttachment.top = 'bottom';
-            } else if (top < bounds[1] && eAttachment.top === 'bottom') {
-              top += height;
-              eAttachment.top = 'top';
-            }
-          }
-        }
-        if (changeAttachX === 'target' || changeAttachX === 'both') {
-          if (left < bounds[0] && tAttachment.left === 'left') {
-            left += targetWidth;
-            tAttachment.left = 'right';
-          }
-          if (left + width > bounds[2] && tAttachment.left === 'right') {
-            left -= targetWidth;
-            tAttachment.left = 'left';
-          }
-        }
-        if (changeAttachX === 'together') {
-          if (left < bounds[0] && tAttachment.left === 'left') {
-            if (eAttachment.left === 'right') {
-              left += targetWidth;
-              tAttachment.left = 'right';
-              left += width;
-              eAttachment.left = 'left';
-            } else if (eAttachment.left === 'left') {
-              left += targetWidth;
-              tAttachment.left = 'right';
-              left -= width;
-              eAttachment.left = 'right';
-            }
-          } else if (left + width > bounds[2] && tAttachment.left === 'right') {
-            if (eAttachment.left === 'left') {
-              left -= targetWidth;
-              tAttachment.left = 'left';
-              left -= width;
-              eAttachment.left = 'right';
-            } else if (eAttachment.left === 'right') {
-              left -= targetWidth;
-              tAttachment.left = 'left';
-              left += width;
-              eAttachment.left = 'left';
-            }
-          } else if (tAttachment.left === 'center') {
-            if (left + width > bounds[2] && eAttachment.left === 'left') {
-              left -= width;
-              eAttachment.left = 'right';
-            } else if (left < bounds[0] && eAttachment.left === 'right') {
-              left += width;
-              eAttachment.left = 'left';
-            }
-          }
-        }
-        if (changeAttachY === 'element' || changeAttachY === 'both') {
-          if (top < bounds[1] && eAttachment.top === 'bottom') {
-            top += height;
-            eAttachment.top = 'top';
-          }
-          if (top + height > bounds[3] && eAttachment.top === 'top') {
-            top -= height;
-            eAttachment.top = 'bottom';
-          }
-        }
-        if (changeAttachX === 'element' || changeAttachX === 'both') {
-          if (left < bounds[0] && eAttachment.left === 'right') {
-            left += width;
-            eAttachment.left = 'left';
-          }
-          if (left + width > bounds[2] && eAttachment.left === 'left') {
-            left -= width;
-            eAttachment.left = 'right';
-          }
-        }
-        if (typeof pin === 'string') {
-          pin = (function() {
-            var _len4, _m, _ref7, _results;
-            _ref7 = pin.split(',');
-            _results = [];
-            for (_m = 0, _len4 = _ref7.length; _m < _len4; _m++) {
-              p = _ref7[_m];
-              _results.push(p.trim());
-            }
-            return _results;
-          })();
-        } else if (pin === true) {
-          pin = ['top', 'left', 'right', 'bottom'];
-        }
-        pin || (pin = []);
-        pinned = [];
-        oob = [];
-        if (top < bounds[1]) {
-          if (__indexOf.call(pin, 'top') >= 0) {
-            top = bounds[1];
-            pinned.push('top');
-          } else {
-            oob.push('top');
-          }
-        }
-        if (top + height > bounds[3]) {
-          if (__indexOf.call(pin, 'bottom') >= 0) {
-            top = bounds[3] - height;
-            pinned.push('bottom');
-          } else {
-            oob.push('bottom');
-          }
-        }
-        if (left < bounds[0]) {
-          if (__indexOf.call(pin, 'left') >= 0) {
-            left = bounds[0];
-            pinned.push('left');
-          } else {
-            oob.push('left');
-          }
-        }
-        if (left + width > bounds[2]) {
-          if (__indexOf.call(pin, 'right') >= 0) {
-            left = bounds[2] - width;
-            pinned.push('right');
-          } else {
-            oob.push('right');
-          }
-        }
-        if (pinned.length) {
-          pinnedClass = (_ref7 = this.options.pinnedClass) != null ? _ref7 : this.getClass('pinned');
-          addClasses.push(pinnedClass);
-          for (_m = 0, _len4 = pinned.length; _m < _len4; _m++) {
-            side = pinned[_m];
-            addClasses.push("" + pinnedClass + "-" + side);
-          }
-        }
-        if (oob.length) {
-          oobClass = (_ref8 = this.options.outOfBoundsClass) != null ? _ref8 : this.getClass('out-of-bounds');
-          addClasses.push(oobClass);
-          for (_n = 0, _len5 = oob.length; _n < _len5; _n++) {
-            side = oob[_n];
-            addClasses.push("" + oobClass + "-" + side);
-          }
-        }
-        if (__indexOf.call(pinned, 'left') >= 0 || __indexOf.call(pinned, 'right') >= 0) {
-          eAttachment.left = tAttachment.left = false;
-        }
-        if (__indexOf.call(pinned, 'top') >= 0 || __indexOf.call(pinned, 'bottom') >= 0) {
-          eAttachment.top = tAttachment.top = false;
-        }
-        if (tAttachment.top !== targetAttachment.top || tAttachment.left !== targetAttachment.left || eAttachment.top !== this.attachment.top || eAttachment.left !== this.attachment.left) {
-          this.updateAttachClasses(eAttachment, tAttachment);
-        }
-      }
-      defer(function() {
-        updateClasses(_this.target, addClasses, allClasses);
-        return updateClasses(_this.element, addClasses, allClasses);
-      });
-      return {
-        top: top,
-        left: left
-      };
-    }
-  });
-
-}).call(this);
-
-(function() {
-  var defer, getBounds, updateClasses, _ref;
-
-  _ref = this.Tether.Utils, getBounds = _ref.getBounds, updateClasses = _ref.updateClasses, defer = _ref.defer;
-
-  this.Tether.modules.push({
-    position: function(_arg) {
-      var abutted, addClasses, allClasses, bottom, height, left, right, side, sides, targetPos, top, width, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref1, _ref2, _ref3, _ref4, _ref5,
-        _this = this;
-      top = _arg.top, left = _arg.left;
-      _ref1 = this.cache('element-bounds', function() {
-        return getBounds(_this.element);
-      }), height = _ref1.height, width = _ref1.width;
-      targetPos = this.getTargetBounds();
-      bottom = top + height;
-      right = left + width;
-      abutted = [];
-      if (top <= targetPos.bottom && bottom >= targetPos.top) {
-        _ref2 = ['left', 'right'];
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          side = _ref2[_i];
-          if ((_ref3 = targetPos[side]) === left || _ref3 === right) {
-            abutted.push(side);
-          }
-        }
-      }
-      if (left <= targetPos.right && right >= targetPos.left) {
-        _ref4 = ['top', 'bottom'];
-        for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
-          side = _ref4[_j];
-          if ((_ref5 = targetPos[side]) === top || _ref5 === bottom) {
-            abutted.push(side);
-          }
-        }
-      }
-      allClasses = [];
-      addClasses = [];
-      sides = ['left', 'top', 'right', 'bottom'];
-      allClasses.push(this.getClass('abutted'));
-      for (_k = 0, _len2 = sides.length; _k < _len2; _k++) {
-        side = sides[_k];
-        allClasses.push("" + (this.getClass('abutted')) + "-" + side);
-      }
-      if (abutted.length) {
-        addClasses.push(this.getClass('abutted'));
-      }
-      for (_l = 0, _len3 = abutted.length; _l < _len3; _l++) {
-        side = abutted[_l];
-        addClasses.push("" + (this.getClass('abutted')) + "-" + side);
-      }
-      defer(function() {
-        updateClasses(_this.target, addClasses, allClasses);
-        return updateClasses(_this.element, addClasses, allClasses);
-      });
-      return true;
-    }
-  });
-
-}).call(this);
-
-(function() {
-  this.Tether.modules.push({
-    position: function(_arg) {
-      var left, result, shift, shiftLeft, shiftTop, top, _ref;
-      top = _arg.top, left = _arg.left;
-      if (!this.options.shift) {
-        return;
-      }
-      result = function(val) {
-        if (typeof val === 'function') {
-          return val.call(this, {
-            top: top,
-            left: left
-          });
-        } else {
-          return val;
-        }
-      };
-      shift = result(this.options.shift);
-      if (typeof shift === 'string') {
-        shift = shift.split(' ');
-        shift[1] || (shift[1] = shift[0]);
-        shiftTop = shift[0], shiftLeft = shift[1];
-        shiftTop = parseFloat(shiftTop, 10);
-        shiftLeft = parseFloat(shiftLeft, 10);
-      } else {
-        _ref = [shift.top, shift.left], shiftTop = _ref[0], shiftLeft = _ref[1];
-      }
-      top += shiftTop;
-      left += shiftLeft;
-      return {
-        top: top,
-        left: left
-      };
-    }
-  });
-
-}).call(this);
-
-return this.Tether;
-
-}));
-
-(function() {
-  var Evented, MIRROR_ATTACH, addClass, allDrops, clickEvents, createContext, end, extend, hasClass, name, removeClass, removeFromArray, sortAttach, tempEl, touchDevice, transitionEndEvent, transitionEndEvents, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  _ref = Tether.Utils, extend = _ref.extend, addClass = _ref.addClass, removeClass = _ref.removeClass, hasClass = _ref.hasClass, Evented = _ref.Evented;
-
-  touchDevice = 'ontouchstart' in document.documentElement;
-
-  clickEvents = ['click'];
-
-  if (touchDevice) {
-    clickEvents.push('touchstart');
-  }
-
-  transitionEndEvents = {
-    'WebkitTransition': 'webkitTransitionEnd',
-    'MozTransition': 'transitionend',
-    'OTransition': 'otransitionend',
-    'transition': 'transitionend'
-  };
-
-  transitionEndEvent = '';
-
-  for (name in transitionEndEvents) {
-    end = transitionEndEvents[name];
-    tempEl = document.createElement('p');
-    if (tempEl.style[name] !== void 0) {
-      transitionEndEvent = end;
-    }
-  }
-
-  sortAttach = function(str) {
-    var first, second, _ref1, _ref2;
-    _ref1 = str.split(' '), first = _ref1[0], second = _ref1[1];
-    if (first === 'left' || first === 'right') {
-      _ref2 = [second, first], first = _ref2[0], second = _ref2[1];
-    }
-    return [first, second].join(' ');
-  };
-
-  MIRROR_ATTACH = {
-    left: 'right',
-    right: 'left',
-    top: 'bottom',
-    bottom: 'top',
-    middle: 'middle',
-    center: 'center'
-  };
-
-  allDrops = {};
-
-  removeFromArray = function(arr, item) {
-    var index, _results;
-    _results = [];
-    while ((index = arr.indexOf(item)) !== -1) {
-      _results.push(arr.splice(index, 1));
-    }
-    return _results;
-  };
-
-  createContext = function(options) {
-    var DropInstance, defaultOptions, drop, _name;
-    if (options == null) {
-      options = {};
-    }
-    drop = function() {
-      return (function(func, args, ctor) {
-        ctor.prototype = func.prototype;
-        var child = new ctor, result = func.apply(child, args);
-        return Object(result) === result ? result : child;
-      })(DropInstance, arguments, function(){});
-    };
-    extend(drop, {
-      createContext: createContext,
-      drops: [],
-      defaults: {}
-    });
-    defaultOptions = {
-      classPrefix: 'drop',
-      defaults: {
-        position: 'bottom left',
-        openOn: 'click',
-        constrainToScrollParent: true,
-        constrainToWindow: true,
-        classes: '',
-        remove: false,
-        tetherOptions: {}
-      }
-    };
-    extend(drop, defaultOptions, options);
-    extend(drop.defaults, defaultOptions.defaults, options.defaults);
-    if (allDrops[_name = drop.classPrefix] == null) {
-      allDrops[_name] = [];
-    }
-    drop.updateBodyClasses = function() {
-      var anyOpen, _drop, _i, _len, _ref1;
-      anyOpen = false;
-      _ref1 = allDrops[drop.classPrefix];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        _drop = _ref1[_i];
-        if (!(_drop.isOpened())) {
-          continue;
-        }
-        anyOpen = true;
-        break;
-      }
-      if (anyOpen) {
-        return addClass(document.body, "" + drop.classPrefix + "-open");
-      } else {
-        return removeClass(document.body, "" + drop.classPrefix + "-open");
-      }
-    };
-    DropInstance = (function(_super) {
-      __extends(DropInstance, _super);
-
-      function DropInstance(options) {
-        this.options = options;
-        this.options = extend({}, drop.defaults, this.options);
-        this.target = this.options.target;
-        if (this.target == null) {
-          throw new Error('Drop Error: You must provide a target.');
-        }
-        if (this.options.classes) {
-          addClass(this.target, this.options.classes);
-        }
-        drop.drops.push(this);
-        allDrops[drop.classPrefix].push(this);
-        this._boundEvents = [];
-        this.setupElements();
-        this.setupEvents();
-        this.setupTether();
-      }
-
-      DropInstance.prototype._on = function(element, event, handler) {
-        this._boundEvents.push({
-          element: element,
-          event: event,
-          handler: handler
-        });
-        return element.addEventListener(event, handler);
-      };
-
-      DropInstance.prototype.setupElements = function() {
-        var _this = this;
-        this.drop = document.createElement('div');
-        addClass(this.drop, drop.classPrefix);
-        if (this.options.classes) {
-          addClass(this.drop, this.options.classes);
-        }
-        this.content = document.createElement('div');
-        addClass(this.content, "" + drop.classPrefix + "-content");
-        if (typeof this.options.content === 'function') {
-          this.content.innerHTML = this.options.content.call(this, this);
-          this.on('open', function() {
-            return _this.content.innerHTML = _this.options.content.call(_this, _this);
-          });
-        } else if (typeof this.options.content === 'object') {
-          this.content.appendChild(this.options.content);
-        } else {
-          this.content.innerHTML = this.options.content;
-        }
-        return this.drop.appendChild(this.content);
-      };
-
-      DropInstance.prototype.setupTether = function() {
-        var constraints, dropAttach;
-        dropAttach = this.options.position.split(' ');
-        dropAttach[0] = MIRROR_ATTACH[dropAttach[0]];
-        dropAttach = dropAttach.join(' ');
-        constraints = [];
-        if (this.options.constrainToScrollParent) {
-          constraints.push({
-            to: 'scrollParent',
-            pin: 'top, bottom',
-            attachment: 'together none'
-          });
-        } else {
-          constraints.push({
-            to: 'scrollParent'
-          });
-        }
-        if (this.options.constrainToWindow !== false) {
-          constraints.push({
-            to: 'window',
-            attachment: 'together'
-          });
-        } else {
-          constraints.push({
-            to: 'window'
-          });
-        }
-        options = {
-          element: this.drop,
-          target: this.target,
-          attachment: sortAttach(dropAttach),
-          targetAttachment: sortAttach(this.options.position),
-          classPrefix: drop.classPrefix,
-          offset: '0 0',
-          targetOffset: '0 0',
-          enabled: false,
-          constraints: constraints
-        };
-        if (this.options.tetherOptions !== false) {
-          return this.tether = new Tether(extend({}, options, this.options.tetherOptions));
-        }
-      };
-
-      DropInstance.prototype.setupEvents = function() {
-        var clickEvent, closeHandler, events, onUs, openHandler, out, outTimeout, over, _i, _len,
-          _this = this;
-        if (!this.options.openOn) {
-          return;
-        }
-        if (this.options.openOn === 'always') {
-          setTimeout(this.open.bind(this));
-          return;
-        }
-        events = this.options.openOn.split(' ');
-        if (__indexOf.call(events, 'click') >= 0) {
-          openHandler = function(event) {
-            _this.toggle();
-            return event.preventDefault();
-          };
-          closeHandler = function(event) {
-            if (!_this.isOpened()) {
-              return;
-            }
-            if (event.target === _this.drop || _this.drop.contains(event.target)) {
-              return;
-            }
-            if (event.target === _this.target || _this.target.contains(event.target)) {
-              return;
-            }
-            return _this.close();
-          };
-          for (_i = 0, _len = clickEvents.length; _i < _len; _i++) {
-            clickEvent = clickEvents[_i];
-            this._on(this.target, clickEvent, openHandler);
-            this._on(document, clickEvent, closeHandler);
-          }
-        }
-        if (__indexOf.call(events, 'hover') >= 0) {
-          onUs = false;
-          over = function() {
-            onUs = true;
-            return _this.open();
-          };
-          outTimeout = null;
-          out = function() {
-            onUs = false;
-            if (outTimeout != null) {
-              clearTimeout(outTimeout);
-            }
-            return outTimeout = setTimeout(function() {
-              if (!onUs) {
-                _this.close();
-              }
-              return outTimeout = null;
-            }, 50);
-          };
-          this._on(this.target, 'mouseover', over);
-          this._on(this.drop, 'mouseover', over);
-          this._on(this.target, 'mouseout', out);
-          return this._on(this.drop, 'mouseout', out);
-        }
-      };
-
-      DropInstance.prototype.isOpened = function() {
-        return hasClass(this.drop, "" + drop.classPrefix + "-open");
-      };
-
-      DropInstance.prototype.toggle = function() {
-        if (this.isOpened()) {
-          return this.close();
-        } else {
-          return this.open();
-        }
-      };
-
-      DropInstance.prototype.open = function() {
-        var _ref1, _ref2,
-          _this = this;
-        if (this.isOpened()) {
-          return;
-        }
-        if (!this.drop.parentNode) {
-          document.body.appendChild(this.drop);
-        }
-        if ((_ref1 = this.tether) != null) {
-          _ref1.enable();
-        }
-        addClass(this.drop, "" + drop.classPrefix + "-open");
-        addClass(this.drop, "" + drop.classPrefix + "-open-transitionend");
-        setTimeout(function() {
-          return addClass(_this.drop, "" + drop.classPrefix + "-after-open");
-        });
-        if ((_ref2 = this.tether) != null) {
-          _ref2.position();
-        }
-        this.trigger('open');
-        return drop.updateBodyClasses();
-      };
-
-      DropInstance.prototype.close = function() {
-        var handler, _ref1,
-          _this = this;
-        if (!this.isOpened()) {
-          return;
-        }
-        removeClass(this.drop, "" + drop.classPrefix + "-open");
-        removeClass(this.drop, "" + drop.classPrefix + "-after-open");
-        this.drop.addEventListener(transitionEndEvent, handler = function() {
-          if (!hasClass(_this.drop, "" + drop.classPrefix + "-open")) {
-            removeClass(_this.drop, "" + drop.classPrefix + "-open-transitionend");
-          }
-          return _this.drop.removeEventListener(transitionEndEvent, handler);
-        });
-        this.trigger('close');
-        if ((_ref1 = this.tether) != null) {
-          _ref1.disable();
-        }
-        drop.updateBodyClasses();
-        if (this.options.remove) {
-          return this.remove();
-        }
-      };
-
-      DropInstance.prototype.remove = function() {
-        var _ref1;
-        this.close();
-        return (_ref1 = this.drop.parentNode) != null ? _ref1.removeChild(this.drop) : void 0;
-      };
-
-      DropInstance.prototype.position = function() {
-        var _ref1;
-        if (this.isOpened()) {
-          return (_ref1 = this.tether) != null ? _ref1.position() : void 0;
-        }
-      };
-
-      DropInstance.prototype.destroy = function() {
-        var element, event, handler, _i, _len, _ref1, _ref2, _ref3;
-        this.remove();
-        if ((_ref1 = this.tether) != null) {
-          _ref1.destroy();
-        }
-        _ref2 = this._boundEvents;
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          _ref3 = _ref2[_i], element = _ref3.element, event = _ref3.event, handler = _ref3.handler;
-          element.removeEventListener(event, handler);
-        }
-        this._boundEvents = [];
-        this.tether = null;
-        this.drop = null;
-        this.content = null;
-        this.target = null;
-        removeFromArray(allDrops[drop.classPrefix], this);
-        return removeFromArray(drop.drops, this);
-      };
-
-      return DropInstance;
-
-    })(Evented);
-    return drop;
-  };
-
-  window.Drop = createContext();
-
-  document.addEventListener('DOMContentLoaded', function() {
-    return Drop.updateBodyClasses();
-  });
-
-}).call(this);
-
-},{}],85:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function() {
   'use strict';
 
   if (self.fetch) {
     return
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = name.toString();
+    }
+    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = value.toString();
+    }
+    return value
   }
 
   function Headers(headers) {
@@ -21271,7 +16007,8 @@ return this.Tether;
   }
 
   Headers.prototype.append = function(name, value) {
-    name = name.toLowerCase()
+    name = normalizeName(name)
+    value = normalizeValue(value)
     var list = this.map[name]
     if (!list) {
       list = []
@@ -21281,24 +16018,24 @@ return this.Tether;
   }
 
   Headers.prototype['delete'] = function(name) {
-    delete this.map[name.toLowerCase()]
+    delete this.map[normalizeName(name)]
   }
 
   Headers.prototype.get = function(name) {
-    var values = this.map[name.toLowerCase()]
+    var values = this.map[normalizeName(name)]
     return values ? values[0] : null
   }
 
   Headers.prototype.getAll = function(name) {
-    return this.map[name.toLowerCase()] || []
+    return this.map[normalizeName(name)] || []
   }
 
   Headers.prototype.has = function(name) {
-    return this.map.hasOwnProperty(name.toLowerCase())
+    return this.map.hasOwnProperty(normalizeName(name))
   }
 
   Headers.prototype.set = function(name, value) {
-    this.map[name.toLowerCase()] = [value]
+    this.map[normalizeName(name)] = [normalizeValue(value)]
   }
 
   // Instead of iterable for now.
@@ -21493,7 +16230,9 @@ return this.Tether;
       var legacyCors = false;
       if (support.XDomainRequest) {
         var origin = location.protocol + '//' + location.host;
-        legacyCors = (/^\/\//.test(self.url) ? location.protocol + self.url : self.url).substring(0, origin.length) !== origin;
+        if (!/^\/[^\/]/.test(self.url)) { // exclude relative urls
+          legacyCors = (/^\/\//.test(self.url) ? location.protocol + self.url : self.url).substring(0, origin.length) !== origin;
+        }
       }
       var xhr = legacyCors ? new XDomainRequest() : new XMLHttpRequest()
 
@@ -21544,6 +16283,7 @@ return this.Tether;
       }
 
       xhr.open(self.method, self.url, true)
+
       if ('responseType' in xhr && support.blob) {
         xhr.responseType = 'blob'
       }
@@ -21554,7 +16294,16 @@ return this.Tether;
         })
       })
 
-      xhr.send(typeof self._bodyInit === 'undefined' ? null : self._bodyInit)
+      var send = xhr.send.bind(xhr, typeof self._bodyInit === 'undefined' ? null : self._bodyInit)
+      if (legacyCors) {
+        xhr.onprogress = xhr.onprogress || function () {}
+        xhr.ontimeout = xhr.ontimeout || function () {}
+        setTimeout(function () {
+          send()
+        })
+      } else {
+        send()
+      }
     })
   }
 
@@ -21569,6 +16318,7 @@ return this.Tether;
     this.type = 'default'
     this.url = null
     this.status = options.status
+    this.ok = this.status >= 200 && this.status < 300
     this.statusText = options.statusText
     this.headers = options.headers
     this.url = options.url || ''
@@ -21586,14 +16336,14 @@ return this.Tether;
   self.fetch.polyfill = true
 })();
 
-},{}],86:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 module.exports = require('whatwg-fetch');
 
-},{"whatwg-fetch":85}],87:[function(require,module,exports){
+},{"whatwg-fetch":70}],72:[function(require,module,exports){
 if (typeof module === "object" && typeof module.exports === "object") module.exports = Lexer;
 
-Lexer.defunct = function (char) {
-    throw new Error("Unexpected character at index " + (this.index - 1) + ": " + char);
+Lexer.defunct = function (chr) {
+    throw new Error("Unexpected character at index " + (this.index - 1) + ": " + chr);
 };
 
 function Lexer(defunct) {
@@ -21632,6 +16382,7 @@ function Lexer(defunct) {
         remove = 0;
         this.state = 0;
         this.index = 0;
+        tokens.length = 0;
         this.input = input;
         return this;
     };
@@ -21736,16 +16487,16 @@ function Lexer(defunct) {
     }
 }
 
-},{}],88:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function (global){
 /**
  * @license
- * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 2.4.2 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
+ * Available under MIT license <https://lodash.com/license>
  */
 ;(function() {
 
@@ -23234,6 +17985,7 @@ function Lexer(defunct) {
     var setBindData = !defineProperty ? noop : function(func, value) {
       descriptor.value = value;
       defineProperty(func, '__bindData__', descriptor);
+      descriptor.value = null;
     };
 
     /**
@@ -27879,7 +22631,7 @@ function Lexer(defunct) {
      * debugging. See http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/#toc-sourceurl
      *
      * For more information on precompiling templates see:
-     * http://lodash.com/custom-builds
+     * https://lodash.com/custom-builds
      *
      * For more information on Chrome extension sandboxes see:
      * http://developer.chrome.com/stable/extensions/sandboxingEval.html
@@ -28448,7 +23200,7 @@ function Lexer(defunct) {
      * @memberOf _
      * @type string
      */
-    lodash.VERSION = '2.4.1';
+    lodash.VERSION = '2.4.2';
 
     // add "Chaining" functions to the wrapper
     lodash.prototype.chain = wrapperChain;
@@ -28526,7 +23278,7 @@ function Lexer(defunct) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],89:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 
 ;(function(){
 
@@ -28972,7 +23724,7 @@ function Lexer(defunct) {
 
 })();
 
-},{}],90:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /*!
 	query-string
 	Parse and stringify URL query strings
@@ -29036,11 +23788,11 @@ function Lexer(defunct) {
 	} else if (typeof module !== 'undefined' && module.exports) {
 		module.exports = queryString;
 	} else {
-		window.queryString = queryString;
+		self.queryString = queryString;
 	}
 })();
 
-},{}],91:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 /*
 	ractive.js v0.6.1
 	2014-10-25 - commit 3a576eb3 
@@ -43389,7 +38141,7 @@ function Lexer(defunct) {
 
 }( typeof window !== 'undefined' ? window : this ) );
 
-},{}],92:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 ;(function(root, factory) {
 
   // Support AMD
@@ -43751,7 +38503,7 @@ function Lexer(defunct) {
 
   return randomColor;
 }));
-},{}],93:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 /*!
 * screenfull
 * v1.2.0 - 2014-04-29
@@ -43908,9 +38660,2152 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],94:[function(require,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],95:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
+/*!
+ * Sizzle CSS Selector Engine v2.2.0
+ * http://sizzlejs.com/
+ *
+ * Copyright jQuery Foundation and other contributors
+ * Released under the MIT license
+ * http://jquery.org/license
+ *
+ * Date: 2015-04-10
+ */
+(function( window ) {
+
+var i,
+	support,
+	Expr,
+	getText,
+	isXML,
+	tokenize,
+	compile,
+	select,
+	outermostContext,
+	sortInput,
+	hasDuplicate,
+
+	// Local document vars
+	setDocument,
+	document,
+	docElem,
+	documentIsHTML,
+	rbuggyQSA,
+	rbuggyMatches,
+	matches,
+	contains,
+
+	// Instance-specific data
+	expando = "sizzle" + 1 * new Date(),
+	preferredDoc = window.document,
+	dirruns = 0,
+	done = 0,
+	classCache = createCache(),
+	tokenCache = createCache(),
+	compilerCache = createCache(),
+	sortOrder = function( a, b ) {
+		if ( a === b ) {
+			hasDuplicate = true;
+		}
+		return 0;
+	},
+
+	// General-purpose constants
+	MAX_NEGATIVE = 1 << 31,
+
+	// Instance methods
+	hasOwn = ({}).hasOwnProperty,
+	arr = [],
+	pop = arr.pop,
+	push_native = arr.push,
+	push = arr.push,
+	slice = arr.slice,
+	// Use a stripped-down indexOf as it's faster than native
+	// http://jsperf.com/thor-indexof-vs-for/5
+	indexOf = function( list, elem ) {
+		var i = 0,
+			len = list.length;
+		for ( ; i < len; i++ ) {
+			if ( list[i] === elem ) {
+				return i;
+			}
+		}
+		return -1;
+	},
+
+	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
+
+	// Regular expressions
+
+	// http://www.w3.org/TR/css3-selectors/#whitespace
+	whitespace = "[\\x20\\t\\r\\n\\f]",
+
+	// http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+	identifier = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",
+
+	// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
+	attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
+		// Operator (capture 2)
+		"*([*^$|!~]?=)" + whitespace +
+		// "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
+		"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
+		"*\\]",
+
+	pseudos = ":(" + identifier + ")(?:\\((" +
+		// To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
+		// 1. quoted (capture 3; capture 4 or capture 5)
+		"('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
+		// 2. simple (capture 6)
+		"((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" +
+		// 3. anything else (capture 2)
+		".*" +
+		")\\)|)",
+
+	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rwhitespace = new RegExp( whitespace + "+", "g" ),
+	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
+
+	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
+	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
+
+	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
+
+	rpseudo = new RegExp( pseudos ),
+	ridentifier = new RegExp( "^" + identifier + "$" ),
+
+	matchExpr = {
+		"ID": new RegExp( "^#(" + identifier + ")" ),
+		"CLASS": new RegExp( "^\\.(" + identifier + ")" ),
+		"TAG": new RegExp( "^(" + identifier + "|[*])" ),
+		"ATTR": new RegExp( "^" + attributes ),
+		"PSEUDO": new RegExp( "^" + pseudos ),
+		"CHILD": new RegExp( "^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
+			"*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
+			"*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
+		"bool": new RegExp( "^(?:" + booleans + ")$", "i" ),
+		// For use in libraries implementing .is()
+		// We use this for POS matching in `select`
+		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
+			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
+	},
+
+	rinputs = /^(?:input|select|textarea|button)$/i,
+	rheader = /^h\d$/i,
+
+	rnative = /^[^{]+\{\s*\[native \w/,
+
+	// Easily-parseable/retrievable ID or TAG or CLASS selectors
+	rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
+
+	rsibling = /[+~]/,
+	rescape = /'|\\/g,
+
+	// CSS escapes http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
+	runescape = new RegExp( "\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig" ),
+	funescape = function( _, escaped, escapedWhitespace ) {
+		var high = "0x" + escaped - 0x10000;
+		// NaN means non-codepoint
+		// Support: Firefox<24
+		// Workaround erroneous numeric interpretation of +"0x"
+		return high !== high || escapedWhitespace ?
+			escaped :
+			high < 0 ?
+				// BMP codepoint
+				String.fromCharCode( high + 0x10000 ) :
+				// Supplemental Plane codepoint (surrogate pair)
+				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+	},
+
+	// Used for iframes
+	// See setDocument()
+	// Removing the function wrapper causes a "Permission Denied"
+	// error in IE
+	unloadHandler = function() {
+		setDocument();
+	};
+
+// Optimize for push.apply( _, NodeList )
+try {
+	push.apply(
+		(arr = slice.call( preferredDoc.childNodes )),
+		preferredDoc.childNodes
+	);
+	// Support: Android<4.0
+	// Detect silently failing push.apply
+	arr[ preferredDoc.childNodes.length ].nodeType;
+} catch ( e ) {
+	push = { apply: arr.length ?
+
+		// Leverage slice if possible
+		function( target, els ) {
+			push_native.apply( target, slice.call(els) );
+		} :
+
+		// Support: IE<9
+		// Otherwise append directly
+		function( target, els ) {
+			var j = target.length,
+				i = 0;
+			// Can't trust NodeList.length
+			while ( (target[j++] = els[i++]) ) {}
+			target.length = j - 1;
+		}
+	};
+}
+
+function Sizzle( selector, context, results, seed ) {
+	var m, i, elem, nid, match, groups, newSelector,
+		newContext = context && context.ownerDocument,
+
+		// nodeType defaults to 9, since context defaults to document
+		nodeType = context ? context.nodeType : 9;
+
+	results = results || [];
+
+	// Return early from calls with invalid selector or context
+	if ( typeof selector !== "string" || !selector ||
+		nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+
+		return results;
+	}
+
+	// Try to shortcut find operations (as opposed to filters) in HTML documents
+	if ( !seed ) {
+
+		if ( ( context ? context.ownerDocument || context : preferredDoc ) !== document ) {
+			setDocument( context );
+		}
+		context = context || document;
+
+		if ( documentIsHTML ) {
+
+			// If the selector is sufficiently simple, try using a "get*By*" DOM method
+			// (excepting DocumentFragment context, where the methods don't exist)
+			if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
+
+				// ID selector
+				if ( (m = match[1]) ) {
+
+					// Document context
+					if ( nodeType === 9 ) {
+						if ( (elem = context.getElementById( m )) ) {
+
+							// Support: IE, Opera, Webkit
+							// TODO: identify versions
+							// getElementById can match elements by name instead of ID
+							if ( elem.id === m ) {
+								results.push( elem );
+								return results;
+							}
+						} else {
+							return results;
+						}
+
+					// Element context
+					} else {
+
+						// Support: IE, Opera, Webkit
+						// TODO: identify versions
+						// getElementById can match elements by name instead of ID
+						if ( newContext && (elem = newContext.getElementById( m )) &&
+							contains( context, elem ) &&
+							elem.id === m ) {
+
+							results.push( elem );
+							return results;
+						}
+					}
+
+				// Type selector
+				} else if ( match[2] ) {
+					push.apply( results, context.getElementsByTagName( selector ) );
+					return results;
+
+				// Class selector
+				} else if ( (m = match[3]) && support.getElementsByClassName &&
+					context.getElementsByClassName ) {
+
+					push.apply( results, context.getElementsByClassName( m ) );
+					return results;
+				}
+			}
+
+			// Take advantage of querySelectorAll
+			if ( support.qsa &&
+				!compilerCache[ selector + " " ] &&
+				(!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+
+				if ( nodeType !== 1 ) {
+					newContext = context;
+					newSelector = selector;
+
+				// qSA looks outside Element context, which is not what we want
+				// Thanks to Andrew Dupont for this workaround technique
+				// Support: IE <=8
+				// Exclude object elements
+				} else if ( context.nodeName.toLowerCase() !== "object" ) {
+
+					// Capture the context ID, setting it first if necessary
+					if ( (nid = context.getAttribute( "id" )) ) {
+						nid = nid.replace( rescape, "\\$&" );
+					} else {
+						context.setAttribute( "id", (nid = expando) );
+					}
+
+					// Prefix every selector in the list
+					groups = tokenize( selector );
+					i = groups.length;
+					while ( i-- ) {
+						groups[i] = "[id='" + nid + "'] " + toSelector( groups[i] );
+					}
+					newSelector = groups.join( "," );
+
+					// Expand context for sibling selectors
+					newContext = rsibling.test( selector ) && testContext( context.parentNode ) ||
+						context;
+				}
+
+				if ( newSelector ) {
+					try {
+						push.apply( results,
+							newContext.querySelectorAll( newSelector )
+						);
+						return results;
+					} catch ( qsaError ) {
+					} finally {
+						if ( nid === expando ) {
+							context.removeAttribute( "id" );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// All others
+	return select( selector.replace( rtrim, "$1" ), context, results, seed );
+}
+
+/**
+ * Create key-value caches of limited size
+ * @returns {function(string, object)} Returns the Object data after storing it on itself with
+ *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+ *	deleting the oldest entry
+ */
+function createCache() {
+	var keys = [];
+
+	function cache( key, value ) {
+		// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
+		if ( keys.push( key + " " ) > Expr.cacheLength ) {
+			// Only keep the most recent entries
+			delete cache[ keys.shift() ];
+		}
+		return (cache[ key + " " ] = value);
+	}
+	return cache;
+}
+
+/**
+ * Mark a function for special use by Sizzle
+ * @param {Function} fn The function to mark
+ */
+function markFunction( fn ) {
+	fn[ expando ] = true;
+	return fn;
+}
+
+/**
+ * Support testing using an element
+ * @param {Function} fn Passed the created div and expects a boolean result
+ */
+function assert( fn ) {
+	var div = document.createElement("div");
+
+	try {
+		return !!fn( div );
+	} catch (e) {
+		return false;
+	} finally {
+		// Remove from its parent by default
+		if ( div.parentNode ) {
+			div.parentNode.removeChild( div );
+		}
+		// release memory in IE
+		div = null;
+	}
+}
+
+/**
+ * Adds the same handler for all of the specified attrs
+ * @param {String} attrs Pipe-separated list of attributes
+ * @param {Function} handler The method that will be applied
+ */
+function addHandle( attrs, handler ) {
+	var arr = attrs.split("|"),
+		i = attrs.length;
+
+	while ( i-- ) {
+		Expr.attrHandle[ arr[i] ] = handler;
+	}
+}
+
+/**
+ * Checks document order of two siblings
+ * @param {Element} a
+ * @param {Element} b
+ * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+ */
+function siblingCheck( a, b ) {
+	var cur = b && a,
+		diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+			( ~b.sourceIndex || MAX_NEGATIVE ) -
+			( ~a.sourceIndex || MAX_NEGATIVE );
+
+	// Use IE sourceIndex if available on both nodes
+	if ( diff ) {
+		return diff;
+	}
+
+	// Check if b follows a
+	if ( cur ) {
+		while ( (cur = cur.nextSibling) ) {
+			if ( cur === b ) {
+				return -1;
+			}
+		}
+	}
+
+	return a ? 1 : -1;
+}
+
+/**
+ * Returns a function to use in pseudos for input types
+ * @param {String} type
+ */
+function createInputPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return name === "input" && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for buttons
+ * @param {String} type
+ */
+function createButtonPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return (name === "input" || name === "button") && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for positionals
+ * @param {Function} fn
+ */
+function createPositionalPseudo( fn ) {
+	return markFunction(function( argument ) {
+		argument = +argument;
+		return markFunction(function( seed, matches ) {
+			var j,
+				matchIndexes = fn( [], seed.length, argument ),
+				i = matchIndexes.length;
+
+			// Match elements found at the specified indexes
+			while ( i-- ) {
+				if ( seed[ (j = matchIndexes[i]) ] ) {
+					seed[j] = !(matches[j] = seed[j]);
+				}
+			}
+		});
+	});
+}
+
+/**
+ * Checks a node for validity as a Sizzle context
+ * @param {Element|Object=} context
+ * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
+ */
+function testContext( context ) {
+	return context && typeof context.getElementsByTagName !== "undefined" && context;
+}
+
+// Expose support vars for convenience
+support = Sizzle.support = {};
+
+/**
+ * Detects XML nodes
+ * @param {Element|Object} elem An element or a document
+ * @returns {Boolean} True iff elem is a non-HTML XML node
+ */
+isXML = Sizzle.isXML = function( elem ) {
+	// documentElement is verified for cases where it doesn't yet exist
+	// (such as loading iframes in IE - #4833)
+	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
+	return documentElement ? documentElement.nodeName !== "HTML" : false;
+};
+
+/**
+ * Sets document-related variables once based on the current document
+ * @param {Element|Object} [doc] An element or document object to use to set the document
+ * @returns {Object} Returns the current document
+ */
+setDocument = Sizzle.setDocument = function( node ) {
+	var hasCompare, parent,
+		doc = node ? node.ownerDocument || node : preferredDoc;
+
+	// Return early if doc is invalid or already selected
+	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
+		return document;
+	}
+
+	// Update global variables
+	document = doc;
+	docElem = document.documentElement;
+	documentIsHTML = !isXML( document );
+
+	// Support: IE 9 - 11
+	// Accessing iframe documents after unload throws "permission denied" errors (jQuery #13936)
+	// Limit the fix to IE with document.documentMode and IE >=9 with document.defaultView
+	if ( document.documentMode && (parent = document.defaultView) && parent.top !== parent ) {
+		// Support: IE 11
+		if ( parent.addEventListener ) {
+			parent.addEventListener( "unload", unloadHandler, false );
+
+		// Support: IE 9 - 10 only
+		} else if ( parent.attachEvent ) {
+			parent.attachEvent( "onunload", unloadHandler );
+		}
+	}
+
+	/* Attributes
+	---------------------------------------------------------------------- */
+
+	// Support: IE<8
+	// Verify that getAttribute really returns attributes and not properties
+	// (excepting IE8 booleans)
+	support.attributes = assert(function( div ) {
+		div.className = "i";
+		return !div.getAttribute("className");
+	});
+
+	/* getElement(s)By*
+	---------------------------------------------------------------------- */
+
+	// Check if getElementsByTagName("*") returns only elements
+	support.getElementsByTagName = assert(function( div ) {
+		div.appendChild( document.createComment("") );
+		return !div.getElementsByTagName("*").length;
+	});
+
+	// Support: IE<9
+	support.getElementsByClassName = rnative.test( document.getElementsByClassName );
+
+	// Support: IE<10
+	// Check if getElementById returns elements by name
+	// The broken getElementById methods don't pick up programatically-set names,
+	// so use a roundabout getElementsByName test
+	support.getById = assert(function( div ) {
+		docElem.appendChild( div ).id = expando;
+		return !document.getElementsByName || !document.getElementsByName( expando ).length;
+	});
+
+	// ID find and filter
+	if ( support.getById ) {
+		Expr.find["ID"] = function( id, context ) {
+			if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
+				var m = context.getElementById( id );
+				return m ? [ m ] : [];
+			}
+		};
+		Expr.filter["ID"] = function( id ) {
+			var attrId = id.replace( runescape, funescape );
+			return function( elem ) {
+				return elem.getAttribute("id") === attrId;
+			};
+		};
+	} else {
+		// Support: IE6/7
+		// getElementById is not reliable as a find shortcut
+		delete Expr.find["ID"];
+
+		Expr.filter["ID"] =  function( id ) {
+			var attrId = id.replace( runescape, funescape );
+			return function( elem ) {
+				var node = typeof elem.getAttributeNode !== "undefined" &&
+					elem.getAttributeNode("id");
+				return node && node.value === attrId;
+			};
+		};
+	}
+
+	// Tag
+	Expr.find["TAG"] = support.getElementsByTagName ?
+		function( tag, context ) {
+			if ( typeof context.getElementsByTagName !== "undefined" ) {
+				return context.getElementsByTagName( tag );
+
+			// DocumentFragment nodes don't have gEBTN
+			} else if ( support.qsa ) {
+				return context.querySelectorAll( tag );
+			}
+		} :
+
+		function( tag, context ) {
+			var elem,
+				tmp = [],
+				i = 0,
+				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
+				results = context.getElementsByTagName( tag );
+
+			// Filter out possible comments
+			if ( tag === "*" ) {
+				while ( (elem = results[i++]) ) {
+					if ( elem.nodeType === 1 ) {
+						tmp.push( elem );
+					}
+				}
+
+				return tmp;
+			}
+			return results;
+		};
+
+	// Class
+	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
+		if ( typeof context.getElementsByClassName !== "undefined" && documentIsHTML ) {
+			return context.getElementsByClassName( className );
+		}
+	};
+
+	/* QSA/matchesSelector
+	---------------------------------------------------------------------- */
+
+	// QSA and matchesSelector support
+
+	// matchesSelector(:active) reports false when true (IE9/Opera 11.5)
+	rbuggyMatches = [];
+
+	// qSa(:focus) reports false when true (Chrome 21)
+	// We allow this because of a bug in IE8/9 that throws an error
+	// whenever `document.activeElement` is accessed on an iframe
+	// So, we allow :focus to pass through QSA all the time to avoid the IE error
+	// See http://bugs.jquery.com/ticket/13378
+	rbuggyQSA = [];
+
+	if ( (support.qsa = rnative.test( document.querySelectorAll )) ) {
+		// Build QSA regex
+		// Regex strategy adopted from Diego Perini
+		assert(function( div ) {
+			// Select is set to empty string on purpose
+			// This is to test IE's treatment of not explicitly
+			// setting a boolean content attribute,
+			// since its presence should be enough
+			// http://bugs.jquery.com/ticket/12359
+			docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
+				"<select id='" + expando + "-\r\\' msallowcapture=''>" +
+				"<option selected=''></option></select>";
+
+			// Support: IE8, Opera 11-12.16
+			// Nothing should be selected when empty strings follow ^= or $= or *=
+			// The test attribute must be unknown in Opera but "safe" for WinRT
+			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
+			if ( div.querySelectorAll("[msallowcapture^='']").length ) {
+				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
+			}
+
+			// Support: IE8
+			// Boolean attributes and "value" are not treated correctly
+			if ( !div.querySelectorAll("[selected]").length ) {
+				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
+			}
+
+			// Support: Chrome<29, Android<4.4, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.8+
+			if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
+				rbuggyQSA.push("~=");
+			}
+
+			// Webkit/Opera - :checked should return selected option elements
+			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+			// IE8 throws error here and will not see later tests
+			if ( !div.querySelectorAll(":checked").length ) {
+				rbuggyQSA.push(":checked");
+			}
+
+			// Support: Safari 8+, iOS 8+
+			// https://bugs.webkit.org/show_bug.cgi?id=136851
+			// In-page `selector#id sibing-combinator selector` fails
+			if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
+				rbuggyQSA.push(".#.+[+~]");
+			}
+		});
+
+		assert(function( div ) {
+			// Support: Windows 8 Native Apps
+			// The type and name attributes are restricted during .innerHTML assignment
+			var input = document.createElement("input");
+			input.setAttribute( "type", "hidden" );
+			div.appendChild( input ).setAttribute( "name", "D" );
+
+			// Support: IE8
+			// Enforce case-sensitivity of name attribute
+			if ( div.querySelectorAll("[name=d]").length ) {
+				rbuggyQSA.push( "name" + whitespace + "*[*^$|!~]?=" );
+			}
+
+			// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
+			// IE8 throws error here and will not see later tests
+			if ( !div.querySelectorAll(":enabled").length ) {
+				rbuggyQSA.push( ":enabled", ":disabled" );
+			}
+
+			// Opera 10-11 does not throw on post-comma invalid pseudos
+			div.querySelectorAll("*,:x");
+			rbuggyQSA.push(",.*:");
+		});
+	}
+
+	if ( (support.matchesSelector = rnative.test( (matches = docElem.matches ||
+		docElem.webkitMatchesSelector ||
+		docElem.mozMatchesSelector ||
+		docElem.oMatchesSelector ||
+		docElem.msMatchesSelector) )) ) {
+
+		assert(function( div ) {
+			// Check to see if it's possible to do matchesSelector
+			// on a disconnected node (IE 9)
+			support.disconnectedMatch = matches.call( div, "div" );
+
+			// This should fail with an exception
+			// Gecko does not error, returns false instead
+			matches.call( div, "[s!='']:x" );
+			rbuggyMatches.push( "!=", pseudos );
+		});
+	}
+
+	rbuggyQSA = rbuggyQSA.length && new RegExp( rbuggyQSA.join("|") );
+	rbuggyMatches = rbuggyMatches.length && new RegExp( rbuggyMatches.join("|") );
+
+	/* Contains
+	---------------------------------------------------------------------- */
+	hasCompare = rnative.test( docElem.compareDocumentPosition );
+
+	// Element contains another
+	// Purposefully self-exclusive
+	// As in, an element does not contain itself
+	contains = hasCompare || rnative.test( docElem.contains ) ?
+		function( a, b ) {
+			var adown = a.nodeType === 9 ? a.documentElement : a,
+				bup = b && b.parentNode;
+			return a === bup || !!( bup && bup.nodeType === 1 && (
+				adown.contains ?
+					adown.contains( bup ) :
+					a.compareDocumentPosition && a.compareDocumentPosition( bup ) & 16
+			));
+		} :
+		function( a, b ) {
+			if ( b ) {
+				while ( (b = b.parentNode) ) {
+					if ( b === a ) {
+						return true;
+					}
+				}
+			}
+			return false;
+		};
+
+	/* Sorting
+	---------------------------------------------------------------------- */
+
+	// Document order sorting
+	sortOrder = hasCompare ?
+	function( a, b ) {
+
+		// Flag for duplicate removal
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+		}
+
+		// Sort on method existence if only one input has compareDocumentPosition
+		var compare = !a.compareDocumentPosition - !b.compareDocumentPosition;
+		if ( compare ) {
+			return compare;
+		}
+
+		// Calculate position if both inputs belong to the same document
+		compare = ( a.ownerDocument || a ) === ( b.ownerDocument || b ) ?
+			a.compareDocumentPosition( b ) :
+
+			// Otherwise we know they are disconnected
+			1;
+
+		// Disconnected nodes
+		if ( compare & 1 ||
+			(!support.sortDetached && b.compareDocumentPosition( a ) === compare) ) {
+
+			// Choose the first element that is related to our preferred document
+			if ( a === document || a.ownerDocument === preferredDoc && contains(preferredDoc, a) ) {
+				return -1;
+			}
+			if ( b === document || b.ownerDocument === preferredDoc && contains(preferredDoc, b) ) {
+				return 1;
+			}
+
+			// Maintain original order
+			return sortInput ?
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
+				0;
+		}
+
+		return compare & 4 ? -1 : 1;
+	} :
+	function( a, b ) {
+		// Exit early if the nodes are identical
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+		}
+
+		var cur,
+			i = 0,
+			aup = a.parentNode,
+			bup = b.parentNode,
+			ap = [ a ],
+			bp = [ b ];
+
+		// Parentless nodes are either documents or disconnected
+		if ( !aup || !bup ) {
+			return a === document ? -1 :
+				b === document ? 1 :
+				aup ? -1 :
+				bup ? 1 :
+				sortInput ?
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
+				0;
+
+		// If the nodes are siblings, we can do a quick check
+		} else if ( aup === bup ) {
+			return siblingCheck( a, b );
+		}
+
+		// Otherwise we need full lists of their ancestors for comparison
+		cur = a;
+		while ( (cur = cur.parentNode) ) {
+			ap.unshift( cur );
+		}
+		cur = b;
+		while ( (cur = cur.parentNode) ) {
+			bp.unshift( cur );
+		}
+
+		// Walk down the tree looking for a discrepancy
+		while ( ap[i] === bp[i] ) {
+			i++;
+		}
+
+		return i ?
+			// Do a sibling check if the nodes have a common ancestor
+			siblingCheck( ap[i], bp[i] ) :
+
+			// Otherwise nodes in our document sort first
+			ap[i] === preferredDoc ? -1 :
+			bp[i] === preferredDoc ? 1 :
+			0;
+	};
+
+	return document;
+};
+
+Sizzle.matches = function( expr, elements ) {
+	return Sizzle( expr, null, null, elements );
+};
+
+Sizzle.matchesSelector = function( elem, expr ) {
+	// Set document vars if needed
+	if ( ( elem.ownerDocument || elem ) !== document ) {
+		setDocument( elem );
+	}
+
+	// Make sure that attribute selectors are quoted
+	expr = expr.replace( rattributeQuotes, "='$1']" );
+
+	if ( support.matchesSelector && documentIsHTML &&
+		!compilerCache[ expr + " " ] &&
+		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
+		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
+
+		try {
+			var ret = matches.call( elem, expr );
+
+			// IE 9's matchesSelector returns false on disconnected nodes
+			if ( ret || support.disconnectedMatch ||
+					// As well, disconnected nodes are said to be in a document
+					// fragment in IE 9
+					elem.document && elem.document.nodeType !== 11 ) {
+				return ret;
+			}
+		} catch (e) {}
+	}
+
+	return Sizzle( expr, document, null, [ elem ] ).length > 0;
+};
+
+Sizzle.contains = function( context, elem ) {
+	// Set document vars if needed
+	if ( ( context.ownerDocument || context ) !== document ) {
+		setDocument( context );
+	}
+	return contains( context, elem );
+};
+
+Sizzle.attr = function( elem, name ) {
+	// Set document vars if needed
+	if ( ( elem.ownerDocument || elem ) !== document ) {
+		setDocument( elem );
+	}
+
+	var fn = Expr.attrHandle[ name.toLowerCase() ],
+		// Don't get fooled by Object.prototype properties (jQuery #13807)
+		val = fn && hasOwn.call( Expr.attrHandle, name.toLowerCase() ) ?
+			fn( elem, name, !documentIsHTML ) :
+			undefined;
+
+	return val !== undefined ?
+		val :
+		support.attributes || !documentIsHTML ?
+			elem.getAttribute( name ) :
+			(val = elem.getAttributeNode(name)) && val.specified ?
+				val.value :
+				null;
+};
+
+Sizzle.error = function( msg ) {
+	throw new Error( "Syntax error, unrecognized expression: " + msg );
+};
+
+/**
+ * Document sorting and removing duplicates
+ * @param {ArrayLike} results
+ */
+Sizzle.uniqueSort = function( results ) {
+	var elem,
+		duplicates = [],
+		j = 0,
+		i = 0;
+
+	// Unless we *know* we can detect duplicates, assume their presence
+	hasDuplicate = !support.detectDuplicates;
+	sortInput = !support.sortStable && results.slice( 0 );
+	results.sort( sortOrder );
+
+	if ( hasDuplicate ) {
+		while ( (elem = results[i++]) ) {
+			if ( elem === results[ i ] ) {
+				j = duplicates.push( i );
+			}
+		}
+		while ( j-- ) {
+			results.splice( duplicates[ j ], 1 );
+		}
+	}
+
+	// Clear input after sorting to release objects
+	// See https://github.com/jquery/sizzle/pull/225
+	sortInput = null;
+
+	return results;
+};
+
+/**
+ * Utility function for retrieving the text value of an array of DOM nodes
+ * @param {Array|Element} elem
+ */
+getText = Sizzle.getText = function( elem ) {
+	var node,
+		ret = "",
+		i = 0,
+		nodeType = elem.nodeType;
+
+	if ( !nodeType ) {
+		// If no nodeType, this is expected to be an array
+		while ( (node = elem[i++]) ) {
+			// Do not traverse comment nodes
+			ret += getText( node );
+		}
+	} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+		// Use textContent for elements
+		// innerText usage removed for consistency of new lines (jQuery #11153)
+		if ( typeof elem.textContent === "string" ) {
+			return elem.textContent;
+		} else {
+			// Traverse its children
+			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+				ret += getText( elem );
+			}
+		}
+	} else if ( nodeType === 3 || nodeType === 4 ) {
+		return elem.nodeValue;
+	}
+	// Do not include comment or processing instruction nodes
+
+	return ret;
+};
+
+Expr = Sizzle.selectors = {
+
+	// Can be adjusted by the user
+	cacheLength: 50,
+
+	createPseudo: markFunction,
+
+	match: matchExpr,
+
+	attrHandle: {},
+
+	find: {},
+
+	relative: {
+		">": { dir: "parentNode", first: true },
+		" ": { dir: "parentNode" },
+		"+": { dir: "previousSibling", first: true },
+		"~": { dir: "previousSibling" }
+	},
+
+	preFilter: {
+		"ATTR": function( match ) {
+			match[1] = match[1].replace( runescape, funescape );
+
+			// Move the given value to match[3] whether quoted or unquoted
+			match[3] = ( match[3] || match[4] || match[5] || "" ).replace( runescape, funescape );
+
+			if ( match[2] === "~=" ) {
+				match[3] = " " + match[3] + " ";
+			}
+
+			return match.slice( 0, 4 );
+		},
+
+		"CHILD": function( match ) {
+			/* matches from matchExpr["CHILD"]
+				1 type (only|nth|...)
+				2 what (child|of-type)
+				3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
+				4 xn-component of xn+y argument ([+-]?\d*n|)
+				5 sign of xn-component
+				6 x of xn-component
+				7 sign of y-component
+				8 y of y-component
+			*/
+			match[1] = match[1].toLowerCase();
+
+			if ( match[1].slice( 0, 3 ) === "nth" ) {
+				// nth-* requires argument
+				if ( !match[3] ) {
+					Sizzle.error( match[0] );
+				}
+
+				// numeric x and y parameters for Expr.filter.CHILD
+				// remember that false/true cast respectively to 0/1
+				match[4] = +( match[4] ? match[5] + (match[6] || 1) : 2 * ( match[3] === "even" || match[3] === "odd" ) );
+				match[5] = +( ( match[7] + match[8] ) || match[3] === "odd" );
+
+			// other types prohibit arguments
+			} else if ( match[3] ) {
+				Sizzle.error( match[0] );
+			}
+
+			return match;
+		},
+
+		"PSEUDO": function( match ) {
+			var excess,
+				unquoted = !match[6] && match[2];
+
+			if ( matchExpr["CHILD"].test( match[0] ) ) {
+				return null;
+			}
+
+			// Accept quoted arguments as-is
+			if ( match[3] ) {
+				match[2] = match[4] || match[5] || "";
+
+			// Strip excess characters from unquoted arguments
+			} else if ( unquoted && rpseudo.test( unquoted ) &&
+				// Get excess from tokenize (recursively)
+				(excess = tokenize( unquoted, true )) &&
+				// advance to the next closing parenthesis
+				(excess = unquoted.indexOf( ")", unquoted.length - excess ) - unquoted.length) ) {
+
+				// excess is a negative index
+				match[0] = match[0].slice( 0, excess );
+				match[2] = unquoted.slice( 0, excess );
+			}
+
+			// Return only captures needed by the pseudo filter method (type and argument)
+			return match.slice( 0, 3 );
+		}
+	},
+
+	filter: {
+
+		"TAG": function( nodeNameSelector ) {
+			var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
+			return nodeNameSelector === "*" ?
+				function() { return true; } :
+				function( elem ) {
+					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+				};
+		},
+
+		"CLASS": function( className ) {
+			var pattern = classCache[ className + " " ];
+
+			return pattern ||
+				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
+				classCache( className, function( elem ) {
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
+				});
+		},
+
+		"ATTR": function( name, operator, check ) {
+			return function( elem ) {
+				var result = Sizzle.attr( elem, name );
+
+				if ( result == null ) {
+					return operator === "!=";
+				}
+				if ( !operator ) {
+					return true;
+				}
+
+				result += "";
+
+				return operator === "=" ? result === check :
+					operator === "!=" ? result !== check :
+					operator === "^=" ? check && result.indexOf( check ) === 0 :
+					operator === "*=" ? check && result.indexOf( check ) > -1 :
+					operator === "$=" ? check && result.slice( -check.length ) === check :
+					operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
+					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
+					false;
+			};
+		},
+
+		"CHILD": function( type, what, argument, first, last ) {
+			var simple = type.slice( 0, 3 ) !== "nth",
+				forward = type.slice( -4 ) !== "last",
+				ofType = what === "of-type";
+
+			return first === 1 && last === 0 ?
+
+				// Shortcut for :nth-*(n)
+				function( elem ) {
+					return !!elem.parentNode;
+				} :
+
+				function( elem, context, xml ) {
+					var cache, uniqueCache, outerCache, node, nodeIndex, start,
+						dir = simple !== forward ? "nextSibling" : "previousSibling",
+						parent = elem.parentNode,
+						name = ofType && elem.nodeName.toLowerCase(),
+						useCache = !xml && !ofType,
+						diff = false;
+
+					if ( parent ) {
+
+						// :(first|last|only)-(child|of-type)
+						if ( simple ) {
+							while ( dir ) {
+								node = elem;
+								while ( (node = node[ dir ]) ) {
+									if ( ofType ?
+										node.nodeName.toLowerCase() === name :
+										node.nodeType === 1 ) {
+
+										return false;
+									}
+								}
+								// Reverse direction for :only-* (if we haven't yet done so)
+								start = dir = type === "only" && !start && "nextSibling";
+							}
+							return true;
+						}
+
+						start = [ forward ? parent.firstChild : parent.lastChild ];
+
+						// non-xml :nth-child(...) stores cache data on `parent`
+						if ( forward && useCache ) {
+
+							// Seek `elem` from a previously-cached index
+
+							// ...in a gzip-friendly way
+							node = parent;
+							outerCache = node[ expando ] || (node[ expando ] = {});
+
+							// Support: IE <9 only
+							// Defend against cloned attroperties (jQuery gh-1709)
+							uniqueCache = outerCache[ node.uniqueID ] ||
+								(outerCache[ node.uniqueID ] = {});
+
+							cache = uniqueCache[ type ] || [];
+							nodeIndex = cache[ 0 ] === dirruns && cache[ 1 ];
+							diff = nodeIndex && cache[ 2 ];
+							node = nodeIndex && parent.childNodes[ nodeIndex ];
+
+							while ( (node = ++nodeIndex && node && node[ dir ] ||
+
+								// Fallback to seeking `elem` from the start
+								(diff = nodeIndex = 0) || start.pop()) ) {
+
+								// When found, cache indexes on `parent` and break
+								if ( node.nodeType === 1 && ++diff && node === elem ) {
+									uniqueCache[ type ] = [ dirruns, nodeIndex, diff ];
+									break;
+								}
+							}
+
+						} else {
+							// Use previously-cached element index if available
+							if ( useCache ) {
+								// ...in a gzip-friendly way
+								node = elem;
+								outerCache = node[ expando ] || (node[ expando ] = {});
+
+								// Support: IE <9 only
+								// Defend against cloned attroperties (jQuery gh-1709)
+								uniqueCache = outerCache[ node.uniqueID ] ||
+									(outerCache[ node.uniqueID ] = {});
+
+								cache = uniqueCache[ type ] || [];
+								nodeIndex = cache[ 0 ] === dirruns && cache[ 1 ];
+								diff = nodeIndex;
+							}
+
+							// xml :nth-child(...)
+							// or :nth-last-child(...) or :nth(-last)?-of-type(...)
+							if ( diff === false ) {
+								// Use the same loop as above to seek `elem` from the start
+								while ( (node = ++nodeIndex && node && node[ dir ] ||
+									(diff = nodeIndex = 0) || start.pop()) ) {
+
+									if ( ( ofType ?
+										node.nodeName.toLowerCase() === name :
+										node.nodeType === 1 ) &&
+										++diff ) {
+
+										// Cache the index of each encountered element
+										if ( useCache ) {
+											outerCache = node[ expando ] || (node[ expando ] = {});
+
+											// Support: IE <9 only
+											// Defend against cloned attroperties (jQuery gh-1709)
+											uniqueCache = outerCache[ node.uniqueID ] ||
+												(outerCache[ node.uniqueID ] = {});
+
+											uniqueCache[ type ] = [ dirruns, diff ];
+										}
+
+										if ( node === elem ) {
+											break;
+										}
+									}
+								}
+							}
+						}
+
+						// Incorporate the offset, then check against cycle size
+						diff -= last;
+						return diff === first || ( diff % first === 0 && diff / first >= 0 );
+					}
+				};
+		},
+
+		"PSEUDO": function( pseudo, argument ) {
+			// pseudo-class names are case-insensitive
+			// http://www.w3.org/TR/selectors/#pseudo-classes
+			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+			// Remember that setFilters inherits from pseudos
+			var args,
+				fn = Expr.pseudos[ pseudo ] || Expr.setFilters[ pseudo.toLowerCase() ] ||
+					Sizzle.error( "unsupported pseudo: " + pseudo );
+
+			// The user may use createPseudo to indicate that
+			// arguments are needed to create the filter function
+			// just as Sizzle does
+			if ( fn[ expando ] ) {
+				return fn( argument );
+			}
+
+			// But maintain support for old signatures
+			if ( fn.length > 1 ) {
+				args = [ pseudo, pseudo, "", argument ];
+				return Expr.setFilters.hasOwnProperty( pseudo.toLowerCase() ) ?
+					markFunction(function( seed, matches ) {
+						var idx,
+							matched = fn( seed, argument ),
+							i = matched.length;
+						while ( i-- ) {
+							idx = indexOf( seed, matched[i] );
+							seed[ idx ] = !( matches[ idx ] = matched[i] );
+						}
+					}) :
+					function( elem ) {
+						return fn( elem, 0, args );
+					};
+			}
+
+			return fn;
+		}
+	},
+
+	pseudos: {
+		// Potentially complex pseudos
+		"not": markFunction(function( selector ) {
+			// Trim the selector passed to compile
+			// to avoid treating leading and trailing
+			// spaces as combinators
+			var input = [],
+				results = [],
+				matcher = compile( selector.replace( rtrim, "$1" ) );
+
+			return matcher[ expando ] ?
+				markFunction(function( seed, matches, context, xml ) {
+					var elem,
+						unmatched = matcher( seed, null, xml, [] ),
+						i = seed.length;
+
+					// Match elements unmatched by `matcher`
+					while ( i-- ) {
+						if ( (elem = unmatched[i]) ) {
+							seed[i] = !(matches[i] = elem);
+						}
+					}
+				}) :
+				function( elem, context, xml ) {
+					input[0] = elem;
+					matcher( input, null, xml, results );
+					// Don't keep the element (issue #299)
+					input[0] = null;
+					return !results.pop();
+				};
+		}),
+
+		"has": markFunction(function( selector ) {
+			return function( elem ) {
+				return Sizzle( selector, elem ).length > 0;
+			};
+		}),
+
+		"contains": markFunction(function( text ) {
+			text = text.replace( runescape, funescape );
+			return function( elem ) {
+				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+			};
+		}),
+
+		// "Whether an element is represented by a :lang() selector
+		// is based solely on the element's language value
+		// being equal to the identifier C,
+		// or beginning with the identifier C immediately followed by "-".
+		// The matching of C against the element's language value is performed case-insensitively.
+		// The identifier C does not have to be a valid language name."
+		// http://www.w3.org/TR/selectors/#lang-pseudo
+		"lang": markFunction( function( lang ) {
+			// lang value must be a valid identifier
+			if ( !ridentifier.test(lang || "") ) {
+				Sizzle.error( "unsupported lang: " + lang );
+			}
+			lang = lang.replace( runescape, funescape ).toLowerCase();
+			return function( elem ) {
+				var elemLang;
+				do {
+					if ( (elemLang = documentIsHTML ?
+						elem.lang :
+						elem.getAttribute("xml:lang") || elem.getAttribute("lang")) ) {
+
+						elemLang = elemLang.toLowerCase();
+						return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
+					}
+				} while ( (elem = elem.parentNode) && elem.nodeType === 1 );
+				return false;
+			};
+		}),
+
+		// Miscellaneous
+		"target": function( elem ) {
+			var hash = window.location && window.location.hash;
+			return hash && hash.slice( 1 ) === elem.id;
+		},
+
+		"root": function( elem ) {
+			return elem === docElem;
+		},
+
+		"focus": function( elem ) {
+			return elem === document.activeElement && (!document.hasFocus || document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
+		},
+
+		// Boolean properties
+		"enabled": function( elem ) {
+			return elem.disabled === false;
+		},
+
+		"disabled": function( elem ) {
+			return elem.disabled === true;
+		},
+
+		"checked": function( elem ) {
+			// In CSS3, :checked should return both checked and selected elements
+			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+			var nodeName = elem.nodeName.toLowerCase();
+			return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
+		},
+
+		"selected": function( elem ) {
+			// Accessing this property makes selected-by-default
+			// options in Safari work properly
+			if ( elem.parentNode ) {
+				elem.parentNode.selectedIndex;
+			}
+
+			return elem.selected === true;
+		},
+
+		// Contents
+		"empty": function( elem ) {
+			// http://www.w3.org/TR/selectors/#empty-pseudo
+			// :empty is negated by element (1) or content nodes (text: 3; cdata: 4; entity ref: 5),
+			//   but not by others (comment: 8; processing instruction: 7; etc.)
+			// nodeType < 6 works because attributes (2) do not appear as children
+			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+				if ( elem.nodeType < 6 ) {
+					return false;
+				}
+			}
+			return true;
+		},
+
+		"parent": function( elem ) {
+			return !Expr.pseudos["empty"]( elem );
+		},
+
+		// Element/input types
+		"header": function( elem ) {
+			return rheader.test( elem.nodeName );
+		},
+
+		"input": function( elem ) {
+			return rinputs.test( elem.nodeName );
+		},
+
+		"button": function( elem ) {
+			var name = elem.nodeName.toLowerCase();
+			return name === "input" && elem.type === "button" || name === "button";
+		},
+
+		"text": function( elem ) {
+			var attr;
+			return elem.nodeName.toLowerCase() === "input" &&
+				elem.type === "text" &&
+
+				// Support: IE<8
+				// New HTML5 attribute values (e.g., "search") appear with elem.type === "text"
+				( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === "text" );
+		},
+
+		// Position-in-collection
+		"first": createPositionalPseudo(function() {
+			return [ 0 ];
+		}),
+
+		"last": createPositionalPseudo(function( matchIndexes, length ) {
+			return [ length - 1 ];
+		}),
+
+		"eq": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			return [ argument < 0 ? argument + length : argument ];
+		}),
+
+		"even": createPositionalPseudo(function( matchIndexes, length ) {
+			var i = 0;
+			for ( ; i < length; i += 2 ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"odd": createPositionalPseudo(function( matchIndexes, length ) {
+			var i = 1;
+			for ( ; i < length; i += 2 ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			var i = argument < 0 ? argument + length : argument;
+			for ( ; --i >= 0; ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		}),
+
+		"gt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+			var i = argument < 0 ? argument + length : argument;
+			for ( ; ++i < length; ) {
+				matchIndexes.push( i );
+			}
+			return matchIndexes;
+		})
+	}
+};
+
+Expr.pseudos["nth"] = Expr.pseudos["eq"];
+
+// Add button/input type pseudos
+for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
+	Expr.pseudos[ i ] = createInputPseudo( i );
+}
+for ( i in { submit: true, reset: true } ) {
+	Expr.pseudos[ i ] = createButtonPseudo( i );
+}
+
+// Easy API for creating new setFilters
+function setFilters() {}
+setFilters.prototype = Expr.filters = Expr.pseudos;
+Expr.setFilters = new setFilters();
+
+tokenize = Sizzle.tokenize = function( selector, parseOnly ) {
+	var matched, match, tokens, type,
+		soFar, groups, preFilters,
+		cached = tokenCache[ selector + " " ];
+
+	if ( cached ) {
+		return parseOnly ? 0 : cached.slice( 0 );
+	}
+
+	soFar = selector;
+	groups = [];
+	preFilters = Expr.preFilter;
+
+	while ( soFar ) {
+
+		// Comma and first run
+		if ( !matched || (match = rcomma.exec( soFar )) ) {
+			if ( match ) {
+				// Don't consume trailing commas as valid
+				soFar = soFar.slice( match[0].length ) || soFar;
+			}
+			groups.push( (tokens = []) );
+		}
+
+		matched = false;
+
+		// Combinators
+		if ( (match = rcombinators.exec( soFar )) ) {
+			matched = match.shift();
+			tokens.push({
+				value: matched,
+				// Cast descendant combinators to space
+				type: match[0].replace( rtrim, " " )
+			});
+			soFar = soFar.slice( matched.length );
+		}
+
+		// Filters
+		for ( type in Expr.filter ) {
+			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
+				(match = preFilters[ type ]( match ))) ) {
+				matched = match.shift();
+				tokens.push({
+					value: matched,
+					type: type,
+					matches: match
+				});
+				soFar = soFar.slice( matched.length );
+			}
+		}
+
+		if ( !matched ) {
+			break;
+		}
+	}
+
+	// Return the length of the invalid excess
+	// if we're just parsing
+	// Otherwise, throw an error or return tokens
+	return parseOnly ?
+		soFar.length :
+		soFar ?
+			Sizzle.error( selector ) :
+			// Cache the tokens
+			tokenCache( selector, groups ).slice( 0 );
+};
+
+function toSelector( tokens ) {
+	var i = 0,
+		len = tokens.length,
+		selector = "";
+	for ( ; i < len; i++ ) {
+		selector += tokens[i].value;
+	}
+	return selector;
+}
+
+function addCombinator( matcher, combinator, base ) {
+	var dir = combinator.dir,
+		checkNonElements = base && dir === "parentNode",
+		doneName = done++;
+
+	return combinator.first ?
+		// Check against closest ancestor/preceding element
+		function( elem, context, xml ) {
+			while ( (elem = elem[ dir ]) ) {
+				if ( elem.nodeType === 1 || checkNonElements ) {
+					return matcher( elem, context, xml );
+				}
+			}
+		} :
+
+		// Check against all ancestor/preceding elements
+		function( elem, context, xml ) {
+			var oldCache, uniqueCache, outerCache,
+				newCache = [ dirruns, doneName ];
+
+			// We can't set arbitrary data on XML nodes, so they don't benefit from combinator caching
+			if ( xml ) {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 || checkNonElements ) {
+						if ( matcher( elem, context, xml ) ) {
+							return true;
+						}
+					}
+				}
+			} else {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 || checkNonElements ) {
+						outerCache = elem[ expando ] || (elem[ expando ] = {});
+
+						// Support: IE <9 only
+						// Defend against cloned attroperties (jQuery gh-1709)
+						uniqueCache = outerCache[ elem.uniqueID ] || (outerCache[ elem.uniqueID ] = {});
+
+						if ( (oldCache = uniqueCache[ dir ]) &&
+							oldCache[ 0 ] === dirruns && oldCache[ 1 ] === doneName ) {
+
+							// Assign to newCache so results back-propagate to previous elements
+							return (newCache[ 2 ] = oldCache[ 2 ]);
+						} else {
+							// Reuse newcache so results back-propagate to previous elements
+							uniqueCache[ dir ] = newCache;
+
+							// A match means we're done; a fail means we have to keep checking
+							if ( (newCache[ 2 ] = matcher( elem, context, xml )) ) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		};
+}
+
+function elementMatcher( matchers ) {
+	return matchers.length > 1 ?
+		function( elem, context, xml ) {
+			var i = matchers.length;
+			while ( i-- ) {
+				if ( !matchers[i]( elem, context, xml ) ) {
+					return false;
+				}
+			}
+			return true;
+		} :
+		matchers[0];
+}
+
+function multipleContexts( selector, contexts, results ) {
+	var i = 0,
+		len = contexts.length;
+	for ( ; i < len; i++ ) {
+		Sizzle( selector, contexts[i], results );
+	}
+	return results;
+}
+
+function condense( unmatched, map, filter, context, xml ) {
+	var elem,
+		newUnmatched = [],
+		i = 0,
+		len = unmatched.length,
+		mapped = map != null;
+
+	for ( ; i < len; i++ ) {
+		if ( (elem = unmatched[i]) ) {
+			if ( !filter || filter( elem, context, xml ) ) {
+				newUnmatched.push( elem );
+				if ( mapped ) {
+					map.push( i );
+				}
+			}
+		}
+	}
+
+	return newUnmatched;
+}
+
+function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postSelector ) {
+	if ( postFilter && !postFilter[ expando ] ) {
+		postFilter = setMatcher( postFilter );
+	}
+	if ( postFinder && !postFinder[ expando ] ) {
+		postFinder = setMatcher( postFinder, postSelector );
+	}
+	return markFunction(function( seed, results, context, xml ) {
+		var temp, i, elem,
+			preMap = [],
+			postMap = [],
+			preexisting = results.length,
+
+			// Get initial elements from seed or context
+			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
+
+			// Prefilter to get matcher input, preserving a map for seed-results synchronization
+			matcherIn = preFilter && ( seed || !selector ) ?
+				condense( elems, preMap, preFilter, context, xml ) :
+				elems,
+
+			matcherOut = matcher ?
+				// If we have a postFinder, or filtered seed, or non-seed postFilter or preexisting results,
+				postFinder || ( seed ? preFilter : preexisting || postFilter ) ?
+
+					// ...intermediate processing is necessary
+					[] :
+
+					// ...otherwise use results directly
+					results :
+				matcherIn;
+
+		// Find primary matches
+		if ( matcher ) {
+			matcher( matcherIn, matcherOut, context, xml );
+		}
+
+		// Apply postFilter
+		if ( postFilter ) {
+			temp = condense( matcherOut, postMap );
+			postFilter( temp, [], context, xml );
+
+			// Un-match failing elements by moving them back to matcherIn
+			i = temp.length;
+			while ( i-- ) {
+				if ( (elem = temp[i]) ) {
+					matcherOut[ postMap[i] ] = !(matcherIn[ postMap[i] ] = elem);
+				}
+			}
+		}
+
+		if ( seed ) {
+			if ( postFinder || preFilter ) {
+				if ( postFinder ) {
+					// Get the final matcherOut by condensing this intermediate into postFinder contexts
+					temp = [];
+					i = matcherOut.length;
+					while ( i-- ) {
+						if ( (elem = matcherOut[i]) ) {
+							// Restore matcherIn since elem is not yet a final match
+							temp.push( (matcherIn[i] = elem) );
+						}
+					}
+					postFinder( null, (matcherOut = []), temp, xml );
+				}
+
+				// Move matched elements from seed to results to keep them synchronized
+				i = matcherOut.length;
+				while ( i-- ) {
+					if ( (elem = matcherOut[i]) &&
+						(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
+
+						seed[temp] = !(results[temp] = elem);
+					}
+				}
+			}
+
+		// Add elements to results, through postFinder if defined
+		} else {
+			matcherOut = condense(
+				matcherOut === results ?
+					matcherOut.splice( preexisting, matcherOut.length ) :
+					matcherOut
+			);
+			if ( postFinder ) {
+				postFinder( null, results, matcherOut, xml );
+			} else {
+				push.apply( results, matcherOut );
+			}
+		}
+	});
+}
+
+function matcherFromTokens( tokens ) {
+	var checkContext, matcher, j,
+		len = tokens.length,
+		leadingRelative = Expr.relative[ tokens[0].type ],
+		implicitRelative = leadingRelative || Expr.relative[" "],
+		i = leadingRelative ? 1 : 0,
+
+		// The foundational matcher ensures that elements are reachable from top-level context(s)
+		matchContext = addCombinator( function( elem ) {
+			return elem === checkContext;
+		}, implicitRelative, true ),
+		matchAnyContext = addCombinator( function( elem ) {
+			return indexOf( checkContext, elem ) > -1;
+		}, implicitRelative, true ),
+		matchers = [ function( elem, context, xml ) {
+			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+				(checkContext = context).nodeType ?
+					matchContext( elem, context, xml ) :
+					matchAnyContext( elem, context, xml ) );
+			// Avoid hanging onto element (issue #299)
+			checkContext = null;
+			return ret;
+		} ];
+
+	for ( ; i < len; i++ ) {
+		if ( (matcher = Expr.relative[ tokens[i].type ]) ) {
+			matchers = [ addCombinator(elementMatcher( matchers ), matcher) ];
+		} else {
+			matcher = Expr.filter[ tokens[i].type ].apply( null, tokens[i].matches );
+
+			// Return special upon seeing a positional matcher
+			if ( matcher[ expando ] ) {
+				// Find the next relative operator (if any) for proper handling
+				j = ++i;
+				for ( ; j < len; j++ ) {
+					if ( Expr.relative[ tokens[j].type ] ) {
+						break;
+					}
+				}
+				return setMatcher(
+					i > 1 && elementMatcher( matchers ),
+					i > 1 && toSelector(
+						// If the preceding token was a descendant combinator, insert an implicit any-element `*`
+						tokens.slice( 0, i - 1 ).concat({ value: tokens[ i - 2 ].type === " " ? "*" : "" })
+					).replace( rtrim, "$1" ),
+					matcher,
+					i < j && matcherFromTokens( tokens.slice( i, j ) ),
+					j < len && matcherFromTokens( (tokens = tokens.slice( j )) ),
+					j < len && toSelector( tokens )
+				);
+			}
+			matchers.push( matcher );
+		}
+	}
+
+	return elementMatcher( matchers );
+}
+
+function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
+	var bySet = setMatchers.length > 0,
+		byElement = elementMatchers.length > 0,
+		superMatcher = function( seed, context, xml, results, outermost ) {
+			var elem, j, matcher,
+				matchedCount = 0,
+				i = "0",
+				unmatched = seed && [],
+				setMatched = [],
+				contextBackup = outermostContext,
+				// We must always have either seed elements or outermost context
+				elems = seed || byElement && Expr.find["TAG"]( "*", outermost ),
+				// Use integer dirruns iff this is the outermost matcher
+				dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.random() || 0.1),
+				len = elems.length;
+
+			if ( outermost ) {
+				outermostContext = context === document || context || outermost;
+			}
+
+			// Add elements passing elementMatchers directly to results
+			// Support: IE<9, Safari
+			// Tolerate NodeList properties (IE: "length"; Safari: <number>) matching elements by id
+			for ( ; i !== len && (elem = elems[i]) != null; i++ ) {
+				if ( byElement && elem ) {
+					j = 0;
+					if ( !context && elem.ownerDocument !== document ) {
+						setDocument( elem );
+						xml = !documentIsHTML;
+					}
+					while ( (matcher = elementMatchers[j++]) ) {
+						if ( matcher( elem, context || document, xml) ) {
+							results.push( elem );
+							break;
+						}
+					}
+					if ( outermost ) {
+						dirruns = dirrunsUnique;
+					}
+				}
+
+				// Track unmatched elements for set filters
+				if ( bySet ) {
+					// They will have gone through all possible matchers
+					if ( (elem = !matcher && elem) ) {
+						matchedCount--;
+					}
+
+					// Lengthen the array for every element, matched or not
+					if ( seed ) {
+						unmatched.push( elem );
+					}
+				}
+			}
+
+			// `i` is now the count of elements visited above, and adding it to `matchedCount`
+			// makes the latter nonnegative.
+			matchedCount += i;
+
+			// Apply set filters to unmatched elements
+			// NOTE: This can be skipped if there are no unmatched elements (i.e., `matchedCount`
+			// equals `i`), unless we didn't visit _any_ elements in the above loop because we have
+			// no element matchers and no seed.
+			// Incrementing an initially-string "0" `i` allows `i` to remain a string only in that
+			// case, which will result in a "00" `matchedCount` that differs from `i` but is also
+			// numerically zero.
+			if ( bySet && i !== matchedCount ) {
+				j = 0;
+				while ( (matcher = setMatchers[j++]) ) {
+					matcher( unmatched, setMatched, context, xml );
+				}
+
+				if ( seed ) {
+					// Reintegrate element matches to eliminate the need for sorting
+					if ( matchedCount > 0 ) {
+						while ( i-- ) {
+							if ( !(unmatched[i] || setMatched[i]) ) {
+								setMatched[i] = pop.call( results );
+							}
+						}
+					}
+
+					// Discard index placeholder values to get only actual matches
+					setMatched = condense( setMatched );
+				}
+
+				// Add matches to results
+				push.apply( results, setMatched );
+
+				// Seedless set matches succeeding multiple successful matchers stipulate sorting
+				if ( outermost && !seed && setMatched.length > 0 &&
+					( matchedCount + setMatchers.length ) > 1 ) {
+
+					Sizzle.uniqueSort( results );
+				}
+			}
+
+			// Override manipulation of globals by nested matchers
+			if ( outermost ) {
+				dirruns = dirrunsUnique;
+				outermostContext = contextBackup;
+			}
+
+			return unmatched;
+		};
+
+	return bySet ?
+		markFunction( superMatcher ) :
+		superMatcher;
+}
+
+compile = Sizzle.compile = function( selector, match /* Internal Use Only */ ) {
+	var i,
+		setMatchers = [],
+		elementMatchers = [],
+		cached = compilerCache[ selector + " " ];
+
+	if ( !cached ) {
+		// Generate a function of recursive functions that can be used to check each element
+		if ( !match ) {
+			match = tokenize( selector );
+		}
+		i = match.length;
+		while ( i-- ) {
+			cached = matcherFromTokens( match[i] );
+			if ( cached[ expando ] ) {
+				setMatchers.push( cached );
+			} else {
+				elementMatchers.push( cached );
+			}
+		}
+
+		// Cache the compiled function
+		cached = compilerCache( selector, matcherFromGroupMatchers( elementMatchers, setMatchers ) );
+
+		// Save selector and tokenization
+		cached.selector = selector;
+	}
+	return cached;
+};
+
+/**
+ * A low-level selection function that works with Sizzle's compiled
+ *  selector functions
+ * @param {String|Function} selector A selector or a pre-compiled
+ *  selector function built with Sizzle.compile
+ * @param {Element} context
+ * @param {Array} [results]
+ * @param {Array} [seed] A set of elements to match against
+ */
+select = Sizzle.select = function( selector, context, results, seed ) {
+	var i, tokens, token, type, find,
+		compiled = typeof selector === "function" && selector,
+		match = !seed && tokenize( (selector = compiled.selector || selector) );
+
+	results = results || [];
+
+	// Try to minimize operations if there is only one selector in the list and no seed
+	// (the latter of which guarantees us context)
+	if ( match.length === 1 ) {
+
+		// Reduce context if the leading compound selector is an ID
+		tokens = match[0] = match[0].slice( 0 );
+		if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
+				support.getById && context.nodeType === 9 && documentIsHTML &&
+				Expr.relative[ tokens[1].type ] ) {
+
+			context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
+			if ( !context ) {
+				return results;
+
+			// Precompiled matchers will still verify ancestry, so step up a level
+			} else if ( compiled ) {
+				context = context.parentNode;
+			}
+
+			selector = selector.slice( tokens.shift().value.length );
+		}
+
+		// Fetch a seed set for right-to-left matching
+		i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
+		while ( i-- ) {
+			token = tokens[i];
+
+			// Abort if we hit a combinator
+			if ( Expr.relative[ (type = token.type) ] ) {
+				break;
+			}
+			if ( (find = Expr.find[ type ]) ) {
+				// Search, expanding context for leading sibling combinators
+				if ( (seed = find(
+					token.matches[0].replace( runescape, funescape ),
+					rsibling.test( tokens[0].type ) && testContext( context.parentNode ) || context
+				)) ) {
+
+					// If seed is empty or no tokens remain, we can return early
+					tokens.splice( i, 1 );
+					selector = seed.length && toSelector( tokens );
+					if ( !selector ) {
+						push.apply( results, seed );
+						return results;
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
+	// Compile and execute a filtering function if one is not provided
+	// Provide `match` to avoid retokenization if we modified the selector above
+	( compiled || compile( selector, match ) )(
+		seed,
+		context,
+		!documentIsHTML,
+		results,
+		!context || rsibling.test( selector ) && testContext( context.parentNode ) || context
+	);
+	return results;
+};
+
+// One-time assignments
+
+// Sort stability
+support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
+
+// Support: Chrome 14-35+
+// Always assume duplicates if they aren't passed to the comparison function
+support.detectDuplicates = !!hasDuplicate;
+
+// Initialize against the default document
+setDocument();
+
+// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
+// Detached nodes confoundingly follow *each other*
+support.sortDetached = assert(function( div1 ) {
+	// Should return 1, but returns 4 (following)
+	return div1.compareDocumentPosition( document.createElement("div") ) & 1;
+});
+
+// Support: IE<8
+// Prevent attribute/property "interpolation"
+// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+if ( !assert(function( div ) {
+	div.innerHTML = "<a href='#'></a>";
+	return div.firstChild.getAttribute("href") === "#" ;
+}) ) {
+	addHandle( "type|href|height|width", function( elem, name, isXML ) {
+		if ( !isXML ) {
+			return elem.getAttribute( name, name.toLowerCase() === "type" ? 1 : 2 );
+		}
+	});
+}
+
+// Support: IE<9
+// Use defaultValue in place of getAttribute("value")
+if ( !support.attributes || !assert(function( div ) {
+	div.innerHTML = "<input/>";
+	div.firstChild.setAttribute( "value", "" );
+	return div.firstChild.getAttribute( "value" ) === "";
+}) ) {
+	addHandle( "value", function( elem, name, isXML ) {
+		if ( !isXML && elem.nodeName.toLowerCase() === "input" ) {
+			return elem.defaultValue;
+		}
+	});
+}
+
+// Support: IE<9
+// Use getAttributeNode to fetch booleans when getAttribute lies
+if ( !assert(function( div ) {
+	return div.getAttribute("disabled") == null;
+}) ) {
+	addHandle( booleans, function( elem, name, isXML ) {
+		var val;
+		if ( !isXML ) {
+			return elem[ name ] === true ? name.toLowerCase() :
+					(val = elem.getAttributeNode( name )) && val.specified ?
+					val.value :
+				null;
+		}
+	});
+}
+
+// EXPOSE
+if ( typeof define === "function" && define.amd ) {
+	define(function() { return Sizzle; });
+// Sizzle requires that there be a global window in Common-JS like environments
+} else if ( typeof module !== "undefined" && module.exports ) {
+	module.exports = Sizzle;
+} else {
+	window.Sizzle = Sizzle;
+}
+// EXPOSE
+
+})( window );
+
+},{}],80:[function(require,module,exports){
 /**!
  * Sortable
  * @author	RubaXa   <trash@rubaxa.org>
@@ -43941,8 +40836,10 @@ arguments[4][42][0].apply(exports,arguments)
 		ghostEl,
 		cloneEl,
 		rootEl,
-		scrollEl,
 		nextEl,
+
+		scrollEl,
+		scrollParentEl,
 
 		lastEl,
 		lastCSS,
@@ -43956,38 +40853,98 @@ arguments[4][42][0].apply(exports,arguments)
 		tapEvt,
 		touchEvt,
 
+		/** @const */
+		RSPACE = /\s+/g,
+
 		expando = 'Sortable' + (new Date).getTime(),
 
 		win = window,
 		document = win.document,
 		parseInt = win.parseInt,
-		supportIEdnd = !!document.createElement('div').dragDrop,
+
+		supportDraggable = !!('draggable' in document.createElement('div')),
 
 		_silent = false,
-
-		_dispatchEvent = function (rootEl, name, targetEl, fromEl, startIndex, newIndex) {
-			var evt = document.createEvent('Event');
-
-			evt.initEvent(name, true, true);
-
-			evt.item = targetEl || rootEl;
-			evt.from = fromEl || rootEl;
-			evt.clone = cloneEl;
-
-			evt.oldIndex = startIndex;
-			evt.newIndex = newIndex;
-
-			rootEl.dispatchEvent(evt);
-		},
-
-		_customEvents = 'onAdd onUpdate onRemove onStart onEnd onFilter onSort'.split(' '),
-
-		noop = function () {},
 
 		abs = Math.abs,
 		slice = [].slice,
 
-		touchDragOverListeners = []
+		touchDragOverListeners = [],
+
+		_autoScroll = _throttle(function (/**Event*/evt, /**Object*/options, /**HTMLElement*/rootEl) {
+			// Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=505521
+			if (rootEl && options.scroll) {
+				var el,
+					rect,
+					sens = options.scrollSensitivity,
+					speed = options.scrollSpeed,
+
+					x = evt.clientX,
+					y = evt.clientY,
+
+					winWidth = window.innerWidth,
+					winHeight = window.innerHeight,
+
+					vx,
+					vy
+				;
+
+				// Delect scrollEl
+				if (scrollParentEl !== rootEl) {
+					scrollEl = options.scroll;
+					scrollParentEl = rootEl;
+
+					if (scrollEl === true) {
+						scrollEl = rootEl;
+
+						do {
+							if ((scrollEl.offsetWidth < scrollEl.scrollWidth) ||
+								(scrollEl.offsetHeight < scrollEl.scrollHeight)
+							) {
+								break;
+							}
+							/* jshint boss:true */
+						} while (scrollEl = scrollEl.parentNode);
+					}
+				}
+
+				if (scrollEl) {
+					el = scrollEl;
+					rect = scrollEl.getBoundingClientRect();
+					vx = (abs(rect.right - x) <= sens) - (abs(rect.left - x) <= sens);
+					vy = (abs(rect.bottom - y) <= sens) - (abs(rect.top - y) <= sens);
+				}
+
+
+				if (!(vx || vy)) {
+					vx = (winWidth - x <= sens) - (x <= sens);
+					vy = (winHeight - y <= sens) - (y <= sens);
+
+					/* jshint expr:true */
+					(vx || vy) && (el = win);
+				}
+
+
+				if (autoScroll.vx !== vx || autoScroll.vy !== vy || autoScroll.el !== el) {
+					autoScroll.el = el;
+					autoScroll.vx = vx;
+					autoScroll.vy = vy;
+
+					clearInterval(autoScroll.pid);
+
+					if (el) {
+						autoScroll.pid = setInterval(function () {
+							if (el === win) {
+								win.scrollTo(win.pageXOffset + vx * speed, win.pageYOffset + vy * speed);
+							} else {
+								vy && (el.scrollTop += vy * speed);
+								vx && (el.scrollLeft += vx * speed);
+							}
+						}, 24);
+					}
+				}
+			}
+		}, 30)
 	;
 
 
@@ -43999,7 +40956,11 @@ arguments[4][42][0].apply(exports,arguments)
 	 */
 	function Sortable(el, options) {
 		this.el = el; // root element
-		this.options = options = (options || {});
+		this.options = options = _extend({}, options);
+
+
+		// Export instance
+		el[expando] = this;
 
 
 		// Default options
@@ -44021,7 +40982,9 @@ arguments[4][42][0].apply(exports,arguments)
 				dataTransfer.setData('Text', dragEl.textContent);
 			},
 			dropBubble: false,
-			dragoverBubble: false
+			dragoverBubble: false,
+			dataIdAttr: 'data-id',
+			delay: 0
 		};
 
 
@@ -44045,15 +41008,7 @@ arguments[4][42][0].apply(exports,arguments)
 		});
 
 
-		// Define events
-		_customEvents.forEach(function (name) {
-			options[name] = _bind(this, options[name] || noop);
-			_on(el, name.substr(2).toLowerCase(), options[name]);
-		}, this);
-
-
-		// Export group name
-		el[expando] = group.name + ' ' + (group.put.join ? group.put.join(' ') : '');
+		options.groups = ' ' + group.name + (group.put.join ? ' ' + group.put.join(' ') : '') + ' ';
 
 
 		// Bind all private methods
@@ -44067,10 +41022,9 @@ arguments[4][42][0].apply(exports,arguments)
 		// Bind events
 		_on(el, 'mousedown', this._onTapStart);
 		_on(el, 'touchstart', this._onTapStart);
-		supportIEdnd && _on(el, 'selectstart', this._onTapStart);
 
-		_on(el, 'dragover', this._onDragOver);
-		_on(el, 'dragenter', this._onDragOver);
+		_on(el, 'dragover', this);
+		_on(el, 'dragenter', this);
 
 		touchDragOverListeners.push(this._onDragOver);
 
@@ -44082,36 +41036,26 @@ arguments[4][42][0].apply(exports,arguments)
 	Sortable.prototype = /** @lends Sortable.prototype */ {
 		constructor: Sortable,
 
-
-		_dragStarted: function () {
-			// Apply effect
-			_toggleClass(dragEl, this.options.ghostClass, true);
-
-			Sortable.active = this;
-
-			// Drag start event
-			_dispatchEvent(rootEl, 'start', dragEl, rootEl, oldIndex);
-		},
-
-
-		_onTapStart: function (/**Event|TouchEvent*/evt) {
-			var type = evt.type,
+		_onTapStart: function (/** Event|TouchEvent */evt) {
+			var _this = this,
+				el = this.el,
+				options = this.options,
+				type = evt.type,
 				touch = evt.touches && evt.touches[0],
 				target = (touch || evt).target,
 				originalTarget = target,
-				options =  this.options,
-				el = this.el,
 				filter = options.filter;
+
 
 			if (type === 'mousedown' && evt.button !== 0 || options.disabled) {
 				return; // only left button or enabled
 			}
 
-			if (options.handle) {
-				target = _closest(target, options.handle, el);
-			}
-
 			target = _closest(target, options.draggable, el);
+
+			if (!target) {
+				return;
+			}
 
 			// get the index of the dragged element within its parent
 			oldIndex = _index(target);
@@ -44119,7 +41063,7 @@ arguments[4][42][0].apply(exports,arguments)
 			// Check filter
 			if (typeof filter === 'function') {
 				if (filter.call(this, evt, target, this)) {
-					_dispatchEvent(originalTarget, 'filter', target, el, oldIndex);
+					_dispatchEvent(_this, originalTarget, 'filter', target, el, oldIndex);
 					evt.preventDefault();
 					return; // cancel dnd
 				}
@@ -44129,7 +41073,7 @@ arguments[4][42][0].apply(exports,arguments)
 					criteria = _closest(originalTarget, criteria.trim(), el);
 
 					if (criteria) {
-						_dispatchEvent(criteria, 'filter', target, el, oldIndex);
+						_dispatchEvent(_this, criteria, 'filter', target, el, oldIndex);
 						return true;
 					}
 				});
@@ -44140,55 +41084,112 @@ arguments[4][42][0].apply(exports,arguments)
 				}
 			}
 
-			// Prepare `dragstart`
-			if (target && !dragEl && (target.parentNode === el)) {
-				// IE 9 Support
-				(type === 'selectstart') && target.dragDrop();
 
+			if (options.handle && !_closest(originalTarget, options.handle, el)) {
+				return;
+			}
+
+
+			// Prepare `dragstart`
+			this._prepareDragStart(evt, touch, target);
+		},
+
+		_prepareDragStart: function (/** Event */evt, /** Touch */touch, /** HTMLElement */target) {
+			var _this = this,
+				el = _this.el,
+				options = _this.options,
+				ownerDocument = el.ownerDocument,
+				dragStartFn;
+
+			if (target && !dragEl && (target.parentNode === el)) {
 				tapEvt = evt;
 
-				rootEl = this.el;
+				rootEl = el;
 				dragEl = target;
 				nextEl = dragEl.nextSibling;
-				activeGroup = this.options.group;
+				activeGroup = options.group;
 
-				dragEl.draggable = true;
+				dragStartFn = function () {
+					// Delayed drag has been triggered
+					// we can re-enable the events: touchmove/mousemove
+					_this._disableDelayedDrag();
 
-				// Disable "draggable"
-				options.ignore.split(',').forEach(function (criteria) {
-					_find(target, criteria.trim(), _disableDraggable);
-				});
+					// Make the element draggable
+					dragEl.draggable = true;
 
-				if (touch) {
-					// Touch device support
-					tapEvt = {
-						target: target,
-						clientX: touch.clientX,
-						clientY: touch.clientY
-					};
+					// Disable "draggable"
+					options.ignore.split(',').forEach(function (criteria) {
+						_find(dragEl, criteria.trim(), _disableDraggable);
+					});
 
-					this._onDragStart(tapEvt, true);
-					evt.preventDefault();
+					// Bind the events: dragstart/dragend
+					_this._triggerDragStart(touch);
+				};
+
+				_on(ownerDocument, 'mouseup', _this._onDrop);
+				_on(ownerDocument, 'touchend', _this._onDrop);
+				_on(ownerDocument, 'touchcancel', _this._onDrop);
+
+				if (options.delay) {
+					// If the user moves the pointer before the delay has been reached:
+					// disable the delayed drag
+					_on(ownerDocument, 'mousemove', _this._disableDelayedDrag);
+					_on(ownerDocument, 'touchmove', _this._disableDelayedDrag);
+
+					_this._dragStartTimer = setTimeout(dragStartFn, options.delay);
+				} else {
+					dragStartFn();
 				}
+			}
+		},
 
-				_on(document, 'mouseup', this._onDrop);
-				_on(document, 'touchend', this._onDrop);
-				_on(document, 'touchcancel', this._onDrop);
+		_disableDelayedDrag: function () {
+			var ownerDocument = this.el.ownerDocument;
 
+			clearTimeout(this._dragStartTimer);
+
+			_off(ownerDocument, 'mousemove', this._disableDelayedDrag);
+			_off(ownerDocument, 'touchmove', this._disableDelayedDrag);
+		},
+
+		_triggerDragStart: function (/** Touch */touch) {
+			if (touch) {
+				// Touch device support
+				tapEvt = {
+					target: dragEl,
+					clientX: touch.clientX,
+					clientY: touch.clientY
+				};
+
+				this._onDragStart(tapEvt, 'touch');
+			}
+			else if (!supportDraggable) {
+				this._onDragStart(tapEvt, true);
+			}
+			else {
 				_on(dragEl, 'dragend', this);
 				_on(rootEl, 'dragstart', this._onDragStart);
+			}
 
-				_on(document, 'dragover', this);
-
-
-				try {
-					if (document.selection) {
-						document.selection.empty();
-					} else {
-						window.getSelection().removeAllRanges();
-					}
-				} catch (err) {
+			try {
+				if (document.selection) {
+					document.selection.empty();
+				} else {
+					window.getSelection().removeAllRanges();
 				}
+			} catch (err) {
+			}
+		},
+
+		_dragStarted: function () {
+			if (rootEl && dragEl) {
+				// Apply effect
+				_toggleClass(dragEl, this.options.ghostClass, true);
+
+				Sortable.active = this;
+
+				// Drag start event
+				_dispatchEvent(this, rootEl, 'start', dragEl, rootEl, oldIndex);
 			}
 		},
 
@@ -44198,12 +41199,12 @@ arguments[4][42][0].apply(exports,arguments)
 
 				var target = document.elementFromPoint(touchEvt.clientX, touchEvt.clientY),
 					parent = target,
-					groupName = this.options.group.name,
+					groupName = ' ' + this.options.group.name + '',
 					i = touchDragOverListeners.length;
 
 				if (parent) {
 					do {
-						if ((' ' + parent[expando] + ' ').indexOf(groupName) > -1) {
+						if (parent[expando] && parent[expando].options.groups.indexOf(groupName) > -1) {
 							while (i--) {
 								touchDragOverListeners[i]({
 									clientX: touchEvt.clientX,
@@ -44229,10 +41230,10 @@ arguments[4][42][0].apply(exports,arguments)
 
 		_onTouchMove: function (/**TouchEvent*/evt) {
 			if (tapEvt) {
-				var touch = evt.touches[0],
+				var touch = evt.touches ? evt.touches[0] : evt,
 					dx = touch.clientX - tapEvt.clientX,
 					dy = touch.clientY - tapEvt.clientY,
-					translate3d = 'translate3d(' + dx + 'px,' + dy + 'px,0)';
+					translate3d = evt.touches ? 'translate3d(' + dx + 'px,' + dy + 'px,0)' : 'translate(' + dx + 'px,' + dy + 'px)';
 
 				touchEvt = touch;
 
@@ -44241,13 +41242,12 @@ arguments[4][42][0].apply(exports,arguments)
 				_css(ghostEl, 'msTransform', translate3d);
 				_css(ghostEl, 'transform', translate3d);
 
-				this._onDrag(touch);
 				evt.preventDefault();
 			}
 		},
 
 
-		_onDragStart: function (/**Event*/evt, /**boolean*/isTouch) {
+		_onDragStart: function (/**Event*/evt, /**boolean*/useFallback) {
 			var dataTransfer = evt.dataTransfer,
 				options = this.options;
 
@@ -44259,7 +41259,7 @@ arguments[4][42][0].apply(exports,arguments)
 				rootEl.insertBefore(cloneEl, dragEl);
 			}
 
-			if (isTouch) {
+			if (useFallback) {
 				var rect = dragEl.getBoundingClientRect(),
 					css = _css(dragEl),
 					ghostRect;
@@ -44281,10 +41281,16 @@ arguments[4][42][0].apply(exports,arguments)
 				_css(ghostEl, 'width', rect.width * 2 - ghostRect.width);
 				_css(ghostEl, 'height', rect.height * 2 - ghostRect.height);
 
-				// Bind touch events
-				_on(document, 'touchmove', this._onTouchMove);
-				_on(document, 'touchend', this._onDrop);
-				_on(document, 'touchcancel', this._onDrop);
+				if (useFallback === 'touch') {
+					// Bind touch events
+					_on(document, 'touchmove', this._onTouchMove);
+					_on(document, 'touchend', this._onDrop);
+					_on(document, 'touchcancel', this._onDrop);
+				} else {
+					// Old brwoser
+					_on(document, 'mousemove', this._onTouchMove);
+					_on(document, 'mouseup', this._onDrop);
+				}
 
 				this._loopId = setInterval(this._emulateDragOver, 150);
 			}
@@ -44297,74 +41303,8 @@ arguments[4][42][0].apply(exports,arguments)
 				_on(document, 'drop', this);
 			}
 
-			scrollEl = options.scroll;
-
-			if (scrollEl === true) {
-				scrollEl = rootEl;
-
-				do {
-					if ((scrollEl.offsetWidth < scrollEl.scrollWidth) ||
-						(scrollEl.offsetHeight < scrollEl.scrollHeight)
-					) {
-						break;
-					}
-				/* jshint boss:true */
-				} while (scrollEl = scrollEl.parentNode);
-			}
-
 			setTimeout(this._dragStarted, 0);
 		},
-
-		_onDrag: _throttle(function (/**Event*/evt) {
-			// Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=505521
-			if (rootEl && this.options.scroll) {
-				var el,
-					rect,
-					options = this.options,
-					sens = options.scrollSensitivity,
-					speed = options.scrollSpeed,
-
-					x = evt.clientX,
-					y = evt.clientY,
-
-					winWidth = window.innerWidth,
-					winHeight = window.innerHeight,
-
-					vx = (winWidth - x <= sens) - (x <= sens),
-					vy = (winHeight - y <= sens) - (y <= sens)
-				;
-
-				if (vx || vy) {
-					el = win;
-				}
-				else if (scrollEl) {
-					el = scrollEl;
-					rect = scrollEl.getBoundingClientRect();
-					vx = (abs(rect.right - x) <= sens) - (abs(rect.left - x) <= sens);
-					vy = (abs(rect.bottom - y) <= sens) - (abs(rect.top - y) <= sens);
-				}
-
-				if (autoScroll.vx !== vx || autoScroll.vy !== vy || autoScroll.el !== el) {
-					autoScroll.el = el;
-					autoScroll.vx = vx;
-					autoScroll.vy = vy;
-
-					clearInterval(autoScroll.pid);
-
-					if (el) {
-						autoScroll.pid = setInterval(function () {
-							if (el === win) {
-								win.scrollTo(win.scrollX + vx * speed, win.scrollY + vy * speed);
-							} else {
-								vy && (el.scrollTop += vy * speed);
-								vx && (el.scrollLeft += vx * speed);
-							}
-						}, 24);
-					}
-				}
-			}
-		}, 30),
-
 
 		_onDragOver: function (/**Event*/evt) {
 			var el = this.el,
@@ -44382,16 +41322,23 @@ arguments[4][42][0].apply(exports,arguments)
 				!options.dragoverBubble && evt.stopPropagation();
 			}
 
-			if (!_silent && activeGroup &&
+			if (activeGroup && !options.disabled &&
 				(isOwner
-					? canSort || (revert = !rootEl.contains(dragEl))
+					? canSort || (revert = !rootEl.contains(dragEl)) // Reverting item into the original list
 					: activeGroup.pull && groupPut && (
 						(activeGroup.name === group.name) || // by Name
 						(groupPut.indexOf && ~groupPut.indexOf(activeGroup.name)) // by Array
 					)
 				) &&
-				(evt.rootEl === void 0 || evt.rootEl === this.el)
+				(evt.rootEl === void 0 || evt.rootEl === this.el) // touch fallback
 			) {
+				// Smart auto-scrolling
+				_autoScroll(evt, options, this.el);
+
+				if (_silent) {
+					return;
+				}
+
 				target = _closest(evt.target, options.draggable, el);
 				dragRect = dragEl.getBoundingClientRect();
 
@@ -44422,9 +41369,11 @@ arguments[4][42][0].apply(exports,arguments)
 
 					_cloneHide(isOwner);
 
-					el.appendChild(dragEl);
-					this._animate(dragRect, dragEl);
-					target && this._animate(targetRect, target);
+					if (_onMove(rootEl, el, dragEl, dragRect, target, targetRect) !== false) {
+						el.appendChild(dragEl);
+						this._animate(dragRect, dragEl);
+						target && this._animate(targetRect, target);
+					}
 				}
 				else if (target && !target.animated && target !== dragEl && (target.parentNode[expando] !== void 0)) {
 					if (lastEl !== target) {
@@ -44441,28 +41390,34 @@ arguments[4][42][0].apply(exports,arguments)
 						isLong = (target.offsetHeight > dragEl.offsetHeight),
 						halfway = (floating ? (evt.clientX - targetRect.left) / width : (evt.clientY - targetRect.top) / height) > 0.5,
 						nextSibling = target.nextElementSibling,
+						moveVector = _onMove(rootEl, el, dragEl, dragRect, target, targetRect),
 						after
 					;
 
-					_silent = true;
-					setTimeout(_unsilent, 30);
+					if (moveVector !== false) {
+						_silent = true;
+						setTimeout(_unsilent, 30);
 
-					_cloneHide(isOwner);
+						_cloneHide(isOwner);
 
-					if (floating) {
-						after = (target.previousElementSibling === dragEl) && !isWide || halfway && isWide;
-					} else {
-						after = (nextSibling !== dragEl) && !isLong || halfway && isLong;
+						if (moveVector === 1 || moveVector === -1) {
+							after = (moveVector === 1);
+						}
+						else if (floating) {
+							after = (target.previousElementSibling === dragEl) && !isWide || halfway && isWide;
+						} else {
+							after = (nextSibling !== dragEl) && !isLong || halfway && isLong;
+						}
+
+						if (after && !nextSibling) {
+							el.appendChild(dragEl);
+						} else {
+							target.parentNode.insertBefore(dragEl, after ? nextSibling : target);
+						}
+
+						this._animate(dragRect, dragEl);
+						this._animate(targetRect, target);
 					}
-
-					if (after && !nextSibling) {
-						el.appendChild(dragEl);
-					} else {
-						target.parentNode.insertBefore(dragEl, after ? nextSibling : target);
-					}
-
-					this._animate(dragRect, dragEl);
-					this._animate(targetRect, target);
 				}
 			}
 		},
@@ -44487,16 +41442,19 @@ arguments[4][42][0].apply(exports,arguments)
 				clearTimeout(target.animated);
 				target.animated = setTimeout(function () {
 					_css(target, 'transition', '');
+					_css(target, 'transform', '');
 					target.animated = false;
 				}, ms);
 			}
 		},
 
 		_offUpEvents: function () {
-			_off(document, 'mouseup', this._onDrop);
+			var ownerDocument = this.el.ownerDocument;
+
 			_off(document, 'touchmove', this._onTouchMove);
-			_off(document, 'touchend', this._onDrop);
-			_off(document, 'touchcancel', this._onDrop);
+			_off(ownerDocument, 'mouseup', this._onDrop);
+			_off(ownerDocument, 'touchend', this._onDrop);
+			_off(ownerDocument, 'touchcancel', this._onDrop);
 		},
 
 		_onDrop: function (/**Event*/evt) {
@@ -44505,11 +41463,11 @@ arguments[4][42][0].apply(exports,arguments)
 
 			clearInterval(this._loopId);
 			clearInterval(autoScroll.pid);
+			clearTimeout(this._dragStartTimer);
 
 			// Unbind events
 			_off(document, 'drop', this);
-			_off(document, 'dragover', this);
-
+			_off(document, 'mousemove', this._onTouchMove);
 			_off(el, 'dragstart', this._onDragStart);
 
 			this._offUpEvents();
@@ -44530,14 +41488,14 @@ arguments[4][42][0].apply(exports,arguments)
 						newIndex = _index(dragEl);
 
 						// drag from one list and drop into another
-						_dispatchEvent(dragEl.parentNode, 'sort', dragEl, rootEl, oldIndex, newIndex);
-						_dispatchEvent(rootEl, 'sort', dragEl, rootEl, oldIndex, newIndex);
+						_dispatchEvent(null, dragEl.parentNode, 'sort', dragEl, rootEl, oldIndex, newIndex);
+						_dispatchEvent(this, rootEl, 'sort', dragEl, rootEl, oldIndex, newIndex);
 
 						// Add event
-						_dispatchEvent(dragEl, 'add', dragEl, rootEl, oldIndex, newIndex);
+						_dispatchEvent(null, dragEl.parentNode, 'add', dragEl, rootEl, oldIndex, newIndex);
 
 						// Remove event
-						_dispatchEvent(rootEl, 'remove', dragEl, rootEl, oldIndex, newIndex);
+						_dispatchEvent(this, rootEl, 'remove', dragEl, rootEl, oldIndex, newIndex);
 					}
 					else {
 						// Remove clone
@@ -44548,21 +41506,29 @@ arguments[4][42][0].apply(exports,arguments)
 							newIndex = _index(dragEl);
 
 							// drag & drop within the same list
-							_dispatchEvent(rootEl, 'update', dragEl, rootEl, oldIndex, newIndex);
-							_dispatchEvent(rootEl, 'sort', dragEl, rootEl, oldIndex, newIndex);
+							_dispatchEvent(this, rootEl, 'update', dragEl, rootEl, oldIndex, newIndex);
+							_dispatchEvent(this, rootEl, 'sort', dragEl, rootEl, oldIndex, newIndex);
 						}
 					}
 
-					// Drag end event
-					Sortable.active && _dispatchEvent(rootEl, 'end', dragEl, rootEl, oldIndex, newIndex);
+					if (Sortable.active) {
+						// Drag end event
+						_dispatchEvent(this, rootEl, 'end', dragEl, rootEl, oldIndex, newIndex);
+
+						// Save sorting
+						this.save();
+					}
 				}
 
-				// Set NULL
+				// Nulling
 				rootEl =
 				dragEl =
 				ghostEl =
 				nextEl =
 				cloneEl =
+
+				scrollEl =
+				scrollParentEl =
 
 				tapEvt =
 				touchEvt =
@@ -44572,9 +41538,6 @@ arguments[4][42][0].apply(exports,arguments)
 
 				activeGroup =
 				Sortable.active = null;
-
-				// Save sorting
-				this.save();
 			}
 		},
 
@@ -44582,9 +41545,11 @@ arguments[4][42][0].apply(exports,arguments)
 		handleEvent: function (/**Event*/evt) {
 			var type = evt.type;
 
-			if (type === 'dragover') {
-				this._onDrag(evt);
-				_globalDragOver(evt);
+			if (type === 'dragover' || type === 'dragenter') {
+				if (dragEl) {
+					this._onDragOver(evt);
+					_globalDragOver(evt);
+				}
 			}
 			else if (type === 'drop' || type === 'dragend') {
 				this._onDrop(evt);
@@ -44601,12 +41566,13 @@ arguments[4][42][0].apply(exports,arguments)
 				el,
 				children = this.el.children,
 				i = 0,
-				n = children.length;
+				n = children.length,
+				options = this.options;
 
 			for (; i < n; i++) {
 				el = children[i];
-				if (_closest(el, this.options.draggable, this.el)) {
-					order.push(el.getAttribute('data-id') || _generateId(el));
+				if (_closest(el, options.draggable, this.el)) {
+					order.push(el.getAttribute(options.dataIdAttr) || _generateId(el));
 				}
 			}
 
@@ -44679,20 +41645,17 @@ arguments[4][42][0].apply(exports,arguments)
 		 * Destroy
 		 */
 		destroy: function () {
-			var el = this.el, options = this.options;
+			var el = this.el;
 
-			_customEvents.forEach(function (name) {
-				_off(el, name.substr(2).toLowerCase(), options[name]);
-			});
+			el[expando] = null;
 
 			_off(el, 'mousedown', this._onTapStart);
 			_off(el, 'touchstart', this._onTapStart);
-			_off(el, 'selectstart', this._onTapStart);
 
-			_off(el, 'dragover', this._onDragOver);
-			_off(el, 'dragenter', this._onDragOver);
+			_off(el, 'dragover', this);
+			_off(el, 'dragenter', this);
 
-			//remove draggable attributes
+			// Remove draggable attributes
 			Array.prototype.forEach.call(el.querySelectorAll('[draggable]'), function (el) {
 				el.removeAttribute('draggable');
 			});
@@ -44701,7 +41664,7 @@ arguments[4][42][0].apply(exports,arguments)
 
 			this._onDrop();
 
-			this.el = null;
+			this.el = el = null;
 		}
 	};
 
@@ -44729,7 +41692,7 @@ arguments[4][42][0].apply(exports,arguments)
 			selector = selector.split('.');
 
 			var tag = selector.shift().toUpperCase(),
-				re = new RegExp('\\s(' + selector.join('|') + ')\\s', 'g');
+				re = new RegExp('\\s(' + selector.join('|') + ')(?=\\s)', 'g');
 
 			do {
 				if (
@@ -44770,8 +41733,8 @@ arguments[4][42][0].apply(exports,arguments)
 				el.classList[state ? 'add' : 'remove'](name);
 			}
 			else {
-				var className = (' ' + el.className + ' ').replace(/\s+/g, ' ').replace(' ' + name + ' ', '');
-				el.className = className + (state ? ' ' + name : '');
+				var className = (' ' + el.className + ' ').replace(RSPACE, ' ').replace(' ' + name + ' ', ' ');
+				el.className = (className + (state ? ' ' + name : '')).replace(RSPACE, ' ');
 			}
 		}
 	}
@@ -44819,6 +41782,54 @@ arguments[4][42][0].apply(exports,arguments)
 	}
 
 
+
+	function _dispatchEvent(sortable, rootEl, name, targetEl, fromEl, startIndex, newIndex) {
+		var evt = document.createEvent('Event'),
+			options = (sortable || rootEl[expando]).options,
+			onName = 'on' + name.charAt(0).toUpperCase() + name.substr(1);
+
+		evt.initEvent(name, true, true);
+
+		evt.to = rootEl;
+		evt.from = fromEl || rootEl;
+		evt.item = targetEl || rootEl;
+		evt.clone = cloneEl;
+
+		evt.oldIndex = startIndex;
+		evt.newIndex = newIndex;
+
+		rootEl.dispatchEvent(evt);
+
+		if (options[onName]) {
+			options[onName].call(sortable, evt);
+		}
+	}
+
+
+	function _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect) {
+		var evt,
+			sortable = fromEl[expando],
+			onMoveFn = sortable.options.onMove,
+			retVal;
+
+		if (onMoveFn) {
+			evt = document.createEvent('Event');
+			evt.initEvent('move', true, true);
+
+			evt.to = toEl;
+			evt.from = fromEl;
+			evt.dragged = dragEl;
+			evt.draggedRect = dragRect;
+			evt.related = targetEl || toEl;
+			evt.relatedRect = targetRect || toEl.getBoundingClientRect();
+
+			retVal = onMoveFn.call(sortable, evt);
+		}
+
+		return retVal;
+	}
+
+
 	function _disableDraggable(el) {
 		el.draggable = false;
 	}
@@ -44831,7 +41842,9 @@ arguments[4][42][0].apply(exports,arguments)
 
 	/** @returns {HTMLElement|false} */
 	function _ghostInBottom(el, evt) {
-		var lastEl = el.lastElementChild, rect = lastEl.getBoundingClientRect();
+		var lastEl = el.lastElementChild,
+			rect = lastEl.getBoundingClientRect();
+
 		return (evt.clientY - (rect.top + rect.height) > 5) && lastEl; // min delta
 	}
 
@@ -44862,8 +41875,10 @@ arguments[4][42][0].apply(exports,arguments)
 	 */
 	function _index(/**HTMLElement*/el) {
 		var index = 0;
-		while (el && (el = el.previousElementSibling) && (el.nodeName.toUpperCase() !== 'TEMPLATE')) {
-			index++;
+		while (el && (el = el.previousElementSibling)) {
+			if (el.nodeName.toUpperCase() !== 'TEMPLATE') {
+				index++;
+			}
 		}
 		return index;
 	}
@@ -44889,6 +41904,18 @@ arguments[4][42][0].apply(exports,arguments)
 		};
 	}
 
+	function _extend(dst, src) {
+		if (dst && src) {
+			for (var key in src) {
+				if (src.hasOwnProperty(key)) {
+					dst[key] = src[key];
+				}
+			}
+		}
+
+		return dst;
+	}
+
 
 	// Export utils
 	Sortable.utils = {
@@ -44900,15 +41927,15 @@ arguments[4][42][0].apply(exports,arguments)
 		is: function (el, selector) {
 			return !!_closest(el, selector, el);
 		},
+		extend: _extend,
 		throttle: _throttle,
 		closest: _closest,
 		toggleClass: _toggleClass,
-		dispatchEvent: _dispatchEvent,
 		index: _index
 	};
 
 
-	Sortable.version = '1.0.1';
+	Sortable.version = '1.2.1';
 
 
 	/**
@@ -44924,22 +41951,22 @@ arguments[4][42][0].apply(exports,arguments)
 	return Sortable;
 });
 
-},{}],96:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":107}],97:[function(require,module,exports){
+},{"./vdom/create-element.js":93}],82:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":130}],98:[function(require,module,exports){
+},{"./vtree/diff.js":116}],83:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":115}],99:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":101}],84:[function(require,module,exports){
 /*!
  * Cross-Browser Split 1.1.1
  * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
@@ -45047,7 +42074,7 @@ module.exports = (function split(undef) {
   return self;
 })();
 
-},{}],100:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 'use strict';
 
 var OneVersionConstraint = require('individual/one-version');
@@ -45069,7 +42096,7 @@ function EvStore(elem) {
     return hash;
 }
 
-},{"individual/one-version":102}],101:[function(require,module,exports){
+},{"individual/one-version":87}],86:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -45093,7 +42120,7 @@ function Individual(key, value) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],102:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 'use strict';
 
 var Individual = require('./index.js');
@@ -45117,7 +42144,7 @@ function OneVersion(moduleName, version, defaultValue) {
     return Individual(key, defaultValue);
 }
 
-},{"./index.js":101}],103:[function(require,module,exports){
+},{"./index.js":86}],88:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -45137,19 +42164,29 @@ if (typeof document !== 'undefined') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"min-document":45}],104:[function(require,module,exports){
+},{"min-document":31}],89:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
 	return typeof x === "object" && x !== null;
 };
 
-},{}],105:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
+var nativeIsArray = Array.isArray
+var toString = Object.prototype.toString
+
+module.exports = nativeIsArray || isArray
+
+function isArray(obj) {
+    return toString.call(obj) === "[object Array]"
+}
+
+},{}],91:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":110}],106:[function(require,module,exports){
+},{"./vdom/patch.js":96}],92:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -45248,7 +42285,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":121,"is-object":104}],107:[function(require,module,exports){
+},{"../vnode/is-vhook.js":107,"is-object":89}],93:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -45296,7 +42333,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":119,"../vnode/is-vnode.js":122,"../vnode/is-vtext.js":123,"../vnode/is-widget.js":124,"./apply-properties":106,"global/document":103}],108:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":105,"../vnode/is-vnode.js":108,"../vnode/is-vtext.js":109,"../vnode/is-widget.js":110,"./apply-properties":92,"global/document":88}],94:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -45383,13 +42420,12 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],109:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
 var VPatch = require("../vnode/vpatch.js")
 
-var render = require("./create-element")
 var updateWidget = require("./update-widget")
 
 module.exports = applyPatch
@@ -45437,7 +42473,7 @@ function removeNode(domNode, vNode) {
 }
 
 function insertNode(parentNode, vNode, renderOptions) {
-    var newNode = render(vNode, renderOptions)
+    var newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode) {
         parentNode.appendChild(newNode)
@@ -45454,7 +42490,7 @@ function stringPatch(domNode, leftVNode, vText, renderOptions) {
         newNode = domNode
     } else {
         var parentNode = domNode.parentNode
-        newNode = render(vText, renderOptions)
+        newNode = renderOptions.render(vText, renderOptions)
 
         if (parentNode && newNode !== domNode) {
             parentNode.replaceChild(newNode, domNode)
@@ -45471,7 +42507,7 @@ function widgetPatch(domNode, leftVNode, widget, renderOptions) {
     if (updating) {
         newNode = widget.update(leftVNode, domNode) || domNode
     } else {
-        newNode = render(widget, renderOptions)
+        newNode = renderOptions.render(widget, renderOptions)
     }
 
     var parentNode = domNode.parentNode
@@ -45489,7 +42525,7 @@ function widgetPatch(domNode, leftVNode, widget, renderOptions) {
 
 function vNodePatch(domNode, leftVNode, vNode, renderOptions) {
     var parentNode = domNode.parentNode
-    var newNode = render(vNode, renderOptions)
+    var newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode && newNode !== domNode) {
         parentNode.replaceChild(newNode, domNode)
@@ -45537,16 +42573,23 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":124,"../vnode/vpatch.js":127,"./apply-properties":106,"./create-element":107,"./update-widget":111}],110:[function(require,module,exports){
+},{"../vnode/is-widget.js":110,"../vnode/vpatch.js":113,"./apply-properties":92,"./update-widget":97}],96:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
+var render = require("./create-element")
 var domIndex = require("./dom-index")
 var patchOp = require("./patch-op")
 module.exports = patch
 
-function patch(rootNode, patches) {
-    return patchRecursive(rootNode, patches)
+function patch(rootNode, patches, renderOptions) {
+    renderOptions = renderOptions || {}
+    renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
+        ? renderOptions.patch
+        : patchRecursive
+    renderOptions.render = renderOptions.render || render
+
+    return renderOptions.patch(rootNode, patches, renderOptions)
 }
 
 function patchRecursive(rootNode, patches, renderOptions) {
@@ -45559,11 +42602,8 @@ function patchRecursive(rootNode, patches, renderOptions) {
     var index = domIndex(rootNode, patches.a, indices)
     var ownerDocument = rootNode.ownerDocument
 
-    if (!renderOptions) {
-        renderOptions = { patch: patchRecursive }
-        if (ownerDocument !== document) {
-            renderOptions.document = ownerDocument
-        }
+    if (!renderOptions.document && ownerDocument !== document) {
+        renderOptions.document = ownerDocument
     }
 
     for (var i = 0; i < indices.length; i++) {
@@ -45615,7 +42655,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":108,"./patch-op":109,"global/document":103,"x-is-array":131}],111:[function(require,module,exports){
+},{"./create-element":93,"./dom-index":94,"./patch-op":95,"global/document":88,"x-is-array":90}],97:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -45632,7 +42672,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":124}],112:[function(require,module,exports){
+},{"../vnode/is-widget.js":110}],98:[function(require,module,exports){
 'use strict';
 
 module.exports = AttributeHook;
@@ -45669,7 +42709,7 @@ AttributeHook.prototype.unhook = function (node, prop, next) {
 
 AttributeHook.prototype.type = 'AttributeHook';
 
-},{}],113:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -45698,7 +42738,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":100}],114:[function(require,module,exports){
+},{"ev-store":85}],100:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -45717,7 +42757,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],115:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -45783,6 +42823,8 @@ function h(tagName, properties, children) {
 function addChild(c, childNodes, tag, props) {
     if (typeof c === 'string') {
         childNodes.push(new VText(c));
+    } else if (typeof c === 'number') {
+        childNodes.push(new VText(String(c)));
     } else if (isChild(c)) {
         childNodes.push(c);
     } else if (isArray(c)) {
@@ -45854,12 +42896,12 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":120,"../vnode/is-vhook":121,"../vnode/is-vnode":122,"../vnode/is-vtext":123,"../vnode/is-widget":124,"../vnode/vnode.js":126,"../vnode/vtext.js":128,"./hooks/ev-hook.js":113,"./hooks/soft-set-hook.js":114,"./parse-tag.js":116,"x-is-array":131}],116:[function(require,module,exports){
+},{"../vnode/is-thunk":106,"../vnode/is-vhook":107,"../vnode/is-vnode":108,"../vnode/is-vtext":109,"../vnode/is-widget":110,"../vnode/vnode.js":112,"../vnode/vtext.js":114,"./hooks/ev-hook.js":99,"./hooks/soft-set-hook.js":100,"./parse-tag.js":102,"x-is-array":90}],102:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
 
-var classIdSplit = /([\.#]?[a-zA-Z0-9_:-]+)/;
+var classIdSplit = /([\.#]?[a-zA-Z0-9\u007F-\uFFFF_:-]+)/;
 var notClassId = /^\.|#/;
 
 module.exports = parseTag;
@@ -45910,7 +42952,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":99}],117:[function(require,module,exports){
+},{"browser-split":84}],103:[function(require,module,exports){
 'use strict';
 
 var DEFAULT_NAMESPACE = null;
@@ -46225,7 +43267,7 @@ function SVGAttributeNamespace(value) {
   }
 }
 
-},{}],118:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -46289,7 +43331,7 @@ function isChildren(x) {
     return typeof x === 'string' || isArray(x);
 }
 
-},{"./hooks/attribute-hook":112,"./index.js":115,"./svg-attribute-namespace":117,"x-is-array":131}],119:[function(require,module,exports){
+},{"./hooks/attribute-hook":98,"./index.js":101,"./svg-attribute-namespace":103,"x-is-array":90}],105:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -46331,14 +43373,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":120,"./is-vnode":122,"./is-vtext":123,"./is-widget":124}],120:[function(require,module,exports){
+},{"./is-thunk":106,"./is-vnode":108,"./is-vtext":109,"./is-widget":110}],106:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],121:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -46347,7 +43389,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],122:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -46356,7 +43398,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":125}],123:[function(require,module,exports){
+},{"./version":111}],109:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -46365,17 +43407,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":125}],124:[function(require,module,exports){
+},{"./version":111}],110:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],125:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 module.exports = "2"
 
-},{}],126:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -46449,7 +43491,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":120,"./is-vhook":121,"./is-vnode":122,"./is-widget":124,"./version":125}],127:[function(require,module,exports){
+},{"./is-thunk":106,"./is-vhook":107,"./is-vnode":108,"./is-widget":110,"./version":111}],113:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -46473,7 +43515,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":125}],128:[function(require,module,exports){
+},{"./version":111}],114:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -46485,7 +43527,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":125}],129:[function(require,module,exports){
+},{"./version":111}],115:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -46545,7 +43587,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":121,"is-object":104}],130:[function(require,module,exports){
+},{"../vnode/is-vhook":107,"is-object":89}],116:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -46956,7 +43998,7 @@ function keyIndex(children) {
 
     return {
         keys: keys,     // A hash of key name to index
-        free: free,     // An array of unkeyed item indices
+        free: free      // An array of unkeyed item indices
     }
 }
 
@@ -46974,17 +44016,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":119,"../vnode/is-thunk":120,"../vnode/is-vnode":122,"../vnode/is-vtext":123,"../vnode/is-widget":124,"../vnode/vpatch":127,"./diff-props":129,"x-is-array":131}],131:[function(require,module,exports){
-var nativeIsArray = Array.isArray
-var toString = Object.prototype.toString
-
-module.exports = nativeIsArray || isArray
-
-function isArray(obj) {
-    return toString.call(obj) === "[object Array]"
-}
-
-},{}],132:[function(require,module,exports){
+},{"../vnode/handle-thunk":105,"../vnode/is-thunk":106,"../vnode/is-vnode":108,"../vnode/is-vtext":109,"../vnode/is-widget":110,"../vnode/vpatch":113,"./diff-props":115,"x-is-array":90}],117:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	diatonic = require('./diatonic.js'),
@@ -48338,7 +45370,7 @@ exports.determine_extended_chord5 = determine_extended_chord5;
 exports.determine_extended_chord6 = determine_extended_chord6;
 exports.determine_extended_chord7 = determine_extended_chord7;
 exports.determine_polychords = determine_polychords;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./intervals.js":135,"./notes.js":137}],133:[function(require,module,exports){
+},{"../node_modules/underscore":124,"./diatonic.js":118,"./intervals.js":120,"./notes.js":122}],118:[function(require,module,exports){
 var notes = require('./notes.js'),
 	_ = require('../node_modules/underscore');
 
@@ -48454,14 +45486,14 @@ exports._key_cache = _key_cache;
 exports.get_notes = get_notes;
 exports.int_to_note = int_to_note;
 exports.interval = interval;
-},{"../node_modules/underscore":139,"./notes.js":137}],134:[function(require,module,exports){
+},{"../node_modules/underscore":124,"./notes.js":122}],119:[function(require,module,exports){
 exports.diatonic = require('./diatonic.js');
 exports.notes = require('./notes.js');
 exports.intervals = require('./intervals.js');
 exports.chords = require('./chords.js');
 exports.scales = require('./scales.js');
 exports.meter = require('./meter.js');
-},{"./chords.js":132,"./diatonic.js":133,"./intervals.js":135,"./meter.js":136,"./notes.js":137,"./scales.js":138}],135:[function(require,module,exports){
+},{"./chords.js":117,"./diatonic.js":118,"./intervals.js":120,"./meter.js":121,"./notes.js":122,"./scales.js":123}],120:[function(require,module,exports){
 var notes = require('./notes.js'),
 	diatonic = require('./diatonic.js');
 	_ = require('../node_modules/underscore');
@@ -48913,7 +45945,7 @@ exports.is_consonant = is_consonant;
 exports.is_dissonant = is_dissonant;
 exports.is_perfect_consonant = is_perfect_consonant;
 exports.is_imperfect_consonant = is_imperfect_consonant;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./notes.js":137}],136:[function(require,module,exports){
+},{"../node_modules/underscore":124,"./diatonic.js":118,"./notes.js":122}],121:[function(require,module,exports){
 common_time = (4, 4);
 cut_time = (2, 2);
 
@@ -48955,7 +45987,7 @@ exports.is_valid = is_valid;
 exports.is_compound = is_compound;
 exports.is_asymmetrical = is_asymmetrical;
 exports.is_simple = is_simple;
-},{}],137:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	_ = require('../node_modules/underscore');
 
@@ -49097,7 +46129,7 @@ exports.augment = augment
 exports.diminish = diminish;
 exports.to_major = to_major;
 exports.to_minor = to_minor;
-},{"../node_modules/underscore":139,"./intervals.js":135}],138:[function(require,module,exports){
+},{"../node_modules/underscore":124,"./intervals.js":120}],123:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	get_notes = require('./diatonic.js').get_notes,
@@ -49313,7 +46345,7 @@ exports.chromatic = chromatic;
 exports.whole_note = whole_note;
 exports.diminished = diminished;
 exports.determine = determine;
-},{"../node_modules/underscore":139,"./diatonic.js":133,"./intervals.js":135,"./notes.js":137}],139:[function(require,module,exports){
+},{"../node_modules/underscore":124,"./diatonic.js":118,"./intervals.js":120,"./notes.js":122}],124:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -50591,7 +47623,7 @@ exports.determine = determine;
 
 }).call(this);
 
-},{}],140:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 "use strict";
 
 /* Example definition of a simple mode that understands a subset of
@@ -50645,7 +47677,7 @@ CodeMirror.defineSimpleMode("abc", {
 // mode.
 //{regex: /<</, token: "meta", mode: {spec: "xml", end: />>/}}
 
-},{"./codemirror_simple":141,"codemirror":48}],141:[function(require,module,exports){
+},{"./codemirror_simple":126,"codemirror":34}],126:[function(require,module,exports){
 "use strict";
 
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
@@ -50653,7 +47685,7 @@ CodeMirror.defineSimpleMode("abc", {
 
 (function (mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require('./../engine/vendor.js').codeMirror);else if (typeof define == "function" && define.amd) // AMD
+    mod(require('./.././engine/vendor.js').codeMirror);else if (typeof define == "function" && define.amd) // AMD
     define(["../../lib/codemirror"], mod);else // Plain browser env
     mod(CodeMirror);
 })(function (CodeMirror) {
@@ -50712,8 +47744,9 @@ CodeMirror.defineSimpleMode("abc", {
   }
 
   function toRegex(val, caret) {
-    if (!val) return /(?:)/;
-    var flags = "";
+    if (!val) {
+      return /(?:)/;
+    }var flags = "";
     if (val instanceof RegExp) {
       if (val.ignoreCase) flags = "i";
       val = val.source;
@@ -50724,9 +47757,11 @@ CodeMirror.defineSimpleMode("abc", {
   }
 
   function asToken(val) {
-    if (!val) return null;
-    if (typeof val == "string") return val.replace(/\./g, " ");
-    var result = [];
+    if (!val) {
+      return null;
+    }if (typeof val == "string") {
+      return val.replace(/\./g, " ");
+    }var result = [];
     for (var i = 0; i < val.length; i++) result.push(val[i] && val[i].replace(/\./g, " "));
     return result;
   }
@@ -50795,12 +47830,15 @@ CodeMirror.defineSimpleMode("abc", {
   }
 
   function cmp(a, b) {
-    if (a === b) return true;
-    if (!a || typeof a != "object" || !b || typeof b != "object") return false;
-    var props = 0;
+    if (a === b) {
+      return true;
+    }if (!a || typeof a != "object" || !b || typeof b != "object") {
+      return false;
+    }var props = 0;
     for (var prop in a) if (a.hasOwnProperty(prop)) {
-      if (!b.hasOwnProperty(prop) || !cmp(a[prop], b[prop])) return false;
-      props++;
+      if (!b.hasOwnProperty(prop) || !cmp(a[prop], b[prop])) {
+        return false;
+      }props++;
     }
     for (var prop in b) if (b.hasOwnProperty(prop)) props--;
     return props == 0;
@@ -50821,7 +47859,9 @@ CodeMirror.defineSimpleMode("abc", {
   }
 
   function indexOf(val, arr) {
-    for (var i = 0; i < arr.length; i++) if (arr[i] === val) return true;
+    for (var i = 0; i < arr.length; i++) if (arr[i] === val) {
+      return true;
+    }
   }
 
   function indentFunction(states, meta) {
@@ -50851,7 +47891,7 @@ CodeMirror.defineSimpleMode("abc", {
   }
 });
 
-},{"./../engine/vendor.js":41}],142:[function(require,module,exports){
+},{"./.././engine/vendor.js":28}],127:[function(require,module,exports){
 "use strict";
 
 /*
@@ -50907,7 +47947,7 @@ CodeMirror.defineSimpleMode("abc", {
 
 	// Common JS (i.e. browserify) environment
 	if (typeof module !== "undefined" && module.exports && typeof require === "function") {
-		factory(require('./../../engine/vendor.js').Ractive);
+		factory(require('./../.././engine/vendor.js').Ractive);
 	}
 
 	// AMD?
@@ -50950,7 +47990,7 @@ CodeMirror.defineSimpleMode("abc", {
 	Ractive.transitions.fade = fade;
 });
 
-},{"./../../engine/vendor.js":41}],143:[function(require,module,exports){
+},{"./../.././engine/vendor.js":28}],128:[function(require,module,exports){
 "use strict";
 
 /*
@@ -50993,7 +48033,7 @@ CodeMirror.defineSimpleMode("abc", {
 
 	// Common JS (i.e. browserify) environment
 	if (typeof module !== "undefined" && module.exports && typeof require === "function") {
-		factory(require('./../../engine/vendor.js').Ractive);
+		factory(require('./../.././engine/vendor.js').Ractive);
 	}
 
 	// AMD?
@@ -51057,7 +48097,7 @@ CodeMirror.defineSimpleMode("abc", {
 	Ractive.transitions.fly = fly;
 });
 
-},{"./../../engine/vendor.js":41}]},{},[1])
+},{"./../.././engine/vendor.js":28}]},{},[1])
 
 
 //# sourceMappingURL=bundle.js.map

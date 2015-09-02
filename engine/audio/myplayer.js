@@ -1,7 +1,7 @@
 var Base64 = require('base64-arraybuffer');
 var _ = require('lodash');
 var Timer = require('clockmaker').Timer;
-var siz = require('Sizzle');
+var siz = require('sizzle');
 
 var note = {};
 var loadedNoteData = false;
@@ -16,7 +16,7 @@ var RhythmSample = {
 RhythmSample.play = function(dispatcher) {
 
   if (!loadedNoteData) {
-    fetch('/pat/acoustic_grand_piano-mp3.json')
+    fetch('pat/acoustic_grand_piano-mp3.json')
     .then(function(response) {
           return response.json();
         }).then(function(res) {

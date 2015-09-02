@@ -77,6 +77,7 @@ module.exports = function() {
         ractive.set("showingTranspositionDropdown", false);
         ractive.set("selectedTransposition", "No Transposition");
         ractive.set("currentTranspositionValue", 0);
+        ractive.set("playTempo", 120);
 
         ractive.on({
             "abc_error": (data) => {
@@ -126,7 +127,7 @@ module.exports = function() {
             },
             "toggle-play-tune": () => {
                 //AudioEngine.play(AudioRenderer(processedTune));
-                tunePlayer.playTune(AudioRenderer(processedTune));
+                tunePlayer.playTune(AudioRenderer(processedTune), this.get("playTempo"));
                 ractive.set("playing", true);
             },
             "toggle-stop-tune": () => {

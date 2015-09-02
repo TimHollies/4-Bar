@@ -1,6 +1,5 @@
 var gulp = require('gulp'),
     path = require('path'),
-    webpack = require('gulp-webpack'),
     sourcemaps = require('gulp-sourcemaps');
 
 var source = require('vinyl-source-stream');
