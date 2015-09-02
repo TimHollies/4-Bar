@@ -11,6 +11,16 @@
 
 @import 'colors'; 
 
+.CodeMirror {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    .CodeMirror-scroll {
+        flex: 1;
+    }
+}
+
+
 body {    
     font-family: sans-serif;
     margin: 0;

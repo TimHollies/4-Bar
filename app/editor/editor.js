@@ -19,7 +19,7 @@ var
     CodeMirror = require('vendor').codeMirror,
     CodeMirrorLint = require('vendor').codeMirrorLint,
     siz = require('vendor').sizzle,
-    queryString = require('vendor').queryString,
+    //queryString = require('vendor').queryString,
 
     FileSaver = require('vendor').filesaver,
     toastr = require('vendor').toastr,
@@ -69,7 +69,7 @@ module.exports = function() {
         var errors = [];
         var processedTune = null;
 
-        var parameters = queryString.parse(ractive.get("url").querystring);
+        var parameters = {};//queryString.parse(ractive.get("url").querystring);
 
         ractive.set("errors", errors);
         ractive.set("playing", false);
@@ -253,7 +253,7 @@ module.exports = function() {
             gutters: ["error-markers"],
         });
 
-        editor.setSize("100%", "100%");
+        //editor.setSize("100%", "100%");
 
         ractive.set('timeAtStart', null);
 
@@ -315,9 +315,12 @@ module.exports = function() {
         editor.setValue("X: 1\nT: " + emptyTuneName);
 
         ractive.set('editor', editor);
+        
+        window.edit = editor;
     }
 
-    var ractive = Ractive.extend({
+    var ractive = new Ractive({
+        el: "#stage",
       isolated: false,
       template: template,
       oninit: onInit,

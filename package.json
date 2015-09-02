@@ -3,11 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node server.js",
-    "server": "forever start server.js",
     "style": "sass --watch assets/styles:public",
-    "stop": "forever stop server.js",
-    "seed": "node --es_staging ./seed",
     "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
