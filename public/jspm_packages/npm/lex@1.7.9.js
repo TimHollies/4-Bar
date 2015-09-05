@@ -1,0 +1,1 @@
+module.exports = require("npm:lex@1.7.9/lexer");

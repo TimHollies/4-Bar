@@ -5,6 +5,98 @@
     <link rel="stylesheet" type="text/css" href="site.css" />
     <!--<script src="//use.typekit.net/jos7khe.js"></script>-->
     <!--<script>try{Typekit.load();}catch(e){}</script>-->
+    <script src="jspm_packages/system.js"></script>
+    <script src="config.js"></script>
+    <script>
+        System.import('lib/main');
+    </script>
+    <script type="text/ractive" id="template">
+        <section class="page-view" id="view-editor">
+            <div class="row toolbar" intro='fade'>
+                <div class="toolbar-item">
+        
+                    <div class="dropdown-selected-value" on-click="show-transposition-menu"><span class="selected-span">{{selectedTransposition}}</span><span class="arrow-span"><i class="fa fa-arrow-down"></i></span></div>
+        
+                    {{#if showingTranspositionDropdown}}
+                    <table class="table-to-dropdown">
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-7">-7 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-6">-6 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"><i class="fa fa-minus"></i> <i class="fa fa-minus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="-5">-5 Semitone</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-4">-4 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-3">-3 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"><i class="fa fa-minus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="-2">-2 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="-1">-1 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"><i class="fa fa-circle"></i></td><td class="dropdown-option" on-click="selectTransposition" val="0">No Tranposition</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="1">+1 Semitone</td></tr>
+                        <tr><td class="dropdown-icon"><i class="fa fa-plus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="2">+2 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="3">+3 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="4">+4 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"><i class="fa fa-plus"></i> <i class="fa fa-plus"></i></td><td class="dropdown-option" on-click="selectTransposition" val="5">+5 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="6">+6 Semitones</td></tr>
+                        <tr><td class="dropdown-icon"></td><td class="dropdown-option" on-click="selectTransposition" val="7">+7 Semitones</td></tr>
+                    </table>
+                    {{/if}}
+        
+                </div>
+                <div class="toolbar-item">
+                    <input type="number" style="width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;" value="{{playTempo}}" disabled="{{playing}}" min="30" max="240"> <small>bpm</small>   
+                    {{#if playing}}
+                        <i on-click="toggle-stop-tune" class="fa fa-stop" style="cursor: pointer"></i>
+                    {{else}}
+                        <i on-click="toggle-play-tune" class="fa fa-play" style="cursor: pointer"></i>
+                    {{/if}}   
+                </div>
+            </div>
+            <div class="row editor" intro='fade' id="editor-section">
+                <dialog id="window">
+                    <h3>URL</h3>
+                    <p style="width: 480px;word-break: break-all;">{{quick_url}}</p>
+                    <button on-click="share_url_modal_close">Done</button>
+                </dialog>
+                <div class="column" id="abc-container">
+                    <div class="abc-editor">
+                        <textarea id="abc"></textarea>
+                    </div>
+                    <!--<div class="chord-suggest-box">
+                        <h2>Chords for this key:</h2>
+                    </div>-->
+                    <div class="abc-log">
+                        {{#if (errors.length > 0)}}
+                        <table>
+                            <thead>
+                                <th></th>
+                                <th>Line</th>
+                                <th>Message</th>
+                            </thead>
+                            <tbody>
+                                {{#each errors}}
+                                    <tr>
+                                        <td class="centered-column">
+                                            {{#if (severity === 1)}}
+                                              <i class="fa fa-times-circle" style="color:red"></i>
+                                            {{else}}
+                                              <i class="fa fa-exclamation-triangle" style="color:orange"></i>
+                                            {{/if}}
+                                        </td>
+                                        <td class="centered-column">{{line + 1}}</td>
+                                        <td>{{message}}</td>
+                                    </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                        {{else}}
+                        <p class="all-is-well-box">No errors detected :D</p>
+                        {{/if}}                
+                    </div>
+                    <div class="stats">
+                        <small>Last Render: {{lastRenderTime.toFixed(2)}}ms</small>
+                    </div>
+                </div>
+                <div class="column" id="canvas">        
+                </div>
+            </div>
+        </section>
+    </script>
 </head>
 <body>
     <div id="#stage">
@@ -17,7 +109,7 @@
             </div>            
         </div>
     </div>
-    <script src="bundle.js" type="text/javascript"></script>
+    <!--<script src="bundle.js" type="text/javascript"></script>-->
 </script>
 </body>
 </html>

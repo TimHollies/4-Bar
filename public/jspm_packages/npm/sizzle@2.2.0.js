@@ -1,0 +1,1 @@
+module.exports = require("npm:sizzle@2.2.0/dist/sizzle");

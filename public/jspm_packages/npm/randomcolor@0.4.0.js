@@ -1,0 +1,1 @@
+module.exports = require("npm:randomcolor@0.4.0/randomColor");

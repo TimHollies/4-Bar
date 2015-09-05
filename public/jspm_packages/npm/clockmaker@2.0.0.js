@@ -1,0 +1,1 @@
+module.exports = require("npm:clockmaker@2.0.0/clockmaker");
