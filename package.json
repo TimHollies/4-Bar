@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "style": "sass --watch assets/styles:public",
+    "style": "sass --watch styles/main/site.scss:public/site.css",
     "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
-    },
+    "font-awesome": "^4.4.0"
+  },
   "devDependencies": {
     "jspm": "^0.16.2"
   },
