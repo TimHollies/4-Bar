@@ -1,1 +1,0 @@
-module.exports = require("npm:codemirror@5.6.0/lib/codemirror");

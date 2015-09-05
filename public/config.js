@@ -17,6 +17,7 @@ System.config({
     "babel": "npm:babel-core@5.8.23",
     "babel-runtime": "npm:babel-runtime@5.8.20",
     "base64-arraybuffer": "npm:base64-arraybuffer@0.1.2",
+    "btwael/zazate.js": "github:btwael/zazate.js@master",
     "clockmaker": "npm:clockmaker@2.0.0",
     "codemirror": "npm:codemirror@5.6.0",
     "core-js": "npm:core-js@1.1.3",

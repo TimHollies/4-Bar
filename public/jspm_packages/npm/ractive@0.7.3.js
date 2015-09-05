@@ -1,1 +1,0 @@
-module.exports = require("npm:ractive@0.7.3/ractive");
