@@ -1,0 +1,52 @@
+<section class="page-view" id="view-viewer" on-mouseover="mouse-over-window"> 
+    <div class="header row coloured" intro='fade'>        
+        <div class="central-menu">
+            <div class="app-name">
+                <img on-click="navigate_back" src="/images/logo.png" class="app-logo" height="32px">
+            </div>            
+        </div>        
+        {{>userbox}}
+    </div>
+    <!--<div class="row toolbar" intro='fade:{ delay: 100 }'>
+        {{errors}}
+        <div id="t1"></div>
+    </div>-->
+    <div class="viewer-area">
+        <div class="tune-information-card">
+            <div class="card">
+                <h1>{{tune.name}}</h1>
+                <div class="viewer-play-container">
+                    {{#if playing}}
+                        <i on-click="toggle-stop-tune" class="playback-control fa fa-stop" style="cursor: pointer"></i>
+                    {{else}}
+                        <i on-click="toggle-play-tune" class="playback-control play-button fa fa-play {{#if !playbackReady}}inactive{{/if}}" style="cursor: pointer"></i>
+                    {{/if}}   
+                    <i on-click="toggle-repeat-tune" class="playback-control fa fa-refresh repeat-button {{#if repeatingTune}}active{{else}}inactive{{/if}}" style="cursor: pointer"></i> 
+                    <input type="number" style="width: 38px;margin-right: 0;border: rgb(224, 224, 224) 1px solid;" class="playback-control" value="{{playTempo}}" disabled="{{playing}}" min="30" max="240"> <small>bpm</small>               
+                </div>
+                <h2>{{tune.settings.rhythm}} {{tune.settings.key.note}}<small>{{tune.settings.key.mode}}</small></h2>
+                <p>Added by <strong>Tim Hollies</strong> on {{tune.metadata.createdOn}}</p>
+                <div class="icon-button-panel">
+                    <i on-click="edit_tune" class="fa fa-pencil-square-o"></i>
+                    <i class="fa fa-floppy-o"></i>
+                    <i on-mouseover="download_tune_options" class="fa fa-download" id="download-button"></i>
+                    <div class="download popover-menu" style="{{#if !downloadOptionsOpen}}display:none{{/if}}">
+                        <div on-click="download-abc" class="download-type start"><div class="icon"><i class="fa fa-file-text-o"></i></div><div>ABC</div></div>
+                        <div on-click="download-midi" class="download-type"><div class="icon"><i class="fa fa-file-audio-o"></i></div><div>MIDI</div></div>
+                        <div on-click="download-pdf" class="download-type end"><div class="icon"><i class="fa fa-file-pdf-o"></i></div><div>PDF</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row editor viewer" intro='fade' id="fullscreenZone">
+            <div id="canvas"> 
+                <h1>LOADING</h1>
+                <div class="spinners">
+                    <i class="fa fa-cog fa-spin"></i>
+                    <i class="fa fa-cog icon-spin-reverse"></i>
+                    <i class="fa fa-cog fa-spin"></i>
+                </div>       
+            </div>
+        </div>
+    </div>
+</section>

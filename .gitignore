@@ -1,6 +1,15 @@
 # node
 node_modules
-public/jspm_packages
 
-#styling
+#vagrant
+.vagrant
+
 .sass-cache
+
+#bower
+app/engine/audio/soundfont
+
+#legacy
+legacy
+oldApp
+build
