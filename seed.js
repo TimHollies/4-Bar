@@ -99,7 +99,7 @@ function loadTune(i) {
     })
 }
 
-loadTune(1);
+loadTune(200);
 
 //var regex = /T: *[^\n]*/;
 /*
