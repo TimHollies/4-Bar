@@ -8,7 +8,7 @@ var buffer = require('vinyl-buffer');
 var watchify = require('watchify');
 var browserify = require('browserify');
 var gutil = require('gulp-util');
-var to5ify = require("6to5ify");
+var to5ify = require("babelify");
 
 var file = require('gulp-file');
 
@@ -57,6 +57,7 @@ var bundler = watchify(browserify({
 bundler.add('./app/app.js');
 
 bundler.transform(to5ify.configure({
+    presets: ["es2015"],
   extensions: [".js"]
 }));
 
