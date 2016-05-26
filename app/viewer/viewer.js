@@ -1,25 +1,25 @@
 'use strict';
 
 var 
-    fade = require('scripts/transitions/ractive.transitions.fade'),
-    fly = require('scripts/transitions/ractive.transitions.fly'),
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
 
-    screenfull = require('vendor').screenfull,
-    queryString = require('vendor').queryString,
-    Drop = require('vendor').drop,
+    screenfull = require('../engine/vendor').screenfull,
+    queryString = require('../engine/vendor').queryString,
+    Drop = require('../engine/vendor').drop,
 
-    engine = require('engine/engine'),
+    engine = require('../engine/engine'),
 
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
     ABCLayout = engine.layout,
-    AudioRenderer = require('engine/audio_render'),
-    ABCRenderToDOM = require('engine/vdom2dom'),
+    AudioRenderer = require('../engine/audio_render'),
+    ABCRenderToDOM = require('../engine/vdom2dom'),
 
-    AudioEngine = require('engine/audio/audio'),
+    AudioEngine = require('../engine/audio/audio'),
 
-    TunePlayer = require('engine/audio/myplayer');
+    TunePlayer = require('../engine/audio/myplayer');
 
 var template = require("./viewer.html");
 

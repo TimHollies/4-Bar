@@ -1,12 +1,12 @@
 'use strict';
 
 var
-    fade = require('scripts/transitions/ractive.transitions.fade'),
-    fly = require('scripts/transitions/ractive.transitions.fly'),
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
 
     //well these work... but are they useful?
-    tut01 = require('app/tutorial/tut/tut01.html'),
-    tut02 = require('app/tutorial/tut/tut02.html');
+    tut01 = require('./tut/tut01.html'),
+    tut02 = require('./tut/tut02.html');
 
 
 var template = require("./tutorial.html");

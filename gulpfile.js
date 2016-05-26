@@ -56,12 +56,12 @@ var bundler = watchify(browserify({
 
 bundler.add('./app/app.js');
 
-bundler.transform(to5ify.configure({
-    presets: ["es2015"],
-  extensions: [".js"]
-}));
+// bundler.transform(to5ify.configure({
+//     presets: ["es2015"],
+//   extensions: [".js"]
+// }));
 
-bundler.transform(aliasify);
+//bundler.transform(aliasify);
 
 var options = {includeExtensions: [".html"]};
 var rtransform = transformTools.makeStringTransform("ractivetransform", options,

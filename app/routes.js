@@ -3,30 +3,30 @@ var inBrowser = typeof window !== 'undefined';
 module.exports = {
     "/": {
         name: "HomePage",
-        model: inBrowser ? require('app/home/home') : null
+        model: inBrowser ? require('./home/home') : null
     },
     "/editor": {
         name: "EditorPage",
-        model: inBrowser ? require('app/editor/editor') : null
+        model: inBrowser ? require('./editor/editor') : null
     },
     "/user": {
         name: "UserPage",
-        model: inBrowser ? require('app/user/user') : null
+        model: inBrowser ? require('./user/user') : null
     },
     "/viewer": {
         name: "ViewerPage",
-        model: inBrowser ? require('app/viewer/viewer') : null
+        model: inBrowser ? require('./viewer/viewer') : null
     },
     "/tutorial": {
         name: "TutorialPage",
-        model: inBrowser ? require('app/tutorial/tutorial') : null
+        model: inBrowser ? require('./tutorial/tutorial') : null
     },
     "/tunebook": {
         name: "TunebookPage",
-        model: inBrowser ? require('app/tunebook/tunebook_edit') : null
+        model: inBrowser ? require('./tunebook/tunebook_edit') : null
     },
     "/tunebook/view": {
         name: "TunebookViewerPage",
-        model: inBrowser ? require('app/tunebook/tunebook_view')  : null
+        model: inBrowser ? require('./tunebook/tunebook_view')  : null
     }
 };

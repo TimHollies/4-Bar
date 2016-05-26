@@ -1,11 +1,11 @@
 'use strict';
 
 var
-    fade = require('scripts/transitions/ractive.transitions.fade'),
-    fly = require('scripts/transitions/ractive.transitions.fly'),
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
     
-    Sortable = require('vendor').sortable,
-    siz = require('vendor').sizzle;
+    Sortable = require('../engine/vendor').sortable,
+    siz = require('../engine/vendor').sizzle;
 
 
 var template = require("./tunebook_edit.html");

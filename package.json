@@ -1,13 +1,13 @@
 {
   "name": "ABC",
-  "version": "0.0.1",
+  "version": "1.00",
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "server": "forever start server.js",
+    "server": "forever start ./scripts/server.js",
     "style": "sass --watch assets/styles:public",
     "stop": "forever stop server.js",
-    "seed": "node --es_staging ./seed",
+    "seed": "node --es_staging ./scripts/seed",
     "test": "node ./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
@@ -82,7 +82,7 @@
     "esnext-loader": "^1.1.0",
     "factor-bundle": "^2.3.3",
     "forever": "~0.15.1",
-    "gulp": "~3.8.6",
+    "gulp": "^3.8.6",
     "gulp-browserify": "~0.5.0",
     "gulp-file": "^0.2.0",
     "gulp-jslint": "~0.1.6",

@@ -3,11 +3,11 @@
 var consoleKeeper = console;
 
 var
-    Ractive = require('vendor').Ractive,
+    Ractive = require('./engine/vendor').Ractive,
     routingConfig = require("./routes"),
-    page = require('vendor').page,
-    _ = require('vendor').lodash,
-    domready = require('vendor').domready;
+    page = require('./engine/vendor').page,
+    _ = require('./engine/vendor').lodash,
+    domready = require('./engine/vendor').domready;
 
 console = consoleKeeper;
 
@@ -21,13 +21,13 @@ domready(() => {
 
     var ractive = new Ractive({
         el: "#stage",
-        template: require("app/index.gen.html"),
+        template: require("./index.gen.html"),
         data: {
             url: ""
         },
         lazy: false,
         partials: {
-            userbox: require("app/partials/userbox.html")
+            userbox: require("./partials/userbox.html")
         },
         components: components
     });

@@ -1,11 +1,11 @@
 'use strict';
 
-var $ = require("vendor").jquery;
+var $ = require("../engine/vendor").jquery;
 
 var
-    fade = require('scripts/transitions/ractive.transitions.fade'),
-    fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('vendor').toastr;
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    toastr = require('../engine/vendor').toastr;
 
 
 module.exports = function(ractive, context, page, urlcontext, user) {

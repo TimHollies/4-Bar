@@ -3,15 +3,16 @@
 
 var consoleKeeper = console;
 
-var Ractive = require('./../engine/vendor.js').Ractive,
+var
+    Ractive = require('./engine/vendor').Ractive,
     routingConfig = require("./routes"),
-    page = require('./../engine/vendor.js').page,
-    _ = require('./../engine/vendor.js').lodash,
-    domready = require('./../engine/vendor.js').domready;
+    page = require('./engine/vendor').page,
+    _ = require('./engine/vendor').lodash,
+    domready = require('./engine/vendor').domready;
 
 console = consoleKeeper;
 
-domready(function () {
+domready(() => {
 
     var components = {};
 
@@ -21,40 +22,43 @@ domready(function () {
 
     var ractive = new Ractive({
         el: "#stage",
-        template: require('./index.gen.html'),
+        template: require("./index.gen.html"),
         data: {
             url: ""
         },
         lazy: false,
         partials: {
-            userbox: require('./partials/userbox.html')
+            userbox: require("./partials/userbox.html")
         },
         components: components
     });
 
-    window.addEventListener("popstate", function () {
+    window.addEventListener("popstate", function() {
         console.log("CHANGE");
     });
 
     //user stuff
     var loggedIn = false,
         userData = {};
-
-    if (loggedIn) {
+    
+    if(loggedIn) {
         ractive.set("loggedIn", true);
         ractive.set("user", userData);
     } else {
 
         ractive.set("loggedIn", false);
 
-        fetch("/api/user").then(function (response) {
-            return response.json();
-        }).then(function (data) {
 
-            if (data.failed === true) {
+        fetch("/api/user")
+        .then(function(response) {
+            return response.json()
+        }).then(function(data) {
+
+            if(data.failed === true) {
                 loggedIn = false;
                 return;
             }
+
 
             console.log("CURRENT USER", data);
 
@@ -63,39 +67,40 @@ domready(function () {
 
             ractive.set("user", data);
             userData = data;
-        }).catch(function (ex) {
-            console.log('parsing failed', ex);
-        });
-    }
 
-    ractive.on('*.log_in', function () {
+        }).catch(function(ex) {
+            console.log('parsing failed', ex)
+        });
+    }   
+    
+    ractive.on('*.log_in', function() {
         page("/auth/google");
     });
 
-    ractive.on("*.navigate_to_page", function (urlToNavigateTo) {
+    ractive.on("*.navigate_to_page", function(urlToNavigateTo) {
         page(urlToNavigateTo);
     });
 
     //forces the request to go to the server rather than the client
-    page.serverMap = function (url) {
-        page(url, function (context) {
+    page.serverMap = function(url) {
+        page(url, function(context) {
             window.location = url;
         });
-    };
+    }
 
     page.serverMap("/auth/google");
     page.serverMap("/pdf");
     page.serverMap("/logout");
 
-    page('*', function (context) {
-        console.log(context);
+    page('*', function(context) {
+        console.log(context)
         ractive.set("url", context);
     });
 
     page.start();
-});
 
-},{"./../engine/vendor.js":41,"./index.gen.html":6,"./partials/userbox.html":7,"./routes":8}],2:[function(require,module,exports){
+});
+},{"./engine/vendor":25,"./index.gen.html":28,"./partials/userbox.html":29,"./routes":30}],2:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -515,56 +520,62 @@ module.exports = { v:1,
 },{}],3:[function(require,module,exports){
 'use strict';
 
-var _ = require('./../../engine/vendor.js').lodash,
-    engine = require('./../../engine/engine'),
+var
+    _ = require('../engine/vendor').lodash,
+    engine = require('../engine/engine'),
+
     ABCParser = engine.parser,
     diff = engine.diff,
-
-//dispatcher = engine.dispatcher,
-ABCLayout = engine.layout,
+    //dispatcher = engine.dispatcher,
+    ABCLayout = engine.layout,
     ABCRenderer = engine.render,
-    ABCRenderToDOM = require('./../../engine/vdom2dom'),
-    AudioRenderer = require('./../../engine/audio_render'),
-    AudioEngine = require('./../../engine/audio/audio'),
-    customElements = require('./../../engine/rendering/custom_elements'),
-    CodeMirrorABCMode = require('./../../scripts/abc_mode'),
-    CodeMirror = require('./../../engine/vendor.js').codeMirror,
-    CodeMirrorLint = require('./../../engine/vendor.js').codeMirrorLint,
-    siz = require('./../../engine/vendor.js').sizzle,
-    queryString = require('./../../engine/vendor.js').queryString,
-    FileSaver = require('./../../engine/vendor.js').filesaver,
-    toastr = require('./../../engine/vendor.js').toastr,
-    Combokeys = require('./../../engine/vendor.js').combokeys,
-    AbcLine = require('./../../engine/types/LineCollection').AbcLine,
-    TunePlayer = require('./../../engine/audio/myplayer');
+    ABCRenderToDOM = require('../engine/vdom2dom'),
 
-require('./../../scripts/transitions/ractive.transitions.fade');
-require('./../../scripts/transitions/ractive.transitions.fly');
+    AudioRenderer = require('../engine/audio_render'),
+    AudioEngine = require('../engine/audio/audio'),
 
-var emptyTuneName = "Untitled Tune";
+    customElements = require('../engine/rendering/custom_elements'),
+    CodeMirrorABCMode = require('../scripts/abc_mode'),
+    CodeMirror = require('../engine/vendor').codeMirror,
+    CodeMirrorLint = require('../engine/vendor').codeMirrorLint,
+    siz = require('../engine/vendor').sizzle,
+    queryString = require('../engine/vendor').queryString,
+
+    FileSaver = require('../engine/vendor').filesaver,
+    toastr = require('../engine/vendor').toastr,
+    Combokeys = require('../engine/vendor').combokeys,
+    AbcLine = require('../engine/types/LineCollection').AbcLine,
+
+    TunePlayer = require('../engine/audio/myplayer');
+
+require('../scripts/transitions/ractive.transitions.fade');
+require('../scripts/transitions/ractive.transitions.fly');
+
+
+var emptyTuneName = "Untitled Tune"; 
 
 var textFile = null,
-    makeTextFile = function makeTextFile(text) {
-    var data = new Blob([text], {
-        type: 'text/plain'
-    });
+    makeTextFile = function(text) {
+        var data = new Blob([text], {
+            type: 'text/plain'
+        });
 
-    // If we are replacing a previously generated file we need to
-    // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) {
-        window.URL.revokeObjectURL(textFile);
-    }
+        // If we are replacing a previously generated file we need to
+        // manually revoke the object URL to avoid memory leaks.
+        if (textFile !== null) {
+            window.URL.revokeObjectURL(textFile);
+        }
 
-    textFile = window.URL.createObjectURL(data);
+        textFile = window.URL.createObjectURL(data);
 
-    return textFile;
-};
+        return textFile;
+    };
 
 var template = require("./editor.html");
 
-module.exports = function () {
+module.exports = function() {
 
-    var onInit = function onInit() {
+    var onInit = function() {
 
         var ractive = this;
 
@@ -588,39 +599,37 @@ module.exports = function () {
         ractive.set("currentTranspositionValue", 0);
 
         ractive.on({
-            "abc_error": function abc_error(data) {
+            "abc_error": (data) => {
                 data.markers = [];
 
                 var editor = ractive.get('editor');
-                data.markers.push(editor.markText({ line: data.line, ch: data.char - 1 }, { line: data.line, ch: data.char }, { className: "styled-background" }));
-                data.markers.push(editor.markText({ line: data.line, ch: data.char }, { line: data.line, ch: editor.getLine(data.line).length }, { className: "error-not-drawn" }));
+                data.markers.push(editor.markText({line: data.line, ch: data.char-1}, {line: data.line, ch: data.char}, {className: "styled-background"}));
+                data.markers.push(editor.markText({line: data.line, ch: data.char}, {line: data.line, ch: editor.getLine(data.line).length}, {className: "error-not-drawn"}));
 
                 editor.setGutterMarker(data.line, "error-markers", document.createRange().createContextualFragment('<i class="fa fa-times-circle" style="color:red;padding-left: 4px;"></i>'));
 
-                errors.push(data);
+                errors.push(data); 
 
                 //ractive.update( 'errors' );
                 ractive.set("errors", errors);
             },
-            "remove_abc_error": function remove_abc_error(data) {
-                errors = errors.filter(function (c) {
-                    return c.type !== data;
-                });
+            "remove_abc_error": (data) => {
+                errors = errors.filter((c) => c.type !== data);
                 ractive.set("errors", errors);
             },
-            "navigate_back": function navigate_back(event) {
+            "navigate_back": function(event) {
                 window.history.back();
             },
-            "share_url_modal_close": function share_url_modal_close() {
+            "share_url_modal_close": function() {
                 dialog.close();
             },
-            "silly-save": function sillySave() {
+            "silly-save": function() {
                 ractive.fire("save_tune");
             },
-            "show-transposition-menu": function showTranspositionMenu() {
+            "show-transposition-menu": () => {
                 ractive.set("showingTranspositionDropdown", !ractive.get("showingTranspositionDropdown"));
             },
-            "selectTransposition": function selectTransposition(event) {
+            "selectTransposition": (event) => {
 
                 var intValue = parseInt(event.node.attributes.val.value);
                 transposeAmount = intValue;
@@ -631,59 +640,58 @@ module.exports = function () {
                 var currentTuneVal = ractive.get('editor').getValue();
                 ractive.get('editor').setValue("");
                 ractive.get('editor').setValue(currentTuneVal);
-
+                
                 ractive.set("selectedTransposition", event.node.innerText);
                 ractive.set("showingTranspositionDropdown", false);
             },
-            "toggle-play-tune": function togglePlayTune() {
+            "toggle-play-tune": () => {
                 //AudioEngine.play(AudioRenderer(processedTune));
                 tunePlayer.playTune(AudioRenderer(processedTune));
                 ractive.set("playing", true);
             },
-            "toggle-stop-tune": function toggleStopTune() {
+            "toggle-stop-tune": () => {
                 tunePlayer.stopTune();
                 ractive.set("playing", false);
             },
-            "play-tune-end": function playTuneEnd() {
+            "play-tune-end": function() {
                 ractive.set("playing", false);
             },
-            "download_abc": function download_abc() {
+            "download_abc": function() {
                 var blob = new Blob([ractive.get("inputValue")], {
                     type: "text/plain;charset=utf-8"
                 });
                 FileSaver(blob, ractive.get("title") + ".abc");
             },
-            "change_tune_title": function change_tune_title(data) {
+            "change_tune_title": function(data) {
                 ractive.set("title", data);
             },
-            "show_share_dialog": function show_share_dialog() {
+            "show_share_dialog": function() {
                 ractive.set("quick_url", "localhost:3000/editor?tune=" + encodeURIComponent(ractive.get("inputValue")));
                 dialog.show();
             },
-            "save_tune": function save_tune() {
+            "save_tune": function() {
                 $.ajax({
                     type: "POST",
                     url: "/api/tunes/add",
                     data: {
                         tune: ractive.get("inputValue")
                     }
-                }).then(function () {
+                }).then(function() {
                     toastr.success("Tune saved", "Success!");
                 });
             },
-            "selection-changed": function selectionChanged(changedTo) {
+            "selection-changed": function(changedTo) {
 
-                siz(".lineIndicatorRect").forEach(function (r) {
-                    r.remove();
-                });
+                siz(".lineIndicatorRect").forEach(function(r) { r.remove(); });
 
-                for (var i = changedTo.start; i <= changedTo.stop; i++) {
+                for(var i=changedTo.start; i <= changedTo.stop; i++) {
 
-                    var line1 = document.getElementById('line-' + i);
-                    if (line1 !== null) {
+                    var line1 = document.getElementById(`line-${i}`);
+                    if(line1 !== null) {       
                         line1.appendChild(customElements.selectionBox());
                     }
-                }
+
+                }                
             }
         });
 
@@ -699,20 +707,16 @@ module.exports = function () {
             };
         }
 
-        ractive.on('rerenderScore', function (diffed) {
+        ractive.on('rerenderScore', function(diffed) {    
 
-            var editor = ractive.get('editor');
+            var editor = ractive.get('editor');         
 
-            diffed.filter(function (c) {
-                return c.action === "DEL";
-            }).forEach(function (item) {
-                errors = errors.filter(function (err) {
-                    if (err.line < item.startId || err.line >= item.startId + item.count) {
+            diffed.filter((c) => c.action === "DEL").forEach((item) => {
+                errors = errors.filter((err) => {
+                    if(err.line < item.startId || err.line >= (item.startId + item.count)) {
                         return true;
                     }
-                    if (err.markers) err.markers.forEach(function (marker) {
-                        return marker.clear();
-                    });
+                    if(err.markers)err.markers.forEach((marker) => marker.clear());
                     editor.setGutterMarker(err.line, "error-markers", null);
                     return false;
                 });
@@ -721,23 +725,27 @@ module.exports = function () {
             //ractive.update( 'errors' );
             ractive.set("errors", errors);
 
-            var done = diffed.map(parser).reduce(layout, 0);
+            var done = diffed
+                .map(parser)
+                .reduce(layout, 0);
+
 
             var vdom = renderer(done);
             ABCRenderToDOM(vdom);
 
             processedTune = done;
 
-            if (window) ractive.set("lastRenderTime", window.performance.now() - ractive.get('timeAtStart'));
-        });
+            if(window)ractive.set("lastRenderTime", window.performance.now() - ractive.get('timeAtStart'));
+        });     
 
         if (parameters.tuneid) {
-            fetch("/api/tune/" + parameters.tuneid).then(function (response) {
-                return response.json();
-            }).then(function (res) {
+            fetch("/api/tune/" + parameters.tuneid)
+            .then(function(response) {
+                return response.json()
+            }).then(function(res) {
                 ractive.get('editor').setValue(res.raw);
-            }).catch(function (ex) {
-                console.error('parsing failed', ex);
+            }).catch(function(ex) {
+                console.error('parsing failed', ex)
             });
         }
 
@@ -745,36 +753,37 @@ module.exports = function () {
             editor.setValue(parameters.tune);
         }
 
-        if (parameters.transpose) {
+        if(parameters.transpose) {
             ractive.fire("transpose_change", parseInt(parameters.transpose));
-        }
+        }       
 
-        window.addEventListener("popstate", function () {
-            if (ractive.get("playing")) ractive.fire("toggle-stop-tune");
+        window.addEventListener("popstate", function() {
+            if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
         });
-    };
+    }
 
-    var onRender = function onRender() {
+    var onRender = function() {
 
         var ractive = this;
 
         var editor = CodeMirror.fromTextArea(document.getElementById("abc"), {
             lineNumbers: true,
             mode: "abc",
-            gutters: ["error-markers"]
+            gutters: ["error-markers"],
         });
 
         editor.setSize("100%", "100%");
 
         ractive.set('timeAtStart', null);
 
-        editor.on("change", function (instance, changeObj) {
+        editor.on("change", function(instance, changeObj) {
 
-            if (window) ractive.set('timeAtStart', window.performance.now());
+            if(window)ractive.set('timeAtStart', window.performance.now());
 
             var endPos = CodeMirror.changeEnd(changeObj);
 
-            var linesRemoved = changeObj.removed.length,
+            var
+                linesRemoved = changeObj.removed.length,
                 linesAdded = changeObj.text.length;
 
             var deletions = {
@@ -782,13 +791,13 @@ module.exports = function () {
                 count: linesRemoved,
                 action: "DEL",
                 lines: []
-            };
+            }; 
 
-            for (var i = 0; i < linesRemoved; i++) {
+            for(var i=0; i<linesRemoved; i++) {
                 deletions.lines[i] = new AbcLine("", changeObj.from.line + i);
             }
 
-            var count = endPos.line - changeObj.from.line + 1;
+            var count = (endPos.line - changeObj.from.line) + 1;
 
             var additions = {
                 startId: changeObj.from.line,
@@ -797,18 +806,18 @@ module.exports = function () {
                 action: "ADD"
             };
 
-            for (var i = 0; i < count; i++) {
+            for(var i=0; i<count; i++) {
                 additions.lines[i] = new AbcLine(instance.getLine(additions.startId + i), changeObj.from.line + i);
             }
 
             var diffed = [deletions, additions];
 
             ractive.fire('rerenderScore', diffed);
-
+            
             ractive.set("inputValue", instance.getValue());
         });
 
-        editor.on("cursorActivity", function (instance) {
+        editor.on("cursorActivity", function(instance) {
             ractive.fire("selection-changed", {
                 start: instance.getCursor(true).line,
                 stop: instance.getCursor(false).line
@@ -817,7 +826,7 @@ module.exports = function () {
 
         var combokeys = new Combokeys(document.getElementById("view-editor"));
 
-        combokeys.bind("ctrl+s", function () {
+        combokeys.bind("ctrl+s", function() {
             ractive.fire("save_tune");
             return false;
         });
@@ -825,19 +834,4082 @@ module.exports = function () {
         editor.setValue("X: 1\nT: " + emptyTuneName);
 
         ractive.set('editor', editor);
-    };
+    }
 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
+      isolated: false,
+      template: template,
+      oninit: onInit,
+      onrender: onRender
     });
 
     return ractive;
 };
+},{"../engine/audio/audio":4,"../engine/audio/myplayer":6,"../engine/audio_render":7,"../engine/engine":11,"../engine/rendering/custom_elements":16,"../engine/types/LineCollection":23,"../engine/vdom2dom":24,"../engine/vendor":25,"../scripts/abc_mode":31,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./editor.html":2}],4:[function(require,module,exports){
+'use strict';
 
-},{"./../../engine/audio/audio":20,"./../../engine/audio/myplayer":22,"./../../engine/audio_render":23,"./../../engine/engine":27,"./../../engine/rendering/custom_elements":32,"./../../engine/types/LineCollection":39,"./../../engine/vdom2dom":40,"./../../engine/vendor.js":41,"./../../scripts/abc_mode":139,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./editor.html":2}],4:[function(require,module,exports){
+var base64 = require('base64-js');
+var _ = require('lodash');
+
+var midiGen = require('./midi');
+
+var dispatcher = require('../dispatcher');
+
+var context = new AudioContext();
+var source = 0;
+var audioBufferSize = 8192;
+var waveBuffer;
+var midiFileBuffer;
+var read_wave_bytes = 0;
+var song = 0;
+var midijs_url = "";
+
+var num_missing = 0;
+var midiFileArray;
+var stream;
+var rval;
+
+function get_next_wave(ev) {
+    // collect new wave data from libtimidity into waveBuffer
+    read_wave_bytes = Module.ccall('mid_song_read_wave', 'number', ['number', 'number', 'number', 'number'], [song, waveBuffer, audioBufferSize * 2, false]);
+    if (0 == read_wave_bytes) {
+        dispatcher.send("end_of_tune");
+        stop();
+        return;
+    }
+
+    var max_i16 = Math.pow(2, 15);
+    for (var i = 0; i < audioBufferSize; i++) {
+        if (i < read_wave_bytes) {
+            // convert PCM data from C sint16 to JavaScript number (range -1.0 .. +1.0)
+            ev.outputBuffer.getChannelData(0)[i] = Module.getValue(waveBuffer + 2 * i, 'i16') / max_i16;
+        } else {
+
+            ev.outputBuffer.getChannelData(0)[i] = 0; // fill end of buffer with zeroes, may happen at the end of a piece
+        }
+    }
+}
+
+function loadMissingPatch(url, path, filename) {
+
+    var request = new XMLHttpRequest();
+    request.open('GET', path + filename, true);
+    request.responseType = 'arraybuffer';
+
+    request.onerror = function() {
+        // MIDIjs.message_callback("Error: Cannot retrieve patch file " + path + filename);
+    }
+
+    request.onload = function() {
+        if (200 != request.status) {
+            //MIDIjs.message_callback("Error: Cannot retrieve patch filee " + path + filename + " : " + request.status);
+            return;
+        }
+
+        num_missing--;
+        FS.createDataFile('pat/', filename, new Int8Array(request.response), true, true);
+        //MIDIjs.message_callback("Loading instruments: " + num_missing);
+        if (num_missing == 0) {
+            stream = Module.ccall('mid_istream_open_mem', 'number', ['number', 'number', 'number'], [midiFileBuffer, midiFileArray.length, false]);
+            var MID_AUDIO_S16LSB = 0x8010; // signed 16-bit samples
+            var options = Module.ccall('mid_create_options', 'number', ['number', 'number', 'number', 'number'], [context.sampleRate, MID_AUDIO_S16LSB, 1, audioBufferSize * 2]);
+            song = Module.ccall('mid_song_load', 'number', ['number', 'number'], [stream, options]);
+            rval = Module.ccall('mid_istream_close', 'number', ['number'], [stream]);
+            Module.ccall('mid_song_start', 'void', ['number'], [song]);
+
+            // create script Processor with buffer of size audioBufferSize and a single output channel
+            source = context.createScriptProcessor(audioBufferSize, 0, 1);
+            waveBuffer = Module._malloc(audioBufferSize * 2);
+            source.onaudioprocess = get_next_wave; // add eventhandler for next buffer full of audio data
+            source.connect(context.destination); // connect the source to the context's destination (the speakers)
+        }
+    }
+    request.send();
+}
+
+var play = function (base64) {
+
+    midiFileArray = base64;
+    midiFileBuffer = Module._malloc(midiFileArray.length);
+    Module.writeArrayToMemory(midiFileArray, midiFileBuffer);
+
+    rval = Module.ccall('mid_init', 'number', [], []);
+    stream = Module.ccall('mid_istream_open_mem', 'number', ['number', 'number', 'number'], [midiFileBuffer, midiFileArray.length, false]);
+    var MID_AUDIO_S16LSB = 0x8010; // signed 16-bit samples
+    var options = Module.ccall('mid_create_options', 'number', ['number', 'number', 'number', 'number'], [context.sampleRate, MID_AUDIO_S16LSB, 1, audioBufferSize * 2]);
+    song = Module.ccall('mid_song_load', 'number', ['number', 'number'], [stream, options]);
+    rval = Module.ccall('mid_istream_close', 'number', ['number'], [stream]);
+
+    num_missing = Module.ccall('mid_song_get_num_missing_instruments', 'number', ['number'], [song]);
+    if (0 < num_missing) {
+        for (var i = 0; i < num_missing; i++) {
+            var missingPatch = Module.ccall('mid_song_get_missing_instrument', 'string', ['number', 'number'], [song, i]);
+            loadMissingPatch("", "/pat/", missingPatch);
+        }
+    } else {
+        Module.ccall('mid_song_start', 'void', ['number'], [song]);
+        // create script Processor with auto buffer size and a single output channel
+        source = context.createScriptProcessor(audioBufferSize, 0, 1);
+        waveBuffer = Module._malloc(audioBufferSize * 2);
+        source.onaudioprocess = get_next_wave; // add eventhandler for next buffer full of audio data
+        source.connect(context.destination); // connect the source to the context's destination (the speakers)
+    }
+
+}
+
+var stop = function () {
+    if (source) {
+        // terminate playback
+        source.disconnect();
+
+        // hack: without this, Firfox 25 keeps firing the onaudioprocess callback
+        source.onaudioprocess = 0;
+
+        source = 0;
+
+        // free libtimitdiy ressources
+        Module._free(waveBuffer);
+        Module._free(midiFileBuffer);
+        Module.ccall('mid_song_free', 'void', ['number'], [song]);
+        song = 0;
+        Module.ccall('mid_exit', 'void', [], []);
+        source = 0;
+    }
+}
+
+var playTune = function (tuneData) {
+    var noteEvents = [];
+    tuneData.forEach(function(note) {
+        noteEvents.push(midiGen.MidiEvent.noteOn( { pitch: note[0], duration: 16 }));
+        noteEvents.push(midiGen.MidiEvent.noteOff( { pitch: note[0], duration: note[1] }));
+    });
+
+    // Create a track that contains the events to play the notes above
+    var track = new midiGen.MidiTrack({ events: noteEvents });
+
+    var song  = midiGen.MidiWriter({ tracks: [track] });
+
+    var convertDataURIToBinary = function (raw) {
+      var rawLength = raw.length;
+      var array = new Uint8Array(new ArrayBuffer(rawLength));
+     
+      for(var i = 0; i < rawLength; i++) {
+        array[i] = raw.charCodeAt(i);
+      }
+      return array;
+    }
+
+    // Creates an object that contains the final MIDI track in base64 and some
+    // useful methods.
+    var song = convertDataURIToBinary(song);
+
+    play(song);
+};
+
+
+module.exports = {
+    play: playTune,
+    stop: stop
+}
+},{"../dispatcher":10,"./midi":5,"base64-js":48,"lodash":97}],5:[function(require,module,exports){
+/*jslint es5: true, laxbreak: true */
+
+var AP = Array.prototype;
+
+// Create a mock console object to void undefined errors if the console object
+// is not defined.
+if(window !== undefined) {
+    if (!window.console || !console.firebug) {
+        var names = ["log", "debug", "info", "warn", "error"];
+
+        window.console = {};
+        for (var i = 0; i < names.length; ++i) {
+            window.console[names[i]] = function() {};
+        }
+    }
+}
+
+var DEFAULT_VOLUME   = 90;
+var DEFAULT_DURATION = 128;
+var DEFAULT_CHANNEL  = 0;
+
+// These are the different values that compose a MID header. They are already
+// expressed in their string form, so no useless conversion has to take place
+// since they are constants.
+
+var HDR_CHUNKID     = "MThd";
+var HDR_CHUNK_SIZE  = "\x00\x00\x00\x06"; // Header size for SMF
+var HDR_TYPE0       = "\x00\x00"; // Midi Type 0 id
+var HDR_TYPE1       = "\x00\x01"; // Midi Type 1 id
+var HDR_SPEED       = "\x00\x80"; // Defaults to 128 ticks per beat
+
+// Midi event codes
+var EVT_NOTE_OFF           = 0x8;
+var EVT_NOTE_ON            = 0x9;
+var EVT_AFTER_TOUCH        = 0xA;
+var EVT_CONTROLLER         = 0xB;
+var EVT_PROGRAM_CHANGE     = 0xC;
+var EVT_CHANNEL_AFTERTOUCH = 0xD;
+var EVT_PITCH_BEND         = 0xE;
+
+var META_SEQUENCE   = 0x00;
+var META_TEXT       = 0x01;
+var META_COPYRIGHT  = 0x02;
+var META_TRACK_NAME = 0x03;
+var META_INSTRUMENT = 0x04;
+var META_LYRIC      = 0x05;
+var META_MARKER     = 0x06;
+var META_CUE_POINT  = 0x07;
+var META_CHANNEL_PREFIX = 0x20;
+var META_END_OF_TRACK   = 0x2f;
+var META_TEMPO      = 0x51;
+var META_SMPTE      = 0x54;
+var META_TIME_SIG   = 0x58;
+var META_KEY_SIG    = 0x59;
+var META_SEQ_EVENT  = 0x7f;
+
+// This is the conversion table from notes to its MIDI number. Provided for
+// convenience, it is not used in this code.
+var noteTable = { "G9": 0x7F, "Gb9": 0x7E, "F9": 0x7D, "E9": 0x7C, "Eb9": 0x7B,
+"D9": 0x7A, "Db9": 0x79, "C9": 0x78, "B8": 0x77, "Bb8": 0x76, "A8": 0x75, "Ab8": 0x74,
+"G8": 0x73, "Gb8": 0x72, "F8": 0x71, "E8": 0x70, "Eb8": 0x6F, "D8": 0x6E, "Db8": 0x6D,
+"C8": 0x6C, "B7": 0x6B, "Bb7": 0x6A, "A7": 0x69, "Ab7": 0x68, "G7": 0x67, "Gb7": 0x66,
+"F7": 0x65, "E7": 0x64, "Eb7": 0x63, "D7": 0x62, "Db7": 0x61, "C7": 0x60, "B6": 0x5F,
+"Bb6": 0x5E, "A6": 0x5D, "Ab6": 0x5C, "G6": 0x5B, "Gb6": 0x5A, "F6": 0x59, "E6": 0x58,
+"Eb6": 0x57, "D6": 0x56, "Db6": 0x55, "C6": 0x54, "B5": 0x53, "Bb5": 0x52, "A5": 0x51,
+"Ab5": 0x50, "G5": 0x4F, "Gb5": 0x4E, "F5": 0x4D, "E5": 0x4C, "Eb5": 0x4B, "D5": 0x4A,
+"Db5": 0x49, "C5": 0x48, "B4": 0x47, "Bb4": 0x46, "A4": 0x45, "Ab4": 0x44, "G4": 0x43,
+"Gb4": 0x42, "F4": 0x41, "E4": 0x40, "Eb4": 0x3F, "D4": 0x3E, "Db4": 0x3D, "C4": 0x3C,
+"B3": 0x3B, "Bb3": 0x3A, "A3": 0x39, "Ab3": 0x38, "G3": 0x37, "Gb3": 0x36, "F3": 0x35,
+"E3": 0x34, "Eb3": 0x33, "D3": 0x32, "Db3": 0x31, "C3": 0x30, "B2": 0x2F, "Bb2": 0x2E,
+"A2": 0x2D, "Ab2": 0x2C, "G2": 0x2B, "Gb2": 0x2A, "F2": 0x29, "E2": 0x28, "Eb2": 0x27,
+"D2": 0x26, "Db2": 0x25, "C2": 0x24, "B1": 0x23, "Bb1": 0x22, "A1": 0x21, "Ab1": 0x20,
+"G1": 0x1F, "Gb1": 0x1E, "F1": 0x1D, "E1": 0x1C, "Eb1": 0x1B, "D1": 0x1A, "Db1": 0x19,
+"C1": 0x18, "B0": 0x17, "Bb0": 0x16, "A0": 0x15, "Ab0": 0x14, "G0": 0x13, "Gb0": 0x12,
+"F0": 0x11, "E0": 0x10, "Eb0": 0x0F, "D0": 0x0E, "Db0": 0x0D, "C0": 0x0C };
+
+// Helper functions
+
+/*
+ * Converts a string into an array of ASCII char codes for every character of
+ * the string.
+ *
+ * @param str {String} String to be converted
+ * @returns array with the charcode values of the string
+ */
+function StringToNumArray(str) {
+    return AP.map.call(str, function(char) {
+        return char.charCodeAt(0);
+    });
+}
+
+/*
+ * Converts an array of bytes to a string of hexadecimal characters. Prepares
+ * it to be converted into a base64 string.
+ *
+ * @param byteArray {Array} array of bytes that will be converted to a string
+ * @returns hexadecimal string
+ */
+function codes2Str(byteArray) {
+    return String.fromCharCode.apply(null, byteArray);
+}
+
+/*
+ * Converts a String of hexadecimal values to an array of bytes. It can also
+ * add remaining "0" nibbles in order to have enough bytes in the array as the
+ * |finalBytes| parameter.
+ *
+ * @param str {String} string of hexadecimal values e.g. "097B8A"
+ * @param finalBytes {Integer} Optional. The desired number of bytes that the returned array should contain
+ * @returns array of nibbles.
+ */
+
+function str2Bytes(str, finalBytes) {
+    if (finalBytes) {
+        while ((str.length / 2) < finalBytes) { str = "0" + str; }
+    }
+
+    var bytes = [];
+    for (var i=str.length-1; i>=0; i = i-2) {
+        var chars = i === 0 ? str[i] : str[i-1] + str[i];
+        bytes.unshift(parseInt(chars, 16));
+    }
+
+    return bytes;
+}
+
+function isArray(obj) {
+    return !!(obj && obj.concat && obj.unshift && !obj.callee);
+}
+
+
+/**
+ * Translates number of ticks to MIDI timestamp format, returning an array of
+ * bytes with the time values. Midi has a very particular time to express time,
+ * take a good look at the spec before ever touching this function.
+ *
+ * @param ticks {Integer} Number of ticks to be translated
+ * @returns Array of bytes that form the MIDI time value
+ */
+var translateTickTime = function(ticks) {
+    var buffer = ticks & 0x7F;
+
+    while (ticks = ticks >> 7) {
+        buffer <<= 8;
+        buffer |= ((ticks & 0x7F) | 0x80);
+    }
+
+    var bList = [];
+    while (true) {
+        bList.push(buffer & 0xff);
+
+        if (buffer & 0x80) { buffer >>= 8; }
+        else { break; }
+    }
+    return bList;
+};
+
+/*
+ * This is the function that assembles the MIDI file. It writes the
+ * necessary constants for the MIDI header and goes through all the tracks, appending
+ * their data to the final MIDI stream.
+ * It returns an object with the final values in hex and in base64, and with
+ * some useful methods to play an manipulate the resulting MIDI stream.
+ *
+ * @param config {Object} Configuration object. It contains the tracks, tempo
+ * and other values necessary to generate the MIDI stream.
+ *
+ * @returns An object with the hex and base64 resulting streams, as well as
+ * with some useful methods.
+ */
+
+var MidiWriter = function(config) {
+    if (config) {
+        var tracks  = config.tracks || [];
+        // Number of tracks in hexadecimal
+        var tracksLength = tracks.length.toString(16);
+
+        // This variable will hold the whole midi stream and we will add every
+        // chunk of MIDI data to it in the next lines.
+        var hexMidi = HDR_CHUNKID + HDR_CHUNK_SIZE + HDR_TYPE0;
+
+        // Appends the number of tracks expressed in 2 bytes, as the MIDI
+        // standard requires.
+        hexMidi += codes2Str(str2Bytes(tracksLength, 2));
+        hexMidi += HDR_SPEED;
+        // Goes through the tracks appending the hex strings that compose them.
+        tracks.forEach(function(trk) { hexMidi += codes2Str(trk.toBytes()); });
+
+        return hexMidi;
+
+    } else {
+        throw new Error("No parameters have been passed to MidiWriter.");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * Generic MidiEvent object. This object is used to create standard MIDI events
+ * (note Meta events nor SysEx events). It is passed a |params| object that may
+ * contain the keys time, type, channel, param1 and param2. Note that only the
+ * type, channel and param1 are strictly required. If the time is not provided,
+ * a time of 0 will be assumed.
+ *
+ * @param {object} params Object containing the properties of the event.
+ */
+var MidiEvent = function(params) {
+    if (params &&
+        (params.type    !== null || params.type    !== undefined) &&
+        (params.channel !== null || params.channel !== undefined) &&
+        (params.param1  !== null || params.param1  !== undefined)) {
+        this.setTime(params.time);
+        this.setType(params.type);
+        this.setChannel(params.channel);
+        this.setParam1(params.param1);
+        this.setParam2(params.param2);
+    } else {
+        throw new Error("Not enough parameters to create an event.");
+    }
+};
+
+/**
+ * Returns an event of the type NOTE_ON taking the values passed and falling
+ * back to defaults if they are not specified.
+ *
+ * @param note {Note || String} Note object or string
+ * @param time {Number} Duration of the note in ticks
+ * @returns MIDI event with type NOTE_ON for the note specified
+ */
+MidiEvent.noteOn = function(note, duration) {
+    return new MidiEvent({
+        time:    note.duration || duration || 0,
+        type:    EVT_NOTE_ON,
+        channel: note.channel || DEFAULT_CHANNEL,
+        param1:  note.pitch   || note,
+        param2:  note.volume  || DEFAULT_VOLUME
+    });
+};
+
+/**
+ * Returns an event of the type NOTE_OFF taking the values passed and falling
+ * back to defaults if they are not specified.
+ *
+ * @param note {Note || String} Note object or string
+ * @param time {Number} Duration of the note in ticks
+ * @returns MIDI event with type NOTE_OFF for the note specified
+ */
+
+MidiEvent.noteOff = function(note, duration) {
+    return new MidiEvent({
+        time:    note.duration || duration || 0,
+        type:    EVT_NOTE_OFF,
+        channel: note.channel || DEFAULT_CHANNEL,
+        param1:  note.pitch   || note,
+        param2:  note.volume  || DEFAULT_VOLUME
+    });
+};
+
+
+MidiEvent.prototype = {
+    type: 0,
+    channel: 0,
+    time: 0,
+    setTime: function(ticks) {
+        // The 0x00 byte is always the last one. This is how Midi
+        // interpreters know that the time measure specification ends and the
+        // rest of the event signature starts.
+
+        this.time = translateTickTime(ticks || 0);
+    },
+    setType: function(type) {
+        if (type < EVT_NOTE_OFF || type > EVT_PITCH_BEND) {
+            throw new Error("Trying to set an unknown event: " + type);
+        }
+
+        this.type = type;
+    },
+    setChannel: function(channel) {
+        if (channel < 0 || channel > 15) {
+            throw new Error("Channel is out of bounds.");
+        }
+
+        this.channel = channel;
+    },
+    setParam1: function(p) {
+        this.param1 = p;
+    },
+    setParam2: function(p) {
+        this.param2 = p;
+    },
+    toBytes: function() {
+        var byteArray = [];
+
+        var typeChannelByte =
+            parseInt(this.type.toString(16) + this.channel.toString(16), 16);
+
+        byteArray.push.apply(byteArray, this.time);
+        byteArray.push(typeChannelByte);
+        byteArray.push(this.param1);
+
+        // Some events don't have a second parameter
+        if (this.param2 !== undefined && this.param2 !== null) {
+            byteArray.push(this.param2);
+        }
+        return byteArray;
+    }
+};
+
+
+///
+/// META EVENT
+///
+
+var MetaEvent = function(params) {
+    if (params) {
+        this.setType(params.type);
+        this.setData(params.data);
+    }
+};
+
+MetaEvent.prototype = {
+    setType: function(t) {
+        this.type = t;
+    },
+    setData: function(d) {
+        this.data = d;
+    },
+    toBytes: function() {
+        if (!this.type || !this.data) {
+            throw new Error("Type or data for meta-event not specified.");
+        }
+
+        var byteArray = [0xff, this.type];
+
+        // If data is an array, we assume that it contains several bytes. We
+        // apend them to byteArray.
+        if (isArray(this.data)) {
+            AP.push.apply(byteArray, this.data);
+        }
+
+        return byteArray;
+    }
+};
+
+///
+/// MIDI TRACK
+///
+
+var MidiTrack = function(cfg) {
+    this.events = [];
+    for (var p in cfg) {
+        if (cfg.hasOwnProperty(p)) {
+            // Get the setter for the property. The property is capitalized.
+            // Probably a try/catch should go here.
+            this["set" + p.charAt(0).toUpperCase() + p.substring(1)](cfg[p]);
+        }
+    }
+};
+
+//"MTrk" Marks the start of the track data
+MidiTrack.TRACK_START = [0x4d, 0x54, 0x72, 0x6b];
+MidiTrack.TRACK_END   = [0x0, 0xFF, 0x2F, 0x0];
+
+MidiTrack.prototype = {
+    /*
+     * Adds an event to the track.
+     *
+     * @param event {MidiEvent} Event to add to the track
+     * @returns the track where the event has been added
+     */
+    addEvent: function(event) {
+        this.events.push(event);
+        return this;
+    },
+    setEvents: function(events) {
+        AP.push.apply(this.events, events);
+        return this;
+    },
+    /*
+     * Adds a text meta-event to the track.
+     *
+     * @param type {Number} type of the text meta-event
+     * @param text {String} Optional. Text of the meta-event.
+     * @returns the track where the event ahs been added
+     */
+    setText: function(type, text) {
+        // If the param text is not specified, it is assumed that a generic
+        // text is wanted and that the type parameter is the actual text to be
+        // used.
+        if (!text) {
+            type = META_TEXT;
+            text = type;
+        }
+        return this.addEvent(new MetaEvent({ type: type, data: text }));
+    },
+    // The following are setters for different kinds of text in MIDI, they all
+    // use the |setText| method as a proxy.
+    setCopyright:  function(text) { return this.setText(META_COPYRIGHT, text);  },
+    setTrackName:  function(text) { return this.setText(META_TRACK_NAME, text); },
+    setInstrument: function(text) { return this.setText(META_INSTRUMENT, text); },
+    setLyric:      function(text) { return this.setText(META_LYRIC, text);      },
+    setMarker:     function(text) { return this.setText(META_MARKER, text);     },
+    setCuePoint:   function(text) { return this.setText(META_CUE_POINT, text);  },
+
+    setTempo: function(tempo) {
+        this.addEvent(new MetaEvent({ type: META_TEMPO, data: tempo }));
+    },
+    setTimeSig: function() {
+        // TBD
+    },
+    setKeySig: function() {
+        // TBD
+    },
+
+    toBytes: function() {
+        var trackLength = 0;
+        var eventBytes = [];
+        var startBytes = MidiTrack.TRACK_START;
+        var endBytes   = MidiTrack.TRACK_END;
+
+        /*
+         * Adds the bytes of an event to the eventBytes array and add the
+         * amount of bytes to |trackLength|.
+         *
+         * @param event {MidiEvent} MIDI event we want the bytes from.
+         */
+        var addEventBytes = function(event) {
+            var bytes = event.toBytes();
+            trackLength += bytes.length;
+            AP.push.apply(eventBytes, bytes);
+        };
+
+        this.events.forEach(addEventBytes);
+
+        // Add the end-of-track bytes to the sum of bytes for the track, since
+        // they are counted (unlike the start-of-track ones).
+        trackLength += endBytes.length;
+
+        // Makes sure that track length will fill up 4 bytes with 0s in case
+        // the length is less than that (the usual case).
+        var lengthBytes = str2Bytes(trackLength.toString(16), 4);
+
+        return startBytes.concat(lengthBytes, eventBytes, endBytes);
+    }
+};
+
+
+module.exports = {
+    MidiWriter,
+    MidiEvent,
+    MetaEvent,
+    MidiTrack,
+    noteTable
+};
+},{}],6:[function(require,module,exports){
+var Base64 = require('base64-arraybuffer');
+var _ = require('lodash');
+var Timer = require('clockmaker').Timer;
+var siz = require('Sizzle');
+
+var note = {};
+var loadedNoteData = false;
+
+var notes = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+var context = new AudioContext();
+
+var RhythmSample = {
+};
+
+RhythmSample.play = function(dispatcher) {
+
+  if (!loadedNoteData) {
+    fetch('/pat/acoustic_grand_piano-mp3.json')
+    .then(function(response) {
+          return response.json();
+        }).then(function(res) {
+
+          _.forOwn(res, function(val, key) {
+            var base64 = val.split(',')[1];
+            var buffer = Base64.decode(base64);
+            context.decodeAudioData(buffer, function(decodedData) {
+              note[key] = decodedData;
+            });
+          });
+
+          dispatcher.set('playbackReady', true);
+          loadedNoteData = true;
+
+        });
+  } else {
+    dispatcher.set('playbackReady', true);
+  }
+
+  var sources = [];
+
+  var timer = null;
+  var lastHighlightedNote = null;
+
+  var playTune = function(tuneData, tempo = 120) {
+
+    function playSound(buffer, time, length) {
+      var source = context.createBufferSource();
+      var gainNode = context.createGain();
+      gainNode.gain.linearRampToValueAtTime(0.5, time + length);
+      gainNode.gain.linearRampToValueAtTime(0, time + length + 0.5);
+      source.buffer = buffer;
+      // Connect the source to the gain node.
+      source.connect(gainNode);
+      // Connect the gain node to the destination.
+      gainNode.connect(context.destination);
+      if (!source.start)
+        source.start = source.noteOn;
+      source.start(time);
+
+      sources.push(source);
+    }
+
+    var kick = note.A4;
+    var snare = note.A5;
+    var hihat = note.C4;
+
+    // We'll start playing the rhythm 100 milliseconds from "now"
+    var startTime = context.currentTime + 0.100;
+
+    var offset = 0;
+
+    // Play 2 bars of the following:
+    for (var bar = 0; bar < tuneData.length; bar++) {
+
+      var octave = Math.floor((tuneData[bar][0] - 24) / 12);
+      var noteId = tuneData[bar][0] - 24 - (octave * 12);
+
+      playSound(note[notes[noteId] + (octave + 1)], startTime + offset,
+          tuneData[bar][1] / tempo);
+
+      offset += tuneData[bar][1] / tempo;
+
+    }
+
+    var currentPosition = 0;
+    var firstNote = siz('.tune-body .noteHead')[0];
+    firstNote.classList.add('selected-note');
+    lastHighlightedNote = firstNote;
+    timer = new Timer(function(timer) {
+
+      if (lastHighlightedNote !== null)
+        lastHighlightedNote.classList.remove('selected-note');
+
+      var thisNote =
+          document.getElementById('note_' + tuneData[currentPosition][2]);
+
+      thisNote.classList.add('selected-note');
+      lastHighlightedNote = thisNote;
+
+      if (currentPosition >= tuneData.length - 1) {
+        timer.stop();
+        dispatcher.fire('play-tune-end');
+        window.setTimeout(function() {
+          if (lastHighlightedNote !== null)
+            lastHighlightedNote.classList.remove('selected-note');
+
+        }, tuneData[currentPosition][1] * 1000 / tempo);
+      }
+
+      timer.setDelay(tuneData[currentPosition][1] * 1000 / tempo);
+      currentPosition++;
+
+    }, tuneData[0], {
+      repeat: true
+    }).start();
+  };
+
+  var stopTune = function() {
+    timer.stop();
+    if (lastHighlightedNote !== null)
+      lastHighlightedNote.classList.remove('selected-note');
+
+    sources.forEach(function(source) {
+      source.stop();
+    });
+  };
+
+  return {
+    playTune,
+    stopTune
+  };
+};
+
+module.exports = RhythmSample.play;
+
+},{"Sizzle":46,"base64-arraybuffer":47,"clockmaker":51,"lodash":97}],7:[function(require,module,exports){
+ 
+var data_tables = require('./data_tables.js');
+
+//transforms a tune into an array that can be played by the audio system
+var audioRender = (tune) => {
+	var outTune = [];
+
+	var 
+		keyModifier = data_tables.getKeyModifiers(tune.tuneSettings.key);
+
+	var allSymbols = tune.parsedLines.filter(function(line) { 
+		return line.type === "drawable";
+	}).reduce(function(alreadyParsed, line) {
+		return alreadyParsed.concat(line.symbols);
+	}, []);
+
+	var 
+		i = 0,
+		repeating = true,
+		repeatLocation = 0,
+		totalLength = 0;
+
+	while(i < allSymbols.length) {
+
+		var syb = allSymbols[i];
+
+		if(syb.type === "note") {
+			var pitch = syb.pitch + ((syb.octave - 4) * 12);
+			switch(syb.accidental)
+			{
+				case "^": {
+					pitch += 1;
+					break;
+				}
+				case "^^": {
+					pitch += 2;
+					break;
+				}
+				case "_": {
+					pitch -= 1;
+					break;
+				}
+				case "__": {
+					pitch -= 2;
+					break;
+				}
+			}
+			if(syb.accidental !== "=" && _.indexOf(keyModifier.notes, syb.note.toUpperCase()) !== -1) pitch += keyModifier.mod;
+			outTune.push([pitch, syb.noteLength * 16, syb.renderNoteId])
+			totalLength += syb.noteLength * 16;
+		}
+
+		if(syb.type === "barline") {
+			if(syb.subType === "repeat_start") {
+				repeating = true;
+				repeatLocation = i;
+			}
+			if(syb.subType === "repeat_end") {
+				if(repeating) {
+					repeating = false;
+					i = repeatLocation;
+					repeatLocation = -1;
+				} else {
+					repeating = true;
+					repeatLocation = i;
+				}
+			}
+		}
+
+		i++;
+	}
+
+	return outTune;
+}
+
+module.exports = audioRender;
+},{"./data_tables.js":8}],8:[function(require,module,exports){
+'use strict';
+
+var data_tables = {},
+    zazate = require('zazate.js'),
+    _ = require('lodash');
+
+data_tables["notes"] = {
+    "C": {
+        octave: 4,
+        pitch: 60,
+        pos: 0
+    },
+    "D": {
+        octave: 4,
+        pitch: 62,
+        pos: 1
+    },
+    "E": {
+        octave: 4,
+        pitch: 64,
+        pos: 2
+    },
+    "F": {
+        octave: 4,
+        pitch: 65,
+        pos: 3
+    },
+    "G": {
+        octave: 4,
+        pitch: 67,
+        pos: 4
+    },
+    "A": {
+        octave: 4,
+        pitch: 69,
+        pos: 5
+    },
+    "B": {
+        octave: 4,
+        pitch: 71,
+        pos: 6
+    },
+    "c": {
+        octave: 5,
+        pitch: 60,
+        pos: 0
+    },
+    "d": {
+        octave: 5,
+        pitch: 62,
+        pos: 1
+    },
+    "e": {
+        octave: 5,
+        pitch: 64,
+        pos: 2
+    },
+    "f": {
+        octave: 5,
+        pitch: 65,
+        pos: 3
+    },
+    "g": {
+        octave: 5,
+        pitch: 67,
+        pos: 4
+    },
+    "a": {
+        octave: 5,
+        pitch: 69,
+        pos: 5
+    },
+    "b": {
+        octave: 5,
+        pitch: 71,
+        pos: 6
+    },
+};
+
+data_tables.symbol_width = {
+    "note": function(note) {
+        return Math.log(note.noteLength + 1);
+        //return note.noteLength * 1;//* 1.618;
+    },
+    "rest": 1,
+    "beat_rest": 1,
+    "barline": 0.25,
+    "space": 0,
+    "chord_annotation": 0
+};
+
+data_tables.mode_map = {
+    "": "maj",
+    "ion": "maj",
+    "maj": "maj",
+
+    "m": "min",
+    "min": "min",
+    "aeo": "min",
+
+    "mix": "mix",
+    "dor": "dor",
+    "phr": "phr",
+    "lyd": "lyd",
+    "loc": "loc"
+};
+
+data_tables.keySig = {
+    "C": {
+        "maj": "0",
+        "min": "-3",
+        "mix": "-1",
+        "dor": "-2",
+        "phr": "-4",
+        "lyd": "1",
+        "loc": "-5"
+    },
+    "C#": {
+        "maj": "7",
+        "min": "4",
+        "mix": "6",
+        "dor": "5",
+        "phr": "3",
+        "lyd": "NOPE",
+        "loc": "2"
+    },
+    "Db": {
+        "maj": "-5",
+        "min": "NOPE",
+        "mix": "-6",
+        "dor": "-7",
+        "phr": "NOPE",
+        "lyd": "-4",
+        "loc": "NOPE"
+    },
+    "D": {
+        "maj": "2",
+        "min": "-1",
+        "mix": "1",
+        "dor": "0",
+        "phr": "-2",
+        "lyd": "3",
+        "loc": "-3"
+    },
+    "D#": {
+        "maj": "6",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "7",
+        "phr": "5",
+        "lyd": "",
+        "loc": "4"
+    },
+    "Eb": {
+        "maj": "-3",
+        "min": "-6",
+        "mix": "-4",
+        "dor": "-5",
+        "phr": "-7",
+        "lyd": "-2",
+        "loc": "NOPE"
+    },
+    "E": {
+        "maj": "4",
+        "min": "1",
+        "mix": "3",
+        "dor": "2",
+        "phr": "0",
+        "lyd": "5",
+        "loc": "-1"
+    },
+    "E#": {
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "7",
+        "lyd": "NOPE",
+        "loc": "6"
+    },
+    "Fb": {
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-7",
+        "loc": "NOPE"
+    },
+    "F": {
+        "maj": "-1",
+        "min": "-4",
+        "mix": "-2",
+        "dor": "-3",
+        "phr": "-5",
+        "lyd": "0",
+        "loc": "-6"
+    },
+    "F#": {
+        "maj": "6",
+        "min": "3",
+        "mix": "5",
+        "dor": "4",
+        "phr": "2",
+        "lyd": "7",
+        "loc": "1"
+    },
+    "Gb": {
+        "maj": "-6",
+        "min": "NOPE",
+        "mix": "-7",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-5",
+        "loc": "NOPE"
+    },
+    "G": {
+        "maj": "1",
+        "min": "-2",
+        "mix": "0",
+        "dor": "-1",
+        "phr": "-3",
+        "lyd": "2",
+        "loc": "-4"
+    },
+    "G#": {
+        "maj": "NOPE",
+        "min": "5",
+        "mix": "7",
+        "dor": "6",
+        "phr": "4",
+        "lyd": "NOPE",
+        "loc": "3"
+    },
+    "Ab": {
+        "maj": "-4",
+        "min": "-7",
+        "mix": "-5",
+        "dor": "-6",
+        "phr": "NOPE",
+        "lyd": "-3",
+        "loc": "NOPE"
+    },
+    "A": {
+        "maj": "3",
+        "min": "0",
+        "mix": "2",
+        "dor": "1",
+        "phr": "-1",
+        "lyd": "4",
+        "loc": "-2"
+    },
+    "A#": {
+        "maj": "NOPE",
+        "min": "7",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "6",
+        "lyd": "NOPE",
+        "loc": "5"
+    },
+    "Bb": {
+        "maj": "-2",
+        "min": "-5",
+        "mix": "-3",
+        "dor": "-4",
+        "phr": "-6",
+        "lyd": "-1",
+        "loc": "-7"
+    },
+    "B": {
+        "maj": "5",
+        "min": "2",
+        "mix": "4",
+        "dor": "3",
+        "phr": "1",
+        "lyd": "6",
+        "loc": "0"
+    },
+    "B#": {
+        "maj": "NOPE",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "NOPE",
+        "loc": "7"
+    },
+    "Cb": {
+        "maj": "-7",
+        "min": "NOPE",
+        "mix": "NOPE",
+        "dor": "NOPE",
+        "phr": "NOPE",
+        "lyd": "-6",
+        "loc": "NOPE"
+    }
+};
+
+var majorMode = {
+    "-7": "Cb",
+    "-6": "Gb",
+    "-5": "Db",
+    "-4": "Ab",
+    "-3": "Eb",
+    "-2": "Bb",
+    "-1": "F",
+    "0": "C",
+    "1": "G", 
+    "2": "D",
+    "3": "A",
+    "4": "E",
+    "5": "B",
+    "6": "F#",
+    "7": "C#"
+};
+
+data_tables.normaliseMode = function (mode) { return mode.toLowerCase().substr(0, 3); }
+
+data_tables.toMajorMode = function (note, mode) {
+    var norm = data_tables.normaliseMode(mode);
+    var middle = data_tables.mode_map[norm];
+    var key = majorMode[data_tables.keySig[note][middle]];
+
+    var chords = [];
+
+    chords.push(zazate.chords.I(key));
+    chords.push(zazate.chords.II(key));
+    chords.push(zazate.chords.III(key));
+    chords.push(zazate.chords.IV(key));
+    chords.push(zazate.chords.V(key));
+    chords.push(zazate.chords.VI(key));
+    chords.push(zazate.chords.VII(key));
+
+    var indexOfRootNote = _.findIndex(chords, function (c) { return c[0] === note; });
+
+    while(indexOfRootNote > 0) {
+        indexOfRootNote--;
+        chords.push(chords.shift());
+    }
+
+    return chords.map(function (c) { return zazate.chords.determine(c, true)[0]; });
+};
+
+data_tables.gkm = data_tables.getKeyModifiers = function (key) {
+    var norm = data_tables.normaliseMode(key.mode);
+    var middle = data_tables.mode_map[norm];
+    var meh = parseInt(data_tables.keySig[key.note][middle]);
+
+    if(meh > 0) {
+        var range = _.range(-1, meh-1);
+        return {
+            mod: 1,
+            notes: range.map(function (r) { return majorMode[r]; })
+        };
+    }
+
+    if(meh < 0) {
+        var range = _.range(5, meh+5, -1);
+        return {
+            mod: -1,
+            notes: range.map(function (r) { return majorMode[r]; })
+        }
+    }
+
+    return {
+        mod: 0,
+        notes: []
+    };
+};
+
+
+data_tables.getKeySig = function (note, mode) {
+    var 
+        normalisedMode = data_tables.mode_map[data_tables.normaliseMode(mode)];
+
+    return parseInt(data_tables.keySig[note][normalisedMode]);
+};
+
+data_tables.flats = [6, 9, 5, 8, 4, 7, 3];
+data_tables.sharps = [10, 7, 11, 8, 5, 9, 6];
+
+//not all note lengths can be represented with a single note
+data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];
+
+module.exports = data_tables;
+},{"lodash":97,"zazate.js":137}],9:[function(require,module,exports){
+ var
+     JsDiff = require('diff'),
+     LineCollection = require('./types/LineCollection').LineCollection;
+
+
+var Diff = function(change) {
+
+     var diff = JsDiff.diffLines(change.oldValue, change.newValue);
+
+     //ensure deletions are before additions in changes
+     for (var i = 0; i < diff.length; i++) {
+
+         if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+             var swap = diff[i];
+             diff[i] = diff[i + 1];
+             diff[i + 1] = swap;
+         }
+     }
+
+     var lineCount = 0;
+     var output = [];
+
+     for (var i = 0; i < diff.length; i++) {
+         var item = diff[i],
+             newlines = 0,
+             split = [];
+
+         split = item.value.split(/\r\n|\r|\n/);
+
+         if (split[split.length - 1] === '') {
+             split = split.slice(0, split.length - 1);
+         }
+
+         newlines = split.length;
+
+         item.lineno = lineCount;
+
+         var newLineCollection = new LineCollection(item.lineno, item.value,
+            item.added ? 'ADD' : item.removed ? 'DEL' : 'NONE');
+
+         if (!item.removed) {
+             lineCount += newlines;
+         }
+
+         if(newLineCollection.action != 'NONE')output.push(newLineCollection);
+     }
+
+     return output;
+ };
+
+module.exports = Diff;
+
+},{"./types/LineCollection":23,"diff":86}],10:[function(require,module,exports){
+'use strict';
+
+var _ = require('lodash');
+
+var subscribers = new Map(),
+    afterSubscribers = new Map();
+
+var disconnectId = 0;
+
+function send(eventName, data) {
+
+    _(subscribers.get(eventName)).forEach(function(sub) {
+        sub.f(data);
+    });
+
+    _(afterSubscribers.get(eventName)).forEach(function(sub) {
+        sub.f(data);
+    });
+}
+
+function subscribeEvent(subList, eventName, func) {
+
+    var connection = {
+        id: disconnectId,
+        f: func
+    };
+
+    disconnectId++;
+
+    if (subList.has(eventName)) {
+        subList.get(eventName).push(connection)
+    } else {
+        subList.set(eventName, [connection]);
+    }
+
+    return disconnectId - 1;
+}
+
+function on(eventName, func) {
+    if(_.isObject(eventName) && func === undefined) {
+        for(var propt in eventName){
+            subscribeEvent(subscribers, propt, eventName[propt]);
+        }
+    } else {
+        return subscribeEvent(subscribers, eventName, func);
+    }    
+}
+
+function off(id) {
+
+    subscribers.forEach(function(value, key) {
+      var toRemove = _.findIndex(value, function (v) { return v.id === id });
+        if(toRemove !== -1) {
+            value.splice(toRemove, 1);
+        }
+    });
+}
+
+function after(eventName, func) {
+    if(_.isObject(eventName) && func === undefined) {
+        for(var propt in eventName){
+            subscribeEvent(afterSubscribers, propt, eventName[propt]);
+        }
+    } else {
+        subscribeEvent(afterSubscribers, eventName, func);
+    }    
+}
+
+module.exports = {
+    on: on,
+    off: off,
+    send: send,
+    fire: send,
+    after: after
+};
+},{"lodash":97}],11:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+	parser: require('./parser'),
+	diff: require('./diff'),
+	render: require('./render'),
+	layout: require('./layout')
+};
+},{"./diff":9,"./layout":12,"./parser":14,"./render":15}],12:[function(require,module,exports){
+var 
+    data_tables = require('./data_tables'),
+    _ = require('lodash'),
+    dispatcher = require('./dispatcher'),
+    AbcBeam = require('./types/AbcBeam'),
+    springs = require('./springs');
+
+var ABCLayout = function (dispatcher) {
+
+    var parsedLines = [];
+    var tuneSettings = {
+        key: {
+            note: "C",
+            mode: "Major"
+        },
+        measure: {
+            top: 4,
+            bottom: 4
+        },
+        title: "Untitled Tune"
+    };
+
+    var forceFullRedraw = false;
+
+
+    var currentRenderNoteId = 0;
+
+    var layoutDrawableLine = function(line) {
+
+        if(line.symbols.length === 0)return line;
+
+        var
+        posMod = 1 / (line.weight + 1),
+        totalOffset = 0,
+        beamList = [],
+        beamDepth = 0,
+        lastNote = null;
+
+        var totalFixedWidth = 0,
+            totalSpringConstant = 0;
+
+        if(_.last(line.symbols).type === "barline") {
+            posMod = 1 / (line.weight);
+        }
+
+        for (var i = 0; i < line.symbols.length; i++) {
+
+            if(line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section" || line.symbols[i].type == "slur") continue;
+
+            var currentSymbol = line.symbols[i];
+
+            //////////////////////////NEW//////////////////////////
+
+            if(springs[currentSymbol.type] !== undefined) {
+                if(currentSymbol.subType !== undefined) {
+                    if(springs[currentSymbol.type][currentSymbol.subType] !== undefined) {
+                        totalFixedWidth += (currentSymbol.fixedWidth = springs[currentSymbol.type][currentSymbol.subType]);
+                    }
+                } else {
+                    totalFixedWidth += (currentSymbol.fixedWidth = springs[currentSymbol.type]);
+                }                
+            }
+
+            if(!(i === line.symbols.length - 1 && line.symbols[i].type === "barline")) {
+                if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
+                    totalSpringConstant += (currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type](currentSymbol));
+                } else {
+                    totalSpringConstant += (currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type]);
+                }
+            }
+
+            ///////////////////////////////////////////////////////
+
+            currentSymbol.xp = totalOffset;
+            if(i === line.symbols.length - 1 && currentSymbol.type === "barline") {
+                currentSymbol.xp = 1;
+                currentSymbol.align = 2;
+            }     
+
+            if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
+                totalOffset += (data_tables.symbol_width[currentSymbol.type](currentSymbol)) * posMod;
+            } else {
+                totalOffset += (data_tables.symbol_width[currentSymbol.type] * posMod);
+            }
+
+            if (currentSymbol.type === "note") {
+
+                line.symbols[i].renderNoteId = currentRenderNoteId++;
+
+                currentSymbol.truepos = currentSymbol.pos + (7 * (currentSymbol.octave - 4));
+                currentSymbol.y = 40 - (currentSymbol.truepos * 4);
+                currentSymbol.beams = [];
+            }
+
+            if (currentSymbol.beamDepth !== undefined && currentSymbol.beamDepth < 0) {
+               if(currentSymbol.type === "note")beamList.push(currentSymbol);
+               beamDepth = currentSymbol.beamDepth;
+           } else {
+                //draw beam
+                //if(currentSymbol.type === "note")beamList.push(currentSymbol);
+                if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
+                beamList = [];
+                beamDepth = 0;
+            }
+
+            if(currentSymbol.type === "note") lastNote = currentSymbol;
+        }
+
+        if (beamList.length > 0) {
+            //draw beam
+            if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
+            beamList = [];
+            beamDepth = 0;
+        }
+
+        line.totalFixedWidth = totalFixedWidth;
+        line.totalSpringConstant = totalSpringConstant;
+
+        return line;
+    }
+
+    var handleDataLineSwitch = {
+        title: function(data) {
+            tuneSettings.title = data;
+            dispatcher.fire("change_tune_title", data);
+        },
+
+        rhythm: function(data) {
+            tuneSettings.rhythm = data;
+            dispatcher.fire("change_rhythm", data);
+        },
+
+        key: function(data) {
+            tuneSettings.key = data;
+            forceFullRedraw = true;
+            dispatcher.fire("change_key", data);
+        },
+
+        timesig: function(data) {
+            tuneSettings.measure = data;
+            dispatcher.fire("change_timesig", data);
+        },
+
+        notelength: function(data) {
+            tuneSettings.noteLength = data;
+            dispatcher.fire("change_notelength", data);
+        },
+
+        number: function(data) {
+            tuneSettings.number = data;
+        },
+
+        transcriber: function(data) {
+            tuneSettings.transcriber = data;
+        },
+
+        source: function(data) {
+            tuneSettings.source = data;
+        },
+    };
+
+    function handleDataLine(line) {
+        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);   
+        return line;    
+    }
+
+    var handleAction = {
+        ADD: function ( lineCollection ) {
+
+
+            var layoutedLines = lineCollection.lines.map(function(line) {
+                if(line.type === "drawable") return layoutDrawableLine(line);
+                if(line.type === "data") return handleDataLine(line);
+                return line;
+            });
+
+            if (layoutedLines.length > 0) {
+                var args = [layoutedLines[0].id, 0].concat(layoutedLines);
+                Array.prototype.splice.apply(parsedLines, args);
+            }
+
+        },
+
+        
+        DEL: function ( lineCollection ) {
+
+            if (lineCollection.lines.length > 0) {
+                var removed_lines = parsedLines.splice(lineCollection.lines[0].id, lineCollection.lines.length);
+
+                for (var i = lineCollection.lines[0].id; i < parsedLines.length; i++) {
+                    parsedLines[i].id -= lineCollection.lines.length;
+                }
+            }
+        }
+    };
+
+    return function(oldScoreLines, lineCollection) {
+
+        handleAction[lineCollection.action](lineCollection);
+
+        var changedLines = [];
+
+        for(var i=lineCollection.startId; i<lineCollection.startId + lineCollection.count; i++) {
+            changedLines.push(i);
+        }
+
+        if(oldScoreLines !== 0) {
+            changedLines = changedLines.concat(oldScoreLines.changedLines);
+        }
+
+        var returnData = {
+            tuneSettings: tuneSettings,
+            parsedLines: parsedLines,
+            changedLines: changedLines,
+            forceFullRedraw: forceFullRedraw || oldScoreLines.forceFullRedraw
+        };
+
+        if(forceFullRedraw)forceFullRedraw = false;
+
+        return returnData;
+
+    }
+}
+
+module.exports = ABCLayout;
+},{"./data_tables":8,"./dispatcher":10,"./springs":19,"./types/AbcBeam":20,"lodash":97}],13:[function(require,module,exports){
+'use strict';
+
+var
+    _ = require('lodash'),
+    Lexer = require('lex'),
+    dispatcher = require('./dispatcher');
+
+//////////////////////
+// HELPER FUNCTIONS //
+//////////////////////
+var simpleType = function(name) {
+    return function() {
+        return {
+            type: name
+        };
+    }
+}
+
+var charCountInString = function(string, character) {
+    return string.split(character).length - 1;
+}
+
+var addSimpleStringInformationField = function(spec, key, type) {
+    spec.start[key + ": *([^\n]*)\n?"] = function(data) {
+        return {
+            type_class: "data",
+            type: type,
+            data: data
+        }
+    }
+}
+
+
+
+function LexerException(message, line, char) {
+    this.message = message;
+    this.line = line;
+    this.char = char;
+    this.name = "LexerException";
+}  
+
+
+////////////////////////////////
+//            LEXER           //
+////////////////////////////////
+
+var lexer = new Lexer(function (char) {
+    throw new LexerException(`Unexpected '${char}'`, 0, this.index);
+});
+
+///////////
+// NOTES //
+///////////
+lexer.addRule(/([A-Ga-g])/, function(note) {
+    return {
+        type: "note",
+        subType: "letter",
+        data: note
+    }
+});
+
+///////////
+// RESTS //
+///////////
+lexer.addRule(/z/, function() {
+    return {
+        type: "rest",
+        subType: "visible",
+        data: "short"
+    }
+}).addRule(/x/, function() {
+    return {
+        type: "rest",
+        subType: "invisible",
+        data: "short"
+    }
+}).addRule(/Z/, function() {
+    return {
+        type: "rest",
+        subType: "visible",
+        data: "long"
+    }
+}).addRule(/X/, function() {
+    return {
+        type: "rest",
+        subType: "invisible",
+        data: "long"
+    }
+});
+
+///////////////////////////////
+// NOTE AND REST DECORATIONS //
+///////////////////////////////
+lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function(all, notelength, notedenom) {
+    return {
+        type: "note",
+        subType: "length",
+        data: (notedenom && notedenom.length > 0) ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength),
+    }
+}).addRule(/\/([0-9]+)/, function(all, notedenom) {
+    return {
+        type: "note",
+        subType: "length",
+        data: 1 / parseFloat(notedenom),
+    }
+}).addRule(/\/+/, function(all) {
+    return {
+        type: "note",
+        subType: "length",
+        data: 1/all.length,
+    }
+}).addRule(/([',]+)/, function(pitchModifier) {
+    return {
+        type: "note",
+        subType: "pitch",
+        data: charCountInString(pitchModifier, "'") - charCountInString(pitchModifier, ",")
+    }
+}).addRule(/(_|\^|=|__|\^\^)/, function(accidental) {
+    return {
+        type: "note",
+        subType: "accidental",
+        data: accidental
+    }
+}).addRule(/"([^"]+)"/, function(match, data) {
+    return {
+        type: "note",
+        subType: "chord_annotation",
+        data: data
+    }
+}).addRule(/!([^!]+)!/, function(data) {
+    return {
+        type: "note",
+        subType: "decoration",
+        data: data
+    }
+}).addRule(/~/, function(data) {
+    return {
+        type: "note",
+        subType: "decoration",
+        data: data
+    }
+}).addRule(/>{1,3}/, function(data) {
+    return {
+        type: "broken-rhythm",
+        subType: "right",
+        data: data.length
+    }
+}).addRule(/<{1,3}/, function(data) {
+    return {
+        type: "broken-rhythm",
+        subType: "left",
+        data: data.length
+    }
+});
+
+///////////////
+// BAR LINES //
+///////////////
+///
+/// v indicates how the type of barline effects varient endings
+/// #0 -> No effect
+/// #1 -> Ends a varient ending
+/// #2 -> Starts a varient ending
+///
+lexer.addRule(/\|/, function() {
+    return {
+        type: "barline",
+        subtype: "normal",
+        v: 0
+    }
+}).addRule(/\|\]/, function() {
+    return {
+        type: "barline",
+        subtype: "heavy_end",
+        v: 1
+    }
+}).addRule(/\|\|/, function() {
+    return {
+        type: "barline",
+        subtype: "double",
+        v: 1
+    }
+}).addRule(/\[\|/, function() {
+    return {
+        type: "barline",
+        subtype: "heavy_start",
+        v: 1
+    }
+}).addRule(/:\|/, function() {
+    return {
+        type: "barline",
+        subtype: "repeat_end",
+        v: 1
+    }
+}).addRule(/\|:/, function() {
+    return {
+        type: "barline",
+        subtype: "repeat_start",
+        v: 0
+    }
+}).addRule(/::/, function() {
+    return {
+        type: "barline",
+        subtype: "double_repeat",
+        v: 1
+    }
+}).addRule(/\[([0-9]+)/, function (all, sectionNumber) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionNumber,
+        v: 2
+    };
+}).addRule(/\["([a-z A-Z0-9]+)"/, function (all, sectionName) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionName,
+        v: 2
+    };
+}).addRule(/\|([0-9]+)/, function (all, sectionNumber) {
+    return {
+        type: "varient_section",
+        subtype: "start_section",
+        data: sectionNumber,
+        v: 2
+    };
+});
+
+/////////////////
+// NOTE GROUPS //
+/////////////////
+lexer.addRule(/\[/, function() {
+    return {
+        type: "chord_start"
+    }
+}).addRule(/\]/, function() {
+    return {
+        type: "chord_stop"
+    }
+
+}).addRule(/{/, function() {
+    return {
+        type: "grace_start"
+    }
+}).addRule(/}/, function() {
+    return {
+        type: "grace_stop"
+    }
+}).addRule(/\(([2-9])/, function(all, size) {
+    return {
+        type: "tuplet_start",
+        data: parseInt(size)
+    }
+}).addRule(/\(/, function() {
+    return {
+        type: "slur_start"
+    }
+}).addRule(/\)/, function() {
+    return {
+        type: "slur_stop"
+    }
+}).addRule(/-/, function () {
+    return {
+        type: "tie"
+    }
+});
+
+//////////////////
+// DATA FIELDS  //
+//////////////////
+
+lexer.addRule(/T: *([\w ',?]+)\s*$/, function(match, title) {
+    return {
+        type: "data",
+        subtype: "title",
+        data: title
+    }
+});
+
+lexer.addRule(/X: *([0-9]+)\s*$/, function(match, num) {
+    return {
+        type: "data",
+        subtype: "number",
+        data: num
+    }
+});
+
+lexer.addRule(/R: *([\w ]+)\s*$/, function(match, rhythm) {
+    return {
+        type: "data",
+        subtype: "rhythm",
+        data: rhythm
+    }
+});
+
+lexer.addRule(/S: *([\w \/:\.#]+)\s*$/, function(match, source) {
+    return {
+        type: "data",
+        subtype: "source",
+        data: source
+    }
+});
+
+lexer.addRule(/Z: *([\w \/:\.#]+)\s*$/, function(match, source) {
+    return {
+        type: "data",
+        subtype: "transcriber",
+        data: source
+    }
+});
+
+lexer.addRule(/M: *([0-9]+)\/([0-9]+)\s*$/, function(match, top, bottom) {
+    return {
+        type: "data",
+        subtype: "timesig",
+        data: {
+            top: top,
+            bottom: bottom
+        }
+    }
+});
+
+lexer.addRule(/L: *([0-9]+)\/([0-9])\s*$/, function(match, top, bottom) {
+    return {
+        type: "data",
+        subtype: "notelength",
+        data: parseInt(top) / parseInt(bottom)
+    }
+});
+
+lexer.addRule(/K: *([A-G][#|b]?) ?([\w]*)\s*$/, function(match, note, mode) {
+    return {
+        type: "data",
+        subtype: "key",
+        data: {
+            note: note,
+            mode: mode
+        }
+    }
+});
+
+///////////
+// OTHER //
+///////////
+lexer.addRule(/ /, function() {
+    return {
+        type: "space"
+    }
+}).addRule(/`/, function() {
+    return {
+        type: "beam"
+    }
+});
+
+
+module.exports = function(dispatcher, input, lineId) {
+    lexer.setInput(input);
+    var output = [];
+
+    do {  
+        var data = undefined;
+        try {
+            data = lexer.lex();
+            if(data !== undefined)output.push(data);
+        } catch(e) {
+            
+            var error = {
+                line: lineId,
+                message: e.message,
+                severity: 1,
+                char: e.char,
+                type: "LEXERERROR"
+            };
+
+            console.log(error);
+
+            dispatcher.fire("abc_error", error);
+
+            break;
+        }           
+    } while(data != undefined);
+
+    return output;
+}
+},{"./dispatcher":10,"lex":96,"lodash":97}],14:[function(require,module,exports){
+'use strict';
+
+var
+    lexer = require('./lexer.js'),
+    data_tables = require('./data_tables.js'),
+    _ = require('lodash'),
+    dispatcher = require('./dispatcher'),
+
+    AbcNote = require("./types/AbcSymbol").AbcNote,
+    AbcRest = require("./types/AbcSymbol").AbcRest,
+    AbcSymbol = require("./types/AbcSymbol").AbcSymbol,
+    AbcChord = require("./types/AbcChord").AbcChord;
+
+function ParserException(message) {
+    this.message = message;
+    this.name = "ParserException";
+}    
+
+var ABCParser = function(dispatcher, transposeAmount) {
+
+    //the typecache is to get the type of deleted rows without having to reparse
+    var typecache = [];
+    // var dicache = [];
+
+    var drawableIndex = 0;
+    var maxStartId = 0;
+
+    var noteLengthModifier = 0.125;
+
+    dispatcher.on("change_notelength", function(data) {
+        noteLengthModifier = data;
+    });
+
+    var transpose = transposeAmount || 0;
+
+    //parse a note
+    function parseNote(lexer, parsed) {
+
+        var newNote = new AbcNote();
+
+        while (lexer[0] && lexer[0].subType === "chord_annotation") {
+            newNote.chord = new AbcChord(lexer[0].data);
+            lexer.shift();
+        }
+
+        while (lexer[0] && lexer[0].subType === "decoration") {
+            newNote.decorations.push(lexer[0]);
+            lexer.shift();
+        }
+
+        if (lexer[0].subType == "accidental") {
+            newNote.accidental = lexer.shift().data;
+        }
+
+        if (!lexer[0] || lexer[0].subType !== "letter") {
+            lexer.shift();
+            return new ParserException("Missing note name");
+        }
+
+        if (lexer[0] && lexer[0].subType == "letter") {
+            newNote.note = lexer.shift().data;
+
+            newNote.pitch = data_tables.notes[newNote.note].pitch + transpose;
+            newNote.octave = data_tables.notes[newNote.note].octave;
+            newNote.pos = data_tables.notes[newNote.note].pos + transpose;
+
+        }
+
+        if (lexer[0] && lexer[0].subType == "pitch") {
+            newNote.octave += lexer.shift().data;
+        }
+
+        if (lexer[0] && lexer[0].subType == "length") {
+            newNote.noteLength = lexer.shift().data * (noteLengthModifier / 0.125);
+        }
+
+        newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
+        newNote.weight = data_tables.symbol_width.note(newNote);
+
+        if(parsed === undefined || newNote.weight === undefined) {
+            console.log("DAMN");
+        }
+
+        parsed.weight += newNote.weight;
+        parsed.symbols.push(newNote);
+
+        return newNote;
+    }
+
+    //parse a rest
+    function parseRest(lexer) {
+        var newRest = new AbcRest();
+
+        newRest.visible = lexer[0].subType === "visible";
+        newRest.subType = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
+
+        lexer.shift();
+
+        if (lexer[0] && lexer[0].subType == "length") {
+            newRest.restLength = lexer.shift().data;
+        }
+
+        return newRest;
+    }
+
+    /**
+     * Parses a group of notes
+     * @param  {Array} The output array for the entire parse process
+     * @param  {Array} The input array of lexed tokens
+     * @param  {String} The name of the type of note group
+     * @param  {String} The type of token that starts the note group
+     * @param  {String} The type of token that ends the note group
+     * @return {Boolean} Returns TRUE if the specified note group was found
+     */
+    function noteGroup(parsed, lexed, name, start, stop) {
+        if (lexed[0].type === start) {
+            lexed.shift();
+
+            var groupNotes = [];
+
+            while (lexed.length > 0 && lexed[0].type != stop) {
+                if (lexed[0].type === "note") {
+                    groupNotes.push(parseNote(lexed));
+                    continue;
+                } else {
+                    /*throw new*/
+                    groupNotes.push(new ParserException("Only notes are allowed in " + name + "s"));
+                    lexed.shift();
+                    continue;
+                }
+            }
+
+            parsed.push({
+                type: name,
+                type_class: "drawable",
+                notes: groupNotes
+            });
+
+            lexed.shift();
+            return true;
+        }
+
+        if (lexed[0].type === stop) {
+            parsed.push(new ParserException("Closing " + name + " found before starting it"));
+            lexed.shift();
+            return true;
+        }
+
+        return false;
+    };
+
+    function parseSlur(parsed, lexed) {
+        if (lexed[0].type === "slur_start") {
+            lexed.shift();
+
+            var groupNotes = [];
+
+            while (lexed.length > 0 && lexed[0].type != "slur_stop") {
+                if (lexed[0].type === "note") {
+                    var parsedNote = parseNote(lexed, parsed);
+                    groupNotes.push(parsedNote);
+                     continue;
+                } else {
+                    /*throw new*/
+                    groupNotes.push(new ParserException("Only notes are allowed in slurs"));
+                    lexed.shift();
+                    continue;
+                }
+            }
+
+            parsed.symbols.push({
+                type: "slur",
+                type_class: "drawable",
+                notes: groupNotes
+            });
+
+            lexed.shift();
+            return true;
+        }
+
+        if (lexed[0].type === "slur_stop") {
+            parsed.push(new ParserException("Closing slur found before starting it"));
+            lexed.shift();
+            return true;
+        }
+
+        return false;
+    };
+
+    var parseBarline = function (lexed, parsed) {
+
+        var symbol = lexed.shift();
+
+        var newBarline = new AbcSymbol('barline', 1);
+        newBarline.subType = symbol.subtype;
+
+        parsed.symbols.push(newBarline);
+        parsed.weight += data_tables.symbol_width["barline"];
+
+        return symbol.v;
+    };
+
+    /**
+     * A recursive decent parser that combines lexed tokens into a meaningful data structure
+     * @param  {Array} An array of lexed tokens
+     * @return {Array} An array of parsed symbols
+     */
+    function parse(lexed, line) {
+
+        var parsed = {
+            symbols: [],
+            weight: 0
+        };
+
+        var 
+            currentVarientEnding = null,
+            tupletBuffer = [],
+            tupletCount = 0,
+            tupletValue = 0;
+
+        while (lexed.length > 0) {
+
+            if (lexed[0].type === "data") {
+                var lexedToken = lexed.shift();
+                parsed.symbols.push({
+                    type_class: "data",
+                    type: lexedToken.subtype,
+                    data: lexedToken.data
+                });
+
+                continue;
+            }
+
+            if (lexed[0].type === "beam") {
+                lexed.shift();
+                continue;
+            }
+
+            // if (lexed[0].type === "chord_annotation") {
+            //     parsed.symbols.push({
+            //         type_class: "drawable",
+            //         type: "chord_annotation",
+            //         text: lexed[0].data
+            //     });
+            //     lexed.shift();
+            //     continue;
+            // }
+            if (lexed[0].type === "tuplet_start") {
+                tupletCount = lexed[0].data;
+                tupletValue = lexed[0].data;
+                lexed.shift();
+                continue;
+            }
+
+            if (lexed[0].type === "note") {
+                parseNote(lexed, parsed);
+
+                if(currentVarientEnding !== null && currentVarientEnding.start === null) {
+                    currentVarientEnding.start = _.last(parsed.symbols);
+                }
+
+                if(tupletCount > 0) {
+                    tupletBuffer.push(_.last(parsed.symbols));
+                    tupletCount--;
+
+                    if(tupletCount === 0) {
+
+                        tupletBuffer.forEach(function(note) {
+                            note.noteLength = (note.noteLength / tupletValue) * 2;
+                            //note.weight = data_tables.symbol_width.note(note);
+                        });
+
+                        line.tuplets.push({
+                            notes: tupletBuffer,
+                            value: tupletValue
+                        });
+                        tupletBuffer = [];
+                    }
+                }
+
+                continue;
+            }
+
+            if (lexed[0].type === "rest") {
+                parsed.symbols.push(parseRest(lexed));
+                parsed.weight += 1;
+                continue;
+            }
+
+            if (lexed[0].type === "space") {
+                parsed.symbols.push(new AbcSymbol("space", 0));
+                lexed.shift();
+                continue;
+            }
+
+            if(lexed[0].type === "varient_section") {
+                var symbol = lexed.shift();
+
+                currentVarientEnding = {
+                    start: null,
+                    name: symbol.data,
+                    end: null
+                };
+
+                continue;
+            }
+
+            if (noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop")) continue;
+            if (parseSlur(parsed, lexed)) continue;
+            if (noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop")) continue;
+
+            if (lexed[0].type === "barline") {
+
+                if(parseBarline(lexed, parsed) === 1) {
+
+                    if(line.firstEndingEnder === null) line.firstEndingEnder = _.last(parsed.symbols);
+
+                    if(currentVarientEnding !== null) {
+                        currentVarientEnding.end = _.last(parsed.symbols);
+                        line.endings.push(currentVarientEnding);
+                        currentVarientEnding = null;
+                    }
+                }
+
+                
+                continue;
+            }
+
+            if(lexed[0].type === "tie") {
+
+                lexed.shift();
+
+                //the last parsed symbol must be a note
+                if(_.last(parsed.symbols).type === "note") {
+                    
+                    var tie = {
+                        type: "tie",
+                        start: _.last(parsed.symbols)
+                    };
+
+                    //eat the barline if required
+                    if (lexed[0].type === "barline")parseBarline(lexed, parsed);
+
+                    if (lexed[0].type === "note") {
+                        parseNote(lexed, parsed);
+                    } else {
+                        //THROW ERROR
+                        continue;
+                    }
+
+                    tie.end = _.last(parsed.symbols);
+
+                    parsed.symbols.push(tie);
+                } else {
+                    //THROW ERROR
+                    continue;
+                }
+
+                continue;
+            }
+
+            console.log(`PARSER ERROR: UNKNOWN ${lexed[0]}`);
+            lexed.shift();
+        }
+
+        if(currentVarientEnding !== null) {
+            line.endings.push(currentVarientEnding);
+            line.endWithEndingBar = true;
+        }
+
+        return parsed;
+    }
+
+    function processAddedLine(line) {
+
+       // try {
+
+            //TODO: are these defaults defined in an odd place??
+            if (line.raw.length === 0) {
+                line.type = "drawable";
+                // line.di = drawableIndex++;
+                line.symbols = [];
+                line.weight = 0;
+            }
+
+            var lexed = lexer(dispatcher, line.raw, line.id);
+
+            if (lexed.length > 0) {
+
+                var parseOutput = parse(lexed, line);
+
+                line.symbols = parseOutput.symbols;
+                line.weight = parseOutput.weight;
+
+                if (!(parseOutput.symbols.length === 1 && parseOutput.symbols[0].type_class === "data")) {
+                    line.type = "drawable";
+                    // line.di = drawableIndex++;
+                } else {
+                    line.type = "data";
+                }
+            } else {
+                line.type = typecache[line.id-1] === "drawable" ? "drawable" : "blank";
+                line.symbols = [];
+            }
+
+        //typecache.set(line.id, line.type);
+        typecache.splice(line.id, 0, line.type);
+        //dicache.set(line.id, line.di);
+        // dicache.splice(line.id, 0, line.di);
+
+
+        // if(line.type === "drawable") {
+        //     line.di = line.id - (_.findIndex(typecache, function(val) { return val === "drawable"; }));
+        // }
+    }
+
+    var processDeletedLine = function(line) {
+        line.type = typecache[line.id];
+        // if (line.type === "drawable") {
+            // line.di = dicache[line.id];
+        // }
+
+        typecache.splice(line.id, 1);
+        // dicache.splice(line.id, 1);
+    }
+
+    return function (lineCollection) {
+
+        if (lineCollection.startId < maxStartId) {      
+            drawableIndex = 0;
+            for(var i=0; i<lineCollection.startId; i++) {
+                if (typecache[i] === "drawable") drawableIndex++;
+            }
+        } 
+
+        if(lineCollection.startId > maxStartId) {
+            for(var i = maxStartId; i<lineCollection.startId; i++) {
+                if (typecache[i] === "drawable") drawableIndex++;
+            }
+        }
+
+        maxStartId = lineCollection.startId + lineCollection.count;
+
+        if (lineCollection.action === "ADD") {
+            lineCollection.lines.forEach(processAddedLine);
+        }
+
+        if (lineCollection.action === "DEL") {
+            _.forEachRight(lineCollection.lines, processDeletedLine);
+        }
+
+        return lineCollection;
+    };
+
+};
+
+module.exports = ABCParser;
+},{"./data_tables.js":8,"./dispatcher":10,"./lexer.js":13,"./types/AbcChord":21,"./types/AbcSymbol":22,"lodash":97}],15:[function(require,module,exports){
+
+'use strict';
+
+var s = require('virtual-dom/virtual-hyperscript/svg'),
+    h = require('virtual-dom/h'),
+    draw = require('./rendering/stave_symbols.js');
+
+var ABCRenderer = function (ractive) {
+
+    var
+    previousNodeTree = null,
+    settings = null,
+    nextLineStartsWithEnding = false,
+    cachedLines = [];
+
+    var renderLine = function (line, drawnLineIndex, lineIndex) {        
+
+        var lineGroup = s(`g#line-${lineIndex}`, {
+            transform: `translate(100,${32 + drawnLineIndex * 96})`,
+            class: "svgTuneLine"
+        });
+
+        var leadInGroup = s("g");
+        lineGroup.children.push(draw.stave(), leadInGroup);
+
+        var clef = draw.treble_clef();
+        var keySig = draw.keysig(settings.key, clef.width, line.id, ractive.get('currentTranspositionValue'));
+
+        if(keySig === false) return;
+
+        leadInGroup.children.push(clef.node, keySig.node);
+
+        var leadInWidth = clef.width + keySig.width;
+
+        if (drawnLineIndex === 0) {
+            var timeSig = draw.timesig(settings.measure.top, settings.measure.bottom, clef.width + keySig.width);
+            leadInGroup.children.push(timeSig.node);
+            leadInWidth += timeSig.width;
+        }
+
+        var symbolsGroup = s("g", { transform: `translate(${leadInWidth},0)`});
+        
+
+        var 
+        noteAreaWidth = 800 - leadInWidth;
+
+        var springLength = noteAreaWidth - line.totalFixedWidth;
+        var springMod = springLength / line.totalSpringConstant;
+
+        var xPos = 0;
+
+        for (let i = 0; i < line.symbols.length; i++) {
+            line.symbols[i].renderedXPos = xPos;
+            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos, noteAreaWidth));
+            xPos += (line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant);
+        }
+
+        for(let i = 0; i < line.endings.length; i++) {
+            symbolsGroup.children.push(draw.varientEndings(line.endings[i], noteAreaWidth, false));
+        }
+
+        for(let i = 0; i < line.tuplets.length; i++) {
+            symbolsGroup.children.push(draw.tuplets(line.tuplets[i], noteAreaWidth));
+        }
+
+        if(nextLineStartsWithEnding) {
+            symbolsGroup.children.push(draw.varientEndings({
+                name: "",
+                start: {
+                    xp: 0
+                },
+                end: line.firstEndingEnder
+            }, noteAreaWidth, true));
+        }
+
+        nextLineStartsWithEnding = line.endWithEndingBar;
+
+        lineGroup.children.push(symbolsGroup);
+
+        return lineGroup;
+    }
+
+    return function (tuneData) {
+
+        settings = tuneData.tuneSettings;
+
+        var 
+        doc = s("svg#tuneSVGCanvas", {
+            viewBox: "0 0 1000 800",
+            width: "100%",
+                //height: "100%"
+            }),
+        nextLineStartsWithEnding = false;
+
+        var drawnLines = 0;
+        tuneData.parsedLines.forEach(function(line, i) {
+            if(line.type === "drawable") {
+                if(tuneData.forceFullRedraw !== true && ( tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding ) ) {
+                    doc.children.push(cachedLines[i]);
+                } else {
+                    var vRenderedLine = renderLine(line, drawnLines, i);
+                    doc.children.push(vRenderedLine);
+                    cachedLines[i] = vRenderedLine;
+                }                
+                drawnLines++;
+            }            
+        });
+
+        var topDiv = h("div.render-div", [
+            h("div.tune-header", [
+                h("h2", [settings.title]),
+                h("p.abc-tune-rhythm", [settings.rhythm])
+                ]),
+            h("div.tune-body", [doc])
+            ]);
+
+        return topDiv;
+
+       /* if(!returnString) {
+
+            renderElement = createElement(topDiv);
+            document.getElementById("canvas").innerHTML = '';
+            document.getElementById("canvas").appendChild(renderElement);
+
+            var svgs = document.getElementById("tuneSVGCanvas");
+            var canvasElement = document.getElementById("canvas");
+
+            var scrollDist = canvasElement.scrollTop;
+            svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
+            canvasElement.scrollTop = scrollDist;
+
+
+
+            previousNodeTree = topDiv;    
+        } else {
+            return stringify(topDiv);
+        }*/
+    };
+};
+
+
+
+module.exports = ABCRenderer;
+},{"./rendering/stave_symbols.js":18,"virtual-dom/h":107,"virtual-dom/virtual-hyperscript/svg":121}],16:[function(require,module,exports){
+var s = require('virtual-dom/virtual-hyperscript/svg'),
+    h = require('virtual-dom/h'),
+    createElement = require('virtual-dom/create-element');
+
+module.exports = {
+	selectionBox: function() {
+		var markerRect = s("rect", {
+            x: -20,
+            y: -4,
+            width: 6,
+            height: 40,
+            fill: 'orange',
+            class: 'lineIndicatorRect'
+        });
+
+        return createElement(markerRect);
+	}
+};
+},{"virtual-dom/create-element":105,"virtual-dom/h":107,"virtual-dom/virtual-hyperscript/svg":121}],17:[function(require,module,exports){
+module.exports = {
+    "0": {
+        "w": 10.78,
+        "h": 14.959,
+        "d": "M4.83,-14.97c0.33,-0.03,1.11,0,1.47,0.06c1.68,0.36,2.97,1.59,3.78,3.6c1.2,2.97,0.81,6.96,-0.9,9.27c-0.78,1.08,-1.71,1.71,-2.91,1.95c-0.45,0.09,-1.32,0.09,-1.77,0c-0.81,-0.18,-1.47,-0.51,-2.07,-1.02c-2.34,-2.07,-3.15,-6.72,-1.74,-10.2c0.87,-2.16,2.28,-3.42,4.14,-3.66zm1.11,0.87c-0.21,-0.06,-0.69,-0.09,-0.87,-0.06c-0.54,0.12,-0.87,0.42,-1.17,0.99c-0.36,0.66,-0.51,1.56,-0.6,3c-0.03,0.75,-0.03,4.59,0,5.31c0.09,1.5,0.27,2.4,0.6,3.06c0.24,0.48,0.57,0.78,0.96,0.9c0.27,0.09,0.78,0.09,1.05,0c0.39,-0.12,0.72,-0.42,0.96,-0.9c0.33,-0.66,0.51,-1.56,0.6,-3.06c0.03,-0.72,0.03,-4.56,0,-5.31c-0.09,-1.47,-0.27,-2.37,-0.6,-3.03c-0.24,-0.48,-0.54,-0.78,-0.93,-0.9z"
+    },
+    "1": {
+        "w": 8.94,
+        "h": 15.058,
+        "d": "M3.3,-15.06c0.06,-0.06,0.21,-0.03,0.66,0.15c0.81,0.39,1.08,0.39,1.83,0.03c0.21,-0.09,0.39,-0.15,0.42,-0.15c0.12,0,0.21,0.09,0.27,0.21c0.06,0.12,0.06,0.33,0.06,5.94c0,3.93,0,5.85,0.03,6.03c0.06,0.36,0.15,0.69,0.27,0.96c0.36,0.75,0.93,1.17,1.68,1.26c0.3,0.03,0.39,0.09,0.39,0.3c0,0.15,-0.03,0.18,-0.09,0.24c-0.06,0.06,-0.09,0.06,-0.48,0.06c-0.42,0,-0.69,-0.03,-2.1,-0.24c-0.9,-0.15,-1.77,-0.15,-2.67,0c-1.41,0.21,-1.68,0.24,-2.1,0.24c-0.39,0,-0.42,0,-0.48,-0.06c-0.06,-0.06,-0.06,-0.09,-0.06,-0.24c0,-0.21,0.06,-0.27,0.36,-0.3c0.75,-0.09,1.32,-0.51,1.68,-1.26c0.12,-0.27,0.21,-0.6,0.27,-0.96c0.03,-0.18,0.03,-1.59,0.03,-4.29c0,-3.87,0,-4.05,-0.06,-4.14c-0.09,-0.15,-0.18,-0.24,-0.39,-0.24c-0.12,0,-0.15,0.03,-0.21,0.06c-0.03,0.06,-0.45,0.99,-0.96,2.13c-0.48,1.14,-0.9,2.1,-0.93,2.16c-0.06,0.15,-0.21,0.24,-0.33,0.24c-0.24,0,-0.42,-0.18,-0.42,-0.39c0,-0.06,3.27,-7.62,3.33,-7.74z"
+    },
+    "2": {
+        "w": 10.764,
+        "h": 14.993,
+        "d": "M4.23,-14.97c0.57,-0.06,1.68,0,2.34,0.18c0.69,0.18,1.5,0.54,2.01,0.9c1.35,0.96,1.95,2.25,1.77,3.81c-0.15,1.35,-0.66,2.34,-1.68,3.15c-0.6,0.48,-1.44,0.93,-3.12,1.65c-1.32,0.57,-1.8,0.81,-2.37,1.14c-0.57,0.33,-0.57,0.33,-0.24,0.27c0.39,-0.09,1.26,-0.09,1.68,0c0.72,0.15,1.41,0.45,2.1,0.9c0.99,0.63,1.86,0.87,2.55,0.75c0.24,-0.06,0.42,-0.15,0.57,-0.3c0.12,-0.09,0.3,-0.42,0.3,-0.51c0,-0.09,0.12,-0.21,0.24,-0.24c0.18,-0.03,0.39,0.12,0.39,0.3c0,0.12,-0.15,0.57,-0.3,0.87c-0.54,1.02,-1.56,1.74,-2.79,2.01c-0.42,0.09,-1.23,0.09,-1.62,0.03c-0.81,-0.18,-1.32,-0.45,-2.01,-1.11c-0.45,-0.45,-0.63,-0.57,-0.96,-0.69c-0.84,-0.27,-1.89,0.12,-2.25,0.9c-0.12,0.21,-0.21,0.54,-0.21,0.72c0,0.12,-0.12,0.21,-0.27,0.24c-0.15,0,-0.27,-0.03,-0.33,-0.15c-0.09,-0.21,0.09,-1.08,0.33,-1.71c0.24,-0.66,0.66,-1.26,1.29,-1.89c0.45,-0.45,0.9,-0.81,1.92,-1.56c1.29,-0.93,1.89,-1.44,2.34,-1.98c0.87,-1.05,1.26,-2.19,1.2,-3.63c-0.06,-1.29,-0.39,-2.31,-0.96,-2.91c-0.36,-0.33,-0.72,-0.51,-1.17,-0.54c-0.84,-0.03,-1.53,0.42,-1.59,1.05c-0.03,0.33,0.12,0.6,0.57,1.14c0.45,0.54,0.54,0.87,0.42,1.41c-0.15,0.63,-0.54,1.11,-1.08,1.38c-0.63,0.33,-1.2,0.33,-1.83,0c-0.24,-0.12,-0.33,-0.18,-0.54,-0.39c-0.18,-0.18,-0.27,-0.3,-0.36,-0.51c-0.24,-0.45,-0.27,-0.84,-0.21,-1.38c0.12,-0.75,0.45,-1.41,1.02,-1.98c0.72,-0.72,1.74,-1.17,2.85,-1.32z"
+    },
+    "3": {
+        "w": 9.735,
+        "h": 14.967,
+        "d": "M3.78,-14.97c0.3,-0.03,1.41,0,1.83,0.06c2.22,0.3,3.51,1.32,3.72,2.91c0.03,0.33,0.03,1.26,-0.03,1.65c-0.12,0.84,-0.48,1.47,-1.05,1.77c-0.27,0.15,-0.36,0.24,-0.45,0.39c-0.09,0.21,-0.09,0.36,0,0.57c0.09,0.15,0.18,0.24,0.51,0.39c0.75,0.42,1.23,1.14,1.41,2.13c0.06,0.42,0.06,1.35,0,1.71c-0.18,0.81,-0.48,1.38,-1.02,1.95c-0.75,0.72,-1.8,1.2,-3.18,1.38c-0.42,0.06,-1.56,0.06,-1.95,0c-1.89,-0.33,-3.18,-1.29,-3.51,-2.64c-0.03,-0.12,-0.03,-0.33,-0.03,-0.6c0,-0.36,0,-0.42,0.06,-0.63c0.12,-0.3,0.27,-0.51,0.51,-0.75c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.36,0.33,0.57,0.75,0.6,1.2c0,0.21,0,0.27,-0.06,0.42c-0.09,0.18,-0.12,0.24,-0.54,0.54c-0.51,0.36,-0.63,0.54,-0.6,0.87c0.06,0.54,0.54,0.9,1.38,0.99c0.36,0.06,0.72,0.03,0.96,-0.06c0.81,-0.27,1.29,-1.23,1.44,-2.79c0.03,-0.45,0.03,-1.95,-0.03,-2.37c-0.09,-0.75,-0.33,-1.23,-0.75,-1.44c-0.33,-0.18,-0.45,-0.18,-1.98,-0.18c-1.35,0,-1.41,0,-1.5,-0.06c-0.18,-0.12,-0.24,-0.39,-0.12,-0.6c0.12,-0.15,0.15,-0.15,1.68,-0.15c1.5,0,1.62,0,1.89,-0.15c0.18,-0.09,0.42,-0.36,0.54,-0.57c0.18,-0.42,0.27,-0.9,0.3,-1.95c0.03,-1.2,-0.06,-1.8,-0.36,-2.37c-0.24,-0.48,-0.63,-0.81,-1.14,-0.96c-0.3,-0.06,-1.08,-0.06,-1.38,0.03c-0.6,0.15,-0.9,0.42,-0.96,0.84c-0.03,0.3,0.06,0.45,0.63,0.84c0.33,0.24,0.42,0.39,0.45,0.63c0.03,0.72,-0.57,1.5,-1.32,1.65c-1.05,0.27,-2.1,-0.57,-2.1,-1.65c0,-0.45,0.15,-0.96,0.39,-1.38c0.12,-0.21,0.54,-0.63,0.81,-0.81c0.57,-0.42,1.38,-0.69,2.25,-0.81z"
+    },
+    "4": {
+        "w": 11.795,
+        "h": 14.994,
+        "d": "M8.64,-14.94c0.27,-0.09,0.42,-0.12,0.54,-0.03c0.09,0.06,0.15,0.21,0.15,0.3c-0.03,0.06,-1.92,2.31,-4.23,5.04c-2.31,2.73,-4.23,4.98,-4.26,5.01c-0.03,0.06,0.12,0.06,2.55,0.06l2.61,0l0,-2.37c0,-2.19,0.03,-2.37,0.06,-2.46c0.03,-0.06,0.21,-0.18,0.57,-0.42c1.08,-0.72,1.38,-1.08,1.86,-2.16c0.12,-0.3,0.24,-0.54,0.27,-0.57c0.12,-0.12,0.39,-0.06,0.45,0.12c0.06,0.09,0.06,0.57,0.06,3.96l0,3.9l1.08,0c1.05,0,1.11,0,1.2,0.06c0.24,0.15,0.24,0.54,0,0.69c-0.09,0.06,-0.15,0.06,-1.2,0.06l-1.08,0l0,0.33c0,0.57,0.09,1.11,0.3,1.53c0.36,0.75,0.93,1.17,1.68,1.26c0.3,0.03,0.39,0.09,0.39,0.3c0,0.15,-0.03,0.18,-0.09,0.24c-0.06,0.06,-0.09,0.06,-0.48,0.06c-0.42,0,-0.69,-0.03,-2.1,-0.24c-0.9,-0.15,-1.77,-0.15,-2.67,0c-1.41,0.21,-1.68,0.24,-2.1,0.24c-0.39,0,-0.42,0,-0.48,-0.06c-0.06,-0.06,-0.06,-0.09,-0.06,-0.24c0,-0.21,0.06,-0.27,0.36,-0.3c0.75,-0.09,1.32,-0.51,1.68,-1.26c0.21,-0.42,0.3,-0.96,0.3,-1.53l0,-0.33l-2.7,0c-2.91,0,-2.85,0,-3.09,-0.15c-0.18,-0.12,-0.3,-0.39,-0.27,-0.54c0.03,-0.06,0.18,-0.24,0.33,-0.45c0.75,-0.9,1.59,-2.07,2.13,-3.03c0.33,-0.54,0.84,-1.62,1.05,-2.16c0.57,-1.41,0.84,-2.64,0.9,-4.05c0.03,-0.63,0.06,-0.72,0.24,-0.81l0.12,-0.06l0.45,0.12c0.66,0.18,1.02,0.24,1.47,0.27c0.6,0.03,1.23,-0.09,2.01,-0.33z"
+    },
+    "5": {
+        "w": 10.212,
+        "h": 14.997,
+        "d": "M1.02,-14.94c0.12,-0.09,0.03,-0.09,1.08,0.06c2.49,0.36,4.35,0.36,6.96,-0.06c0.57,-0.09,0.66,-0.06,0.81,0.06c0.15,0.18,0.12,0.24,-0.15,0.51c-1.29,1.26,-3.24,2.04,-5.58,2.31c-0.6,0.09,-1.2,0.12,-1.71,0.12c-0.39,0,-0.45,0,-0.57,0.06c-0.09,0.06,-0.15,0.12,-0.21,0.21l-0.06,0.12l0,1.65l0,1.65l0.21,-0.21c0.66,-0.57,1.41,-0.96,2.19,-1.14c0.33,-0.06,1.41,-0.06,1.95,0c2.61,0.36,4.02,1.74,4.26,4.14c0.03,0.45,0.03,1.08,-0.03,1.44c-0.18,1.02,-0.78,2.01,-1.59,2.7c-0.72,0.57,-1.62,1.02,-2.49,1.2c-1.38,0.27,-3.03,0.06,-4.2,-0.54c-1.08,-0.54,-1.71,-1.32,-1.86,-2.28c-0.09,-0.69,0.09,-1.29,0.57,-1.74c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.36,0.33,0.57,0.75,0.6,1.2c0,0.21,0,0.27,-0.06,0.42c-0.09,0.18,-0.12,0.24,-0.54,0.54c-0.18,0.12,-0.36,0.3,-0.42,0.33c-0.36,0.42,-0.18,0.99,0.36,1.26c0.51,0.27,1.47,0.36,2.01,0.27c0.93,-0.21,1.47,-1.17,1.65,-2.91c0.06,-0.45,0.06,-1.89,0,-2.31c-0.15,-1.2,-0.51,-2.1,-1.05,-2.55c-0.21,-0.18,-0.54,-0.36,-0.81,-0.39c-0.3,-0.06,-0.84,-0.03,-1.26,0.06c-0.93,0.18,-1.65,0.6,-2.16,1.2c-0.15,0.21,-0.27,0.3,-0.39,0.3c-0.15,0,-0.3,-0.09,-0.36,-0.18c-0.06,-0.09,-0.06,-0.15,-0.06,-3.66c0,-3.39,0,-3.57,0.06,-3.66c0.03,-0.06,0.09,-0.15,0.15,-0.18z"
+    },
+    "6": {
+        "w": 9.956,
+        "h": 14.982,
+        "d": "M4.98,-14.97c0.36,-0.03,1.2,0,1.59,0.06c0.9,0.15,1.68,0.51,2.25,1.05c0.57,0.51,0.87,1.23,0.84,1.98c-0.03,0.51,-0.21,0.9,-0.6,1.26c-0.24,0.24,-0.45,0.39,-0.75,0.51c-0.21,0.06,-0.27,0.06,-0.6,0.06c-0.33,0,-0.39,0,-0.6,-0.06c-0.3,-0.12,-0.51,-0.27,-0.75,-0.51c-0.39,-0.36,-0.57,-0.78,-0.57,-1.26c0,-0.27,0,-0.3,0.09,-0.42c0.03,-0.09,0.18,-0.21,0.3,-0.3c0.12,-0.09,0.3,-0.21,0.39,-0.27c0.09,-0.06,0.21,-0.18,0.27,-0.24c0.06,-0.12,0.09,-0.15,0.09,-0.33c0,-0.18,-0.03,-0.24,-0.09,-0.36c-0.24,-0.39,-0.75,-0.6,-1.38,-0.57c-0.54,0.03,-0.9,0.18,-1.23,0.48c-0.81,0.72,-1.08,2.16,-0.96,5.37l0,0.63l0.3,-0.12c0.78,-0.27,1.29,-0.33,2.1,-0.27c1.47,0.12,2.49,0.54,3.27,1.29c0.48,0.51,0.81,1.11,0.96,1.89c0.06,0.27,0.06,0.42,0.06,0.93c0,0.54,0,0.69,-0.06,0.96c-0.15,0.78,-0.48,1.38,-0.96,1.89c-0.54,0.51,-1.17,0.87,-1.98,1.08c-1.14,0.3,-2.4,0.33,-3.24,0.03c-1.5,-0.48,-2.64,-1.89,-3.27,-4.02c-0.36,-1.23,-0.51,-2.82,-0.42,-4.08c0.3,-3.66,2.28,-6.3,4.95,-6.66zm0.66,7.41c-0.27,-0.09,-0.81,-0.12,-1.08,-0.06c-0.72,0.18,-1.08,0.69,-1.23,1.71c-0.06,0.54,-0.06,3,0,3.54c0.18,1.26,0.72,1.77,1.8,1.74c0.39,-0.03,0.63,-0.09,0.9,-0.27c0.66,-0.42,0.9,-1.32,0.9,-3.24c0,-2.22,-0.36,-3.12,-1.29,-3.42z"
+    },
+    "7": {
+        "w": 10.561,
+        "h": 15.093,
+        "d": "M0.21,-14.97c0.21,-0.06,0.45,0,0.54,0.15c0.06,0.09,0.06,0.15,0.06,0.39c0,0.24,0,0.33,0.06,0.42c0.06,0.12,0.21,0.24,0.27,0.24c0.03,0,0.12,-0.12,0.24,-0.21c0.96,-1.2,2.58,-1.35,3.99,-0.42c0.15,0.12,0.42,0.3,0.54,0.45c0.48,0.39,0.81,0.57,1.29,0.6c0.69,0.03,1.5,-0.3,2.13,-0.87c0.09,-0.09,0.27,-0.3,0.39,-0.45c0.12,-0.15,0.24,-0.27,0.3,-0.3c0.18,-0.06,0.39,0.03,0.51,0.21c0.06,0.18,0.06,0.24,-0.27,0.72c-0.18,0.24,-0.54,0.78,-0.78,1.17c-2.37,3.54,-3.54,6.27,-3.87,9c-0.03,0.33,-0.03,0.66,-0.03,1.26c0,0.9,0,1.08,0.15,1.89c0.06,0.45,0.06,0.48,0.03,0.6c-0.06,0.09,-0.21,0.21,-0.3,0.21c-0.03,0,-0.27,-0.06,-0.54,-0.15c-0.84,-0.27,-1.11,-0.3,-1.65,-0.3c-0.57,0,-0.84,0.03,-1.56,0.27c-0.6,0.18,-0.69,0.21,-0.81,0.15c-0.12,-0.06,-0.21,-0.18,-0.21,-0.3c0,-0.15,0.6,-1.44,1.2,-2.61c1.14,-2.22,2.73,-4.68,5.1,-8.01c0.21,-0.27,0.36,-0.48,0.33,-0.48c0,0,-0.12,0.06,-0.27,0.12c-0.54,0.3,-0.99,0.39,-1.56,0.39c-0.75,0.03,-1.2,-0.18,-1.83,-0.75c-0.99,-0.9,-1.83,-1.17,-2.31,-0.72c-0.18,0.15,-0.36,0.51,-0.45,0.84c-0.06,0.24,-0.06,0.33,-0.09,1.98c0,1.62,-0.03,1.74,-0.06,1.8c-0.15,0.24,-0.54,0.24,-0.69,0c-0.06,-0.09,-0.06,-0.15,-0.06,-3.57c0,-3.42,0,-3.48,0.06,-3.57c0.03,-0.06,0.09,-0.12,0.15,-0.15z"
+    },
+    "8": {
+        "w": 10.926,
+        "h": 14.989,
+        "d": "M4.98,-14.97c0.33,-0.03,1.02,-0.03,1.32,0c1.32,0.12,2.49,0.6,3.21,1.32c0.39,0.39,0.66,0.81,0.78,1.29c0.09,0.36,0.09,1.08,0,1.44c-0.21,0.84,-0.66,1.59,-1.59,2.55l-0.3,0.3l0.27,0.18c1.47,0.93,2.31,2.31,2.25,3.75c-0.03,0.75,-0.24,1.35,-0.63,1.95c-0.45,0.66,-1.02,1.14,-1.83,1.53c-1.8,0.87,-4.2,0.87,-6,0.03c-1.62,-0.78,-2.52,-2.16,-2.46,-3.66c0.06,-0.99,0.54,-1.77,1.8,-2.97c0.54,-0.51,0.54,-0.54,0.48,-0.57c-0.39,-0.27,-0.96,-0.78,-1.2,-1.14c-0.75,-1.11,-0.87,-2.4,-0.3,-3.6c0.69,-1.35,2.25,-2.25,4.2,-2.4zm1.53,0.69c-0.42,-0.09,-1.11,-0.12,-1.38,-0.06c-0.3,0.06,-0.6,0.18,-0.81,0.3c-0.21,0.12,-0.6,0.51,-0.72,0.72c-0.51,0.87,-0.42,1.89,0.21,2.52c0.21,0.21,0.36,0.3,1.95,1.23c0.96,0.54,1.74,0.99,1.77,1.02c0.09,0,0.63,-0.6,0.99,-1.11c0.21,-0.36,0.48,-0.87,0.57,-1.23c0.06,-0.24,0.06,-0.36,0.06,-0.72c0,-0.45,-0.03,-0.66,-0.15,-0.99c-0.39,-0.81,-1.29,-1.44,-2.49,-1.68zm-1.44,8.07l-1.89,-1.08c-0.03,0,-0.18,0.15,-0.39,0.33c-1.2,1.08,-1.65,1.95,-1.59,3c0.09,1.59,1.35,2.85,3.21,3.24c0.33,0.06,0.45,0.06,0.93,0.06c0.63,0,0.81,-0.03,1.29,-0.27c0.9,-0.42,1.47,-1.41,1.41,-2.4c-0.06,-0.66,-0.39,-1.29,-0.9,-1.65c-0.12,-0.09,-1.05,-0.63,-2.07,-1.23z"
+    },
+    "9": {
+        "w": 9.959,
+        "h": 14.986,
+        "d": "M4.23,-14.97c0.42,-0.03,1.29,0,1.62,0.06c0.51,0.12,0.93,0.3,1.38,0.57c1.53,1.02,2.52,3.24,2.73,5.94c0.18,2.55,-0.48,4.98,-1.83,6.57c-1.05,1.26,-2.4,1.89,-3.93,1.83c-1.23,-0.06,-2.31,-0.45,-3.03,-1.14c-0.57,-0.51,-0.87,-1.23,-0.84,-1.98c0.03,-0.51,0.21,-0.9,0.6,-1.26c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.39,0.36,0.57,0.78,0.57,1.26c0,0.27,0,0.3,-0.09,0.42c-0.03,0.09,-0.18,0.21,-0.3,0.3c-0.12,0.09,-0.3,0.21,-0.39,0.27c-0.09,0.06,-0.21,0.18,-0.27,0.24c-0.06,0.12,-0.06,0.15,-0.06,0.33c0,0.18,0,0.24,0.06,0.36c0.24,0.39,0.75,0.6,1.38,0.57c0.54,-0.03,0.9,-0.18,1.23,-0.48c0.81,-0.72,1.08,-2.16,0.96,-5.37l0,-0.63l-0.3,0.12c-0.78,0.27,-1.29,0.33,-2.1,0.27c-1.47,-0.12,-2.49,-0.54,-3.27,-1.29c-0.48,-0.51,-0.81,-1.11,-0.96,-1.89c-0.06,-0.27,-0.06,-0.42,-0.06,-0.96c0,-0.51,0,-0.66,0.06,-0.93c0.15,-0.78,0.48,-1.38,0.96,-1.89c0.15,-0.12,0.33,-0.27,0.42,-0.36c0.69,-0.51,1.62,-0.81,2.76,-0.93zm1.17,0.66c-0.21,-0.06,-0.57,-0.06,-0.81,-0.03c-0.78,0.12,-1.26,0.69,-1.41,1.74c-0.12,0.63,-0.15,1.95,-0.09,2.79c0.12,1.71,0.63,2.4,1.77,2.46c1.08,0.03,1.62,-0.48,1.8,-1.74c0.06,-0.54,0.06,-3,0,-3.54c-0.15,-1.05,-0.51,-1.53,-1.26,-1.68z"
+    },
+    "rests.whole": {
+        "w": 11.25,
+        "h": 4.68,
+        "d": "M0.06,0.03l0.09,-0.06l5.46,0l5.49,0l0.09,0.06l0.06,0.09l0,2.19l0,2.19l-0.06,0.09l-0.09,0.06l-5.49,0l-5.46,0l-0.09,-0.06l-0.06,-0.09l0,-2.19l0,-2.19z"
+    },
+    "rests.half": {
+        "w": 11.25,
+        "h": 4.68,
+        "d": "M0.06,-4.62l0.09,-0.06l5.46,0l5.49,0l0.09,0.06l0.06,0.09l0,2.19l0,2.19l-0.06,0.09l-0.09,0.06l-5.49,0l-5.46,0l-0.09,-0.06l-0.06,-0.09l0,-2.19l0,-2.19z"
+    },
+    "rests.quarter": {
+        "w": 7.888,
+        "h": 21.435,
+        "d": "M1.89,-11.82c0.12,-0.06,0.24,-0.06,0.36,-0.03c0.09,0.06,4.74,5.58,4.86,5.82c0.21,0.39,0.15,0.78,-0.15,1.26c-0.24,0.33,-0.72,0.81,-1.62,1.56c-0.45,0.36,-0.87,0.75,-0.96,0.84c-0.93,0.99,-1.14,2.49,-0.6,3.63c0.18,0.39,0.27,0.48,1.32,1.68c1.92,2.25,1.83,2.16,1.83,2.34c0,0.18,-0.18,0.36,-0.36,0.39c-0.15,0,-0.27,-0.06,-0.48,-0.27c-0.75,-0.75,-2.46,-1.29,-3.39,-1.08c-0.45,0.09,-0.69,0.27,-0.9,0.69c-0.12,0.3,-0.21,0.66,-0.24,1.14c-0.03,0.66,0.09,1.35,0.3,2.01c0.15,0.42,0.24,0.66,0.45,0.96c0.18,0.24,0.18,0.33,0.03,0.42c-0.12,0.06,-0.18,0.03,-0.45,-0.3c-1.08,-1.38,-2.07,-3.36,-2.4,-4.83c-0.27,-1.05,-0.15,-1.77,0.27,-2.07c0.21,-0.12,0.42,-0.15,0.87,-0.15c0.87,0.06,2.1,0.39,3.3,0.9l0.39,0.18l-1.65,-1.95c-2.52,-2.97,-2.61,-3.09,-2.7,-3.27c-0.09,-0.24,-0.12,-0.48,-0.03,-0.75c0.15,-0.48,0.57,-0.96,1.83,-2.01c0.45,-0.36,0.84,-0.72,0.93,-0.78c0.69,-0.75,1.02,-1.8,0.9,-2.79c-0.06,-0.33,-0.21,-0.84,-0.39,-1.11c-0.09,-0.15,-0.45,-0.6,-0.81,-1.05c-0.36,-0.42,-0.69,-0.81,-0.72,-0.87c-0.09,-0.18,0,-0.42,0.21,-0.51z"
+    },
+    "rests.8th": {
+        "w": 7.534,
+        "h": 13.883,
+        "d": "M1.68,-6.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.12,0,0.18,0,0.33,-0.09c0.39,-0.18,1.32,-1.29,1.68,-1.98c0.09,-0.21,0.24,-0.3,0.39,-0.3c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.27,1.11,-1.86,6.42c-1.02,3.48,-1.89,6.39,-1.92,6.42c0,0.03,-0.12,0.12,-0.24,0.15c-0.18,0.09,-0.21,0.09,-0.45,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.15,-0.57,1.68,-4.92c0.96,-2.67,1.74,-4.89,1.71,-4.89l-0.51,0.15c-1.08,0.36,-1.74,0.48,-2.55,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
+    },
+    "rests.16th": {
+        "w": 9.724,
+        "h": 21.383,
+        "d": "M3.33,-6.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.15,0.39,0.57,0.57,0.87,0.42c0.39,-0.18,1.2,-1.23,1.62,-2.07c0.06,-0.15,0.24,-0.24,0.36,-0.24c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.45,1.86,-2.67,10.17c-1.5,5.55,-2.73,10.14,-2.76,10.17c-0.03,0.03,-0.12,0.12,-0.24,0.15c-0.18,0.09,-0.21,0.09,-0.45,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.12,-0.57,1.44,-4.92c0.81,-2.67,1.47,-4.86,1.47,-4.89c-0.03,0,-0.27,0.06,-0.54,0.15c-1.08,0.36,-1.77,0.48,-2.58,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.09,0.09,0.27,0.18,0.45,0.21c0.12,0,0.18,0,0.33,-0.09c0.33,-0.15,1.02,-0.93,1.41,-1.59c0.12,-0.21,0.18,-0.39,0.39,-1.08c0.66,-2.1,1.17,-3.84,1.17,-3.87c0,0,-0.21,0.06,-0.42,0.15c-0.51,0.15,-1.2,0.33,-1.68,0.42c-0.33,0.06,-0.51,0.06,-0.96,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
+    },
+    "rests.32nd": {
+        "w": 11.373,
+        "h": 28.883,
+        "d": "M4.23,-13.62c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.12,0,0.18,0,0.27,-0.06c0.33,-0.21,0.99,-1.11,1.44,-1.98c0.09,-0.24,0.21,-0.33,0.39,-0.33c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.57,2.67,-3.21,13.89c-1.8,7.62,-3.3,13.89,-3.3,13.92c-0.03,0.06,-0.12,0.12,-0.24,0.18c-0.21,0.09,-0.24,0.09,-0.48,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.09,-0.57,1.23,-4.92c0.69,-2.67,1.26,-4.86,1.29,-4.89c0,-0.03,-0.12,-0.03,-0.48,0.12c-1.17,0.39,-2.22,0.57,-3,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.12,0.09,0.3,0.18,0.48,0.21c0.12,0,0.18,0,0.3,-0.09c0.42,-0.21,1.29,-1.29,1.56,-1.89c0.03,-0.12,1.23,-4.59,1.23,-4.65c0,-0.03,-0.18,0.03,-0.39,0.12c-0.63,0.18,-1.2,0.36,-1.74,0.45c-0.39,0.06,-0.54,0.06,-1.02,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.18,0.18,0.51,0.27,0.72,0.15c0.3,-0.12,0.69,-0.57,1.08,-1.17c0.42,-0.6,0.39,-0.51,1.05,-3.03c0.33,-1.26,0.6,-2.31,0.6,-2.34c0,0,-0.21,0.03,-0.45,0.12c-0.57,0.18,-1.14,0.33,-1.62,0.42c-0.33,0.06,-0.51,0.06,-0.96,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
+    },
+    "rests.64th": {
+        "w": 12.453,
+        "h": 36.383,
+        "d": "M5.13,-13.62c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.21,0.54,0.3,0.75,0.18c0.24,-0.12,0.63,-0.66,1.08,-1.56c0.33,-0.66,0.39,-0.72,0.6,-0.72c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.69,3.66,-3.54,17.64c-1.95,9.66,-3.57,17.61,-3.57,17.64c-0.03,0.06,-0.12,0.12,-0.24,0.18c-0.21,0.09,-0.24,0.09,-0.48,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.06,-0.57,1.05,-4.95c0.6,-2.7,1.08,-4.89,1.08,-4.92c0,0,-0.24,0.06,-0.51,0.15c-0.66,0.24,-1.2,0.36,-1.77,0.48c-0.42,0.06,-0.57,0.06,-1.05,0.06c-0.69,0,-0.87,-0.03,-1.35,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.09,0.09,0.27,0.18,0.45,0.21c0.21,0.03,0.39,-0.09,0.72,-0.42c0.45,-0.45,1.02,-1.26,1.17,-1.65c0.03,-0.09,0.27,-1.14,0.54,-2.34c0.27,-1.2,0.48,-2.19,0.51,-2.22c0,-0.03,-0.09,-0.03,-0.48,0.12c-1.17,0.39,-2.22,0.57,-3,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.15,0.39,0.57,0.57,0.9,0.42c0.36,-0.18,1.2,-1.26,1.47,-1.89c0.03,-0.09,0.3,-1.2,0.57,-2.43l0.51,-2.28l-0.54,0.18c-1.11,0.36,-1.8,0.48,-2.61,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.21,0.21,0.54,0.3,0.75,0.18c0.36,-0.18,0.93,-0.93,1.29,-1.68c0.12,-0.24,0.18,-0.48,0.63,-2.55l0.51,-2.31c0,-0.03,-0.18,0.03,-0.39,0.12c-1.14,0.36,-2.1,0.54,-2.82,0.51c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
+    },
+    "rests.128th": {
+        "w": 12.992,
+        "h": 43.883,
+        "d": "M6.03,-21.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.21,0,0.33,-0.06,0.54,-0.36c0.15,-0.21,0.54,-0.93,0.78,-1.47c0.15,-0.33,0.18,-0.39,0.3,-0.48c0.18,-0.09,0.45,0,0.51,0.15c0.03,0.09,-7.11,42.75,-7.17,42.84c-0.03,0.03,-0.15,0.09,-0.24,0.15c-0.18,0.06,-0.24,0.06,-0.45,0.06c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.03,-0.57,0.84,-4.98c0.51,-2.7,0.93,-4.92,0.9,-4.92c0,0,-0.15,0.06,-0.36,0.12c-0.78,0.27,-1.62,0.48,-2.31,0.57c-0.15,0.03,-0.54,0.03,-0.81,0.03c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.63,0.48c0.12,0,0.18,0,0.3,-0.09c0.42,-0.21,1.14,-1.11,1.5,-1.83c0.12,-0.27,0.12,-0.27,0.54,-2.52c0.24,-1.23,0.42,-2.25,0.39,-2.25c0,0,-0.24,0.06,-0.51,0.18c-1.26,0.39,-2.25,0.57,-3.06,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.21,0.51,0.3,0.75,0.18c0.36,-0.15,1.05,-0.99,1.41,-1.77l0.15,-0.3l0.42,-2.25c0.21,-1.26,0.42,-2.28,0.39,-2.28l-0.51,0.15c-1.11,0.39,-1.89,0.51,-2.7,0.51c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.18,0.48,0.27,0.72,0.21c0.33,-0.12,1.14,-1.26,1.41,-1.95c0,-0.09,0.21,-1.11,0.45,-2.34c0.21,-1.2,0.39,-2.22,0.39,-2.28c0.03,-0.03,0,-0.03,-0.45,0.12c-0.57,0.18,-1.2,0.33,-1.71,0.42c-0.3,0.06,-0.51,0.06,-0.93,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.18,0,0.36,-0.09,0.57,-0.33c0.33,-0.36,0.78,-1.14,0.93,-1.56c0.03,-0.12,0.24,-1.2,0.45,-2.4c0.24,-1.2,0.42,-2.22,0.42,-2.28c0.03,-0.03,0,-0.03,-0.39,0.09c-1.05,0.36,-1.8,0.48,-2.58,0.48c-0.63,0,-0.84,-0.03,-1.29,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
+    },
+    "accidentals.sharp": {
+        "w": 8.25,
+        "h": 22.462,
+        "d": "M5.73,-11.19c0.21,-0.12,0.54,-0.03,0.66,0.24c0.06,0.12,0.06,0.21,0.06,2.31c0,1.23,0,2.22,0.03,2.22c0,0,0.27,-0.12,0.6,-0.24c0.69,-0.27,0.78,-0.3,0.96,-0.15c0.21,0.15,0.21,0.18,0.21,1.38c0,1.02,0,1.11,-0.06,1.2c-0.03,0.06,-0.09,0.12,-0.12,0.15c-0.06,0.03,-0.42,0.21,-0.84,0.36l-0.75,0.33l-0.03,2.43c0,1.32,0,2.43,0.03,2.43c0,0,0.27,-0.12,0.6,-0.24c0.69,-0.27,0.78,-0.3,0.96,-0.15c0.21,0.15,0.21,0.18,0.21,1.38c0,1.02,0,1.11,-0.06,1.2c-0.03,0.06,-0.09,0.12,-0.12,0.15c-0.06,0.03,-0.42,0.21,-0.84,0.36l-0.75,0.33l-0.03,2.52c0,2.28,-0.03,2.55,-0.06,2.64c-0.21,0.36,-0.72,0.36,-0.93,0c-0.03,-0.09,-0.06,-0.33,-0.06,-2.43l0,-2.31l-1.29,0.51l-1.26,0.51l0,2.43c0,2.58,0,2.52,-0.15,2.67c-0.06,0.09,-0.27,0.18,-0.36,0.18c-0.12,0,-0.33,-0.09,-0.39,-0.18c-0.15,-0.15,-0.15,-0.09,-0.15,-2.43c0,-1.23,0,-2.22,-0.03,-2.22c0,0,-0.27,0.12,-0.6,0.24c-0.69,0.27,-0.78,0.3,-0.96,0.15c-0.21,-0.15,-0.21,-0.18,-0.21,-1.38c0,-1.02,0,-1.11,0.06,-1.2c0.03,-0.06,0.09,-0.12,0.12,-0.15c0.06,-0.03,0.42,-0.21,0.84,-0.36l0.78,-0.33l0,-2.43c0,-1.32,0,-2.43,-0.03,-2.43c0,0,-0.27,0.12,-0.6,0.24c-0.69,0.27,-0.78,0.3,-0.96,0.15c-0.21,-0.15,-0.21,-0.18,-0.21,-1.38c0,-1.02,0,-1.11,0.06,-1.2c0.03,-0.06,0.09,-0.12,0.12,-0.15c0.06,-0.03,0.42,-0.21,0.84,-0.36l0.78,-0.33l0,-2.52c0,-2.28,0.03,-2.55,0.06,-2.64c0.21,-0.36,0.72,-0.36,0.93,0c0.03,0.09,0.06,0.33,0.06,2.43l0.03,2.31l1.26,-0.51l1.26,-0.51l0,-2.43c0,-2.28,0,-2.43,0.06,-2.55c0.06,-0.12,0.12,-0.18,0.27,-0.24zm-0.33,10.65l0,-2.43l-1.29,0.51l-1.26,0.51l0,2.46l0,2.43l0.09,-0.03c0.06,-0.03,0.63,-0.27,1.29,-0.51l1.17,-0.48l0,-2.46z"
+    },
+    "accidentals.halfsharp": {
+        "w": 5.25,
+        "h": 20.174,
+        "d": "M2.43,-10.05c0.21,-0.12,0.54,-0.03,0.66,0.24c0.06,0.12,0.06,0.21,0.06,2.01c0,1.05,0,1.89,0.03,1.89l0.72,-0.48c0.69,-0.48,0.69,-0.51,0.87,-0.51c0.15,0,0.18,0.03,0.27,0.09c0.21,0.15,0.21,0.18,0.21,1.41c0,1.11,-0.03,1.14,-0.09,1.23c-0.03,0.03,-0.48,0.39,-1.02,0.75l-0.99,0.66l0,2.37c0,1.32,0,2.37,0.03,2.37l0.72,-0.48c0.69,-0.48,0.69,-0.51,0.87,-0.51c0.15,0,0.18,0.03,0.27,0.09c0.21,0.15,0.21,0.18,0.21,1.41c0,1.11,-0.03,1.14,-0.09,1.23c-0.03,0.03,-0.48,0.39,-1.02,0.75l-0.99,0.66l0,2.25c0,1.95,0,2.28,-0.06,2.37c-0.06,0.12,-0.12,0.21,-0.24,0.27c-0.27,0.12,-0.54,0.03,-0.69,-0.24c-0.06,-0.12,-0.06,-0.21,-0.06,-2.01c0,-1.05,0,-1.89,-0.03,-1.89l-0.72,0.48c-0.69,0.48,-0.69,0.48,-0.87,0.48c-0.15,0,-0.18,0,-0.27,-0.06c-0.21,-0.15,-0.21,-0.18,-0.21,-1.41c0,-1.11,0.03,-1.14,0.09,-1.23c0.03,-0.03,0.48,-0.39,1.02,-0.75l0.99,-0.66l0,-2.37c0,-1.32,0,-2.37,-0.03,-2.37l-0.72,0.48c-0.69,0.48,-0.69,0.48,-0.87,0.48c-0.15,0,-0.18,0,-0.27,-0.06c-0.21,-0.15,-0.21,-0.18,-0.21,-1.41c0,-1.11,0.03,-1.14,0.09,-1.23c0.03,-0.03,0.48,-0.39,1.02,-0.75l0.99,-0.66l0,-2.25c0,-2.13,0,-2.28,0.06,-2.4c0.06,-0.12,0.12,-0.18,0.27,-0.24z"
+    },
+    "accidentals.nat": {
+        "w": 5.411,
+        "h": 22.8,
+        "d": "M0.204,-11.4c0.24,-0.06,0.78,0,0.99,0.15c0.03,0.03,0.03,0.48,0,2.61c-0.03,1.44,-0.03,2.61,-0.03,2.61c0,0.03,0.75,-0.09,1.68,-0.24c0.96,-0.18,1.71,-0.27,1.74,-0.27c0.15,0.03,0.27,0.15,0.36,0.3l0.06,0.12l0.09,8.67c0.09,6.96,0.12,8.67,0.09,8.67c-0.03,0.03,-0.12,0.06,-0.21,0.09c-0.24,0.09,-0.72,0.09,-0.96,0c-0.09,-0.03,-0.18,-0.06,-0.21,-0.09c-0.03,-0.03,-0.03,-0.48,0,-2.61c0.03,-1.44,0.03,-2.61,0.03,-2.61c0,-0.03,-0.75,0.09,-1.68,0.24c-0.96,0.18,-1.71,0.27,-1.74,0.27c-0.15,-0.03,-0.27,-0.15,-0.36,-0.3l-0.06,-0.15l-0.09,-7.53c-0.06,-4.14,-0.09,-8.04,-0.12,-8.67l0,-1.11l0.15,-0.06c0.09,-0.03,0.21,-0.06,0.27,-0.09zm3.75,8.4c0,-0.33,0,-0.42,-0.03,-0.42c-0.12,0,-2.79,0.45,-2.79,0.48c-0.03,0,-0.09,6.3,-0.09,6.33c0.03,0,2.79,-0.45,2.82,-0.48c0,0,0.09,-4.53,0.09,-5.91z"
+    },
+    "accidentals.flat": {
+        "w": 6.75,
+        "h": 18.801,
+        "d": "M-0.36,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.36,-0.03,5.25c-0.06,2.85,-0.09,5.19,-0.09,5.19c0,0.03,0.12,-0.03,0.24,-0.12c0.63,-0.42,1.41,-0.66,2.19,-0.72c0.81,-0.03,1.47,0.21,2.04,0.78c0.57,0.54,0.87,1.26,0.93,2.04c0.03,0.57,-0.09,1.08,-0.36,1.62c-0.42,0.81,-1.02,1.38,-2.82,2.61c-1.14,0.78,-1.44,1.02,-1.8,1.44c-0.18,0.18,-0.39,0.39,-0.45,0.42c-0.27,0.18,-0.57,0.15,-0.81,-0.06c-0.06,-0.09,-0.12,-0.18,-0.15,-0.27c-0.03,-0.06,-0.09,-3.27,-0.18,-8.34c-0.09,-4.53,-0.15,-8.58,-0.18,-9.03l0,-0.78l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm3.18,11.01c-0.21,-0.12,-0.54,-0.15,-0.81,-0.06c-0.54,0.15,-0.99,0.63,-1.17,1.26c-0.06,0.3,-0.12,2.88,-0.06,3.87c0.03,0.42,0.03,0.81,0.06,0.9l0.03,0.12l0.45,-0.39c0.63,-0.54,1.26,-1.17,1.56,-1.59c0.3,-0.42,0.6,-0.99,0.72,-1.41c0.18,-0.69,0.09,-1.47,-0.18,-2.07c-0.15,-0.3,-0.33,-0.51,-0.6,-0.63z"
+    },
+    "accidentals.halfflat": {
+        "w": 6.728,
+        "h": 18.801,
+        "d": "M4.83,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.6,-0.12,9.06c-0.09,5.55,-0.15,9.06,-0.18,9.12c-0.03,0.09,-0.09,0.18,-0.15,0.27c-0.24,0.21,-0.54,0.24,-0.81,0.06c-0.06,-0.03,-0.27,-0.24,-0.45,-0.42c-0.36,-0.42,-0.66,-0.66,-1.8,-1.44c-1.23,-0.84,-1.83,-1.32,-2.25,-1.77c-0.66,-0.78,-0.96,-1.56,-0.93,-2.46c0.09,-1.41,1.11,-2.58,2.4,-2.79c0.3,-0.06,0.84,-0.03,1.23,0.06c0.54,0.12,1.08,0.33,1.53,0.63c0.12,0.09,0.24,0.15,0.24,0.12c0,0,-0.12,-8.37,-0.18,-9.75l0,-0.66l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm-1.65,10.95c-0.6,-0.18,-1.08,0.09,-1.38,0.69c-0.27,0.6,-0.36,1.38,-0.18,2.07c0.12,0.42,0.42,0.99,0.72,1.41c0.3,0.42,0.93,1.05,1.56,1.59l0.48,0.39l0,-0.12c0.03,-0.09,0.03,-0.48,0.06,-0.9c0.03,-0.57,0.03,-1.08,0,-2.22c-0.03,-1.62,-0.03,-1.62,-0.24,-2.07c-0.21,-0.42,-0.6,-0.75,-1.02,-0.84z"
+    },
+    "accidentals.dblflat": {
+        "w": 11.613,
+        "h": 18.804,
+        "d": "M-0.36,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.33,-0.03,4.89c-0.06,2.67,-0.09,5.01,-0.09,5.22l0,0.36l0.15,-0.15c0.36,-0.3,0.75,-0.51,1.2,-0.63c0.33,-0.09,0.96,-0.09,1.26,-0.03c0.27,0.09,0.63,0.27,0.87,0.45l0.21,0.15l0,-0.27c0,-0.15,-0.03,-2.43,-0.09,-5.1c-0.09,-4.56,-0.09,-4.86,-0.03,-4.89c0.15,-0.12,0.39,-0.15,0.72,-0.15c0.3,0,0.54,0.03,0.69,0.15c0.06,0.03,0.06,0.33,-0.03,4.95c-0.06,2.7,-0.09,5.04,-0.09,5.22l0.03,0.3l0.21,-0.15c0.69,-0.48,1.44,-0.69,2.28,-0.69c0.51,0,0.78,0.03,1.2,0.21c1.32,0.63,2.01,2.28,1.53,3.69c-0.21,0.57,-0.51,1.02,-1.05,1.56c-0.42,0.42,-0.81,0.72,-1.92,1.5c-1.26,0.87,-1.5,1.08,-1.86,1.5c-0.39,0.45,-0.54,0.54,-0.81,0.51c-0.18,0,-0.21,0,-0.33,-0.06l-0.21,-0.21l-0.06,-0.12l-0.03,-0.99c-0.03,-0.54,-0.03,-1.29,-0.06,-1.68l0,-0.69l-0.21,0.24c-0.36,0.42,-0.75,0.75,-1.8,1.62c-1.02,0.84,-1.2,0.99,-1.44,1.38c-0.36,0.51,-0.54,0.6,-0.9,0.51c-0.15,-0.03,-0.39,-0.27,-0.42,-0.42c-0.03,-0.06,-0.09,-3.27,-0.18,-8.34c-0.09,-4.53,-0.15,-8.58,-0.18,-9.03l0,-0.78l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm2.52,10.98c-0.18,-0.09,-0.48,-0.12,-0.66,-0.06c-0.39,0.15,-0.69,0.54,-0.84,1.14c-0.06,0.24,-0.06,0.39,-0.09,1.74c-0.03,1.44,0,2.73,0.06,3.18l0.03,0.15l0.27,-0.27c0.93,-0.96,1.5,-1.95,1.74,-3.06c0.06,-0.27,0.06,-0.39,0.06,-0.96c0,-0.54,0,-0.69,-0.06,-0.93c-0.09,-0.51,-0.27,-0.81,-0.51,-0.93zm5.43,0c-0.18,-0.09,-0.51,-0.12,-0.72,-0.06c-0.54,0.12,-0.96,0.63,-1.17,1.26c-0.06,0.3,-0.12,2.88,-0.06,3.9c0.03,0.42,0.03,0.81,0.06,0.9l0.03,0.12l0.36,-0.3c0.42,-0.36,1.02,-0.96,1.29,-1.29c0.36,-0.45,0.66,-0.99,0.81,-1.41c0.42,-1.23,0.15,-2.76,-0.6,-3.12z"
+    },
+    "accidentals.dblsharp": {
+        "w": 7.961,
+        "h": 7.977,
+        "d": "M-0.186,-3.96c0.06,-0.03,0.12,-0.06,0.15,-0.06c0.09,0,2.76,0.27,2.79,0.3c0.12,0.03,0.15,0.12,0.15,0.51c0.06,0.96,0.24,1.59,0.57,2.1c0.06,0.09,0.15,0.21,0.18,0.24l0.09,0.06l0.09,-0.06c0.03,-0.03,0.12,-0.15,0.18,-0.24c0.33,-0.51,0.51,-1.14,0.57,-2.1c0,-0.39,0.03,-0.45,0.12,-0.51c0.03,0,0.66,-0.09,1.44,-0.15c1.47,-0.15,1.5,-0.15,1.56,-0.03c0.03,0.06,0,0.42,-0.09,1.44c-0.09,0.72,-0.15,1.35,-0.15,1.38c0,0.03,-0.03,0.09,-0.06,0.12c-0.06,0.06,-0.12,0.09,-0.51,0.09c-1.08,0.06,-1.8,0.3,-2.28,0.75l-0.12,0.09l0.09,0.09c0.12,0.15,0.39,0.33,0.63,0.45c0.42,0.18,0.96,0.27,1.68,0.33c0.39,0,0.45,0.03,0.51,0.09c0.03,0.03,0.06,0.09,0.06,0.12c0,0.03,0.06,0.66,0.15,1.38c0.09,1.02,0.12,1.38,0.09,1.44c-0.06,0.12,-0.09,0.12,-1.56,-0.03c-0.78,-0.06,-1.41,-0.15,-1.44,-0.15c-0.09,-0.06,-0.12,-0.12,-0.12,-0.54c-0.06,-0.93,-0.24,-1.56,-0.57,-2.07c-0.06,-0.09,-0.15,-0.21,-0.18,-0.24l-0.09,-0.06l-0.09,0.06c-0.03,0.03,-0.12,0.15,-0.18,0.24c-0.33,0.51,-0.51,1.14,-0.57,2.07c0,0.42,-0.03,0.48,-0.12,0.54c-0.03,0,-0.66,0.09,-1.44,0.15c-1.47,0.15,-1.5,0.15,-1.56,0.03c-0.03,-0.06,0,-0.42,0.09,-1.44c0.09,-0.72,0.15,-1.35,0.15,-1.38c0,-0.03,0.03,-0.09,0.06,-0.12c0.06,-0.06,0.12,-0.09,0.51,-0.09c0.72,-0.06,1.26,-0.15,1.68,-0.33c0.24,-0.12,0.51,-0.3,0.63,-0.45l0.09,-0.09l-0.12,-0.09c-0.48,-0.45,-1.2,-0.69,-2.28,-0.75c-0.39,0,-0.45,-0.03,-0.51,-0.09c-0.03,-0.03,-0.06,-0.09,-0.06,-0.12c0,-0.03,-0.06,-0.63,-0.12,-1.38c-0.09,-0.72,-0.15,-1.35,-0.15,-1.38z"
+    },
+    "dots.dot": {
+        "w": 3.45,
+        "h": 3.45,
+        "d": "M1.32,-1.68c0.09,-0.03,0.27,-0.06,0.39,-0.06c0.96,0,1.74,0.78,1.74,1.71c0,0.96,-0.78,1.74,-1.71,1.74c-0.96,0,-1.74,-0.78,-1.74,-1.71c0,-0.78,0.54,-1.5,1.32,-1.68z"
+    },
+    "noteheads.dbl": {
+        "w": 16.83,
+        "h": 8.145,
+        "d": "M-0.69,-4.02c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3c0.06,0.15,0.06,0.18,0.06,1.41l0,1.23l0.12,-0.18c0.72,-1.26,2.64,-2.31,4.86,-2.64c0.81,-0.15,1.11,-0.15,2.13,-0.15c0.99,0,1.29,0,2.1,0.15c0.75,0.12,1.38,0.27,2.04,0.54c1.35,0.51,2.34,1.26,2.82,2.1l0.12,0.18l0,-1.23c0,-1.2,0,-1.26,0.06,-1.38c0.09,-0.18,0.15,-0.24,0.33,-0.33c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,3.54l0,3.54l-0.06,0.15c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.06,-0.12,-0.06,-0.18,-0.06,-1.38l0,-1.23l-0.12,0.18c-0.48,0.84,-1.47,1.59,-2.82,2.1c-0.84,0.33,-1.71,0.54,-2.85,0.66c-0.45,0.06,-2.16,0.06,-2.61,0c-1.14,-0.12,-2.01,-0.33,-2.85,-0.66c-1.35,-0.51,-2.34,-1.26,-2.82,-2.1l-0.12,-0.18l0,1.23c0,1.23,0,1.26,-0.06,1.38c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33l-0.06,-0.15l0,-3.54c0,-3.48,0,-3.54,0.06,-3.66c0.09,-0.18,0.15,-0.24,0.33,-0.33zm7.71,0.63c-0.36,-0.06,-0.9,-0.06,-1.14,0c-0.3,0.03,-0.66,0.24,-0.87,0.42c-0.6,0.54,-0.9,1.62,-0.75,2.82c0.12,0.93,0.51,1.68,1.11,2.31c0.75,0.72,1.83,1.2,2.85,1.26c1.05,0.06,1.83,-0.54,2.1,-1.65c0.21,-0.9,0.12,-1.95,-0.24,-2.82c-0.36,-0.81,-1.08,-1.53,-1.95,-1.95c-0.3,-0.15,-0.78,-0.3,-1.11,-0.39z"
+    },
+    "noteheads.whole": {
+        "w": 14.985,
+        "h": 8.097,
+        "d": "M6.51,-4.05c0.51,-0.03,2.01,0,2.52,0.03c1.41,0.18,2.64,0.51,3.72,1.08c1.2,0.63,1.95,1.41,2.19,2.31c0.09,0.33,0.09,0.9,0,1.23c-0.24,0.9,-0.99,1.68,-2.19,2.31c-1.08,0.57,-2.28,0.9,-3.75,1.08c-0.66,0.06,-2.31,0.06,-2.97,0c-1.47,-0.18,-2.67,-0.51,-3.75,-1.08c-1.2,-0.63,-1.95,-1.41,-2.19,-2.31c-0.09,-0.33,-0.09,-0.9,0,-1.23c0.24,-0.9,0.99,-1.68,2.19,-2.31c1.2,-0.63,2.61,-0.99,4.23,-1.11zm0.57,0.66c-0.87,-0.15,-1.53,0,-2.04,0.51c-0.15,0.15,-0.24,0.27,-0.33,0.48c-0.24,0.51,-0.36,1.08,-0.33,1.77c0.03,0.69,0.18,1.26,0.42,1.77c0.6,1.17,1.74,1.98,3.18,2.22c1.11,0.21,1.95,-0.15,2.34,-0.99c0.24,-0.51,0.36,-1.08,0.33,-1.8c-0.06,-1.11,-0.45,-2.04,-1.17,-2.76c-0.63,-0.63,-1.47,-1.05,-2.4,-1.2z"
+    },
+    "noteheads.half": {
+        "w": 10.37,
+        "h": 8.132,
+        "d": "M7.44,-4.05c0.06,-0.03,0.27,-0.03,0.48,-0.03c1.05,0,1.71,0.24,2.1,0.81c0.42,0.6,0.45,1.35,0.18,2.4c-0.42,1.59,-1.14,2.73,-2.16,3.39c-1.41,0.93,-3.18,1.44,-5.4,1.53c-1.17,0.03,-1.89,-0.21,-2.28,-0.81c-0.42,-0.6,-0.45,-1.35,-0.18,-2.4c0.42,-1.59,1.14,-2.73,2.16,-3.39c0.63,-0.42,1.23,-0.72,1.98,-0.96c0.9,-0.3,1.65,-0.42,3.12,-0.54zm1.29,0.87c-0.27,-0.09,-0.63,-0.12,-0.9,-0.03c-0.72,0.24,-1.53,0.69,-3.27,1.8c-2.34,1.5,-3.3,2.25,-3.57,2.79c-0.36,0.72,-0.06,1.5,0.66,1.77c0.24,0.12,0.69,0.09,0.99,0c0.84,-0.3,1.92,-0.93,4.14,-2.37c1.62,-1.08,2.37,-1.71,2.61,-2.19c0.36,-0.72,0.06,-1.5,-0.66,-1.77z"
+    },
+    "noteheads.quarter": {
+        "w": 9.81,
+        "h": 8.094,
+        "d": "M6.09,-4.05c0.36,-0.03,1.2,0,1.53,0.06c1.17,0.24,1.89,0.84,2.16,1.83c0.06,0.18,0.06,0.3,0.06,0.66c0,0.45,0,0.63,-0.15,1.08c-0.66,2.04,-3.06,3.93,-5.52,4.38c-0.54,0.09,-1.44,0.09,-1.83,0.03c-1.23,-0.27,-1.98,-0.87,-2.25,-1.86c-0.06,-0.18,-0.06,-0.3,-0.06,-0.66c0,-0.45,0,-0.63,0.15,-1.08c0.24,-0.78,0.75,-1.53,1.44,-2.22c1.2,-1.2,2.85,-2.01,4.47,-2.22z"
+    },
+    "scripts.ufermata": {
+        "w": 19.748,
+        "h": 11.289,
+        "d": "M-0.75,-10.77c0.12,0,0.45,-0.03,0.69,-0.03c2.91,-0.03,5.55,1.53,7.41,4.35c1.17,1.71,1.95,3.72,2.43,6.03c0.12,0.51,0.12,0.57,0.03,0.69c-0.12,0.21,-0.48,0.27,-0.69,0.12c-0.12,-0.09,-0.18,-0.24,-0.27,-0.69c-0.78,-3.63,-3.42,-6.54,-6.78,-7.38c-0.78,-0.21,-1.2,-0.24,-2.07,-0.24c-0.63,0,-0.84,0,-1.2,0.06c-1.83,0.27,-3.42,1.08,-4.8,2.37c-1.41,1.35,-2.4,3.21,-2.85,5.19c-0.09,0.45,-0.15,0.6,-0.27,0.69c-0.21,0.15,-0.57,0.09,-0.69,-0.12c-0.09,-0.12,-0.09,-0.18,0.03,-0.69c0.33,-1.62,0.78,-3,1.47,-4.38c1.77,-3.54,4.44,-5.67,7.56,-5.97zm0.33,7.47c1.38,-0.3,2.58,0.9,2.31,2.25c-0.15,0.72,-0.78,1.35,-1.47,1.5c-1.38,0.27,-2.58,-0.93,-2.31,-2.31c0.15,-0.69,0.78,-1.29,1.47,-1.44z"
+    },
+    "scripts.dfermata": {
+        "w": 19.744,
+        "h": 11.274,
+        "d": "M-9.63,-0.42c0.15,-0.09,0.36,-0.06,0.51,0.03c0.12,0.09,0.18,0.24,0.27,0.66c0.78,3.66,3.42,6.57,6.78,7.41c0.78,0.21,1.2,0.24,2.07,0.24c0.63,0,0.84,0,1.2,-0.06c1.83,-0.27,3.42,-1.08,4.8,-2.37c1.41,-1.35,2.4,-3.21,2.85,-5.22c0.09,-0.42,0.15,-0.57,0.27,-0.66c0.21,-0.15,0.57,-0.09,0.69,0.12c0.09,0.12,0.09,0.18,-0.03,0.69c-0.33,1.62,-0.78,3,-1.47,4.38c-1.92,3.84,-4.89,6,-8.31,6c-3.42,0,-6.39,-2.16,-8.31,-6c-0.48,-0.96,-0.84,-1.92,-1.14,-2.97c-0.18,-0.69,-0.42,-1.74,-0.42,-1.92c0,-0.12,0.09,-0.27,0.24,-0.33zm9.21,0c1.2,-0.27,2.34,0.63,2.34,1.86c0,0.9,-0.66,1.68,-1.5,1.89c-1.38,0.27,-2.58,-0.93,-2.31,-2.31c0.15,-0.69,0.78,-1.29,1.47,-1.44z"
+    },
+    "scripts.sforzato": {
+        "w": 13.5,
+        "h": 7.5,
+        "d": "M-6.45,-3.69c0.06,-0.03,0.15,-0.06,0.18,-0.06c0.06,0,2.85,0.72,6.24,1.59l6.33,1.65c0.33,0.06,0.45,0.21,0.45,0.51c0,0.3,-0.12,0.45,-0.45,0.51l-6.33,1.65c-3.39,0.87,-6.18,1.59,-6.21,1.59c-0.21,0,-0.48,-0.24,-0.51,-0.45c0,-0.15,0.06,-0.36,0.18,-0.45c0.09,-0.06,0.87,-0.27,3.84,-1.05c2.04,-0.54,3.84,-0.99,4.02,-1.02c0.15,-0.06,1.14,-0.24,2.22,-0.42c1.05,-0.18,1.92,-0.36,1.92,-0.36c0,0,-0.87,-0.18,-1.92,-0.36c-1.08,-0.18,-2.07,-0.36,-2.22,-0.42c-0.18,-0.03,-1.98,-0.48,-4.02,-1.02c-2.97,-0.78,-3.75,-0.99,-3.84,-1.05c-0.12,-0.09,-0.18,-0.3,-0.18,-0.45c0.03,-0.15,0.15,-0.3,0.3,-0.39z"
+    },
+    "scripts.staccato": {
+        "w": 2.989,
+        "h": 3.004,
+        "d": "M-0.36,-1.47c0.93,-0.21,1.86,0.51,1.86,1.47c0,0.93,-0.87,1.65,-1.8,1.47c-0.54,-0.12,-1.02,-0.57,-1.14,-1.08c-0.21,-0.81,0.27,-1.65,1.08,-1.86z"
+    },
+    "scripts.tenuto": {
+        "w": 8.985,
+        "h": 1.08,
+        "d": "M-4.2,-0.48l0.12,-0.06l4.08,0l4.08,0l0.12,0.06c0.39,0.21,0.39,0.75,0,0.96l-0.12,0.06l-4.08,0l-4.08,0l-0.12,-0.06c-0.39,-0.21,-0.39,-0.75,0,-0.96z"
+    },
+    "scripts.umarcato": {
+        "w": 7.5,
+        "h": 8.245,
+        "d": "M-0.15,-8.19c0.15,-0.12,0.36,-0.03,0.45,0.15c0.21,0.42,3.45,7.65,3.45,7.71c0,0.12,-0.12,0.27,-0.21,0.3c-0.03,0.03,-0.51,0.03,-1.14,0.03c-1.05,0,-1.08,0,-1.17,-0.06c-0.09,-0.06,-0.24,-0.36,-1.17,-2.4c-0.57,-1.29,-1.05,-2.34,-1.08,-2.34c0,-0.03,-0.51,1.02,-1.08,2.34c-0.93,2.07,-1.08,2.34,-1.14,2.4c-0.06,0.03,-0.15,0.06,-0.18,0.06c-0.15,0,-0.33,-0.18,-0.33,-0.33c0,-0.06,3.24,-7.32,3.45,-7.71c0.03,-0.06,0.09,-0.15,0.15,-0.15z"
+    },
+    "scripts.dmarcato": {
+        "w": 7.5,
+        "h": 8.25,
+        "d": "M-3.57,0.03c0.03,0,0.57,-0.03,1.17,-0.03c1.05,0,1.08,0,1.17,0.06c0.09,0.06,0.24,0.36,1.17,2.4c0.57,1.29,1.05,2.34,1.08,2.34c0,0.03,0.51,-1.02,1.08,-2.34c0.93,-2.07,1.08,-2.34,1.14,-2.4c0.06,-0.03,0.15,-0.06,0.18,-0.06c0.15,0,0.33,0.18,0.33,0.33c0,0.09,-3.45,7.74,-3.54,7.83c-0.12,0.12,-0.3,0.12,-0.42,0c-0.09,-0.09,-3.54,-7.74,-3.54,-7.83c0,-0.09,0.12,-0.27,0.18,-0.3z"
+    },
+    "scripts.stopped": {
+        "w": 8.295,
+        "h": 8.295,
+        "d": "M-0.27,-4.08c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,1.5l0,1.47l1.47,0l1.5,0l0.15,0.06c0.15,0.09,0.21,0.15,0.3,0.33c0.09,0.18,0.09,0.36,0,0.54c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.12,0.06,-0.18,0.06,-1.62,0.06l-1.47,0l0,1.47l0,1.47l-0.06,0.15c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33l-0.06,-0.15l0,-1.47l0,-1.47l-1.47,0c-1.44,0,-1.5,0,-1.62,-0.06c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.09,-0.36,0,-0.54c0.09,-0.18,0.15,-0.24,0.33,-0.33l0.15,-0.06l1.47,0l1.47,0l0,-1.47c0,-1.44,0,-1.5,0.06,-1.62c0.09,-0.18,0.15,-0.24,0.33,-0.33z"
+    },
+    "scripts.upbow": {
+        "w": 9.73,
+        "h": 15.608,
+        "d": "M-4.65,-15.54c0.12,-0.09,0.36,-0.06,0.48,0.03c0.03,0.03,0.09,0.09,0.12,0.15c0.03,0.06,0.66,2.13,1.41,4.62c1.35,4.41,1.38,4.56,2.01,6.96l0.63,2.46l0.63,-2.46c0.63,-2.4,0.66,-2.55,2.01,-6.96c0.75,-2.49,1.38,-4.56,1.41,-4.62c0.06,-0.15,0.18,-0.21,0.36,-0.24c0.15,0,0.3,0.06,0.39,0.18c0.15,0.21,0.24,-0.18,-2.1,7.56c-1.2,3.96,-2.22,7.32,-2.25,7.41c0,0.12,-0.06,0.27,-0.09,0.3c-0.12,0.21,-0.6,0.21,-0.72,0c-0.03,-0.03,-0.09,-0.18,-0.09,-0.3c-0.03,-0.09,-1.05,-3.45,-2.25,-7.41c-2.34,-7.74,-2.25,-7.35,-2.1,-7.56c0.03,-0.03,0.09,-0.09,0.15,-0.12z"
+    },
+    "scripts.downbow": {
+        "w": 11.22,
+        "h": 9.992,
+        "d": "M-5.55,-9.93l0.09,-0.06l5.46,0l5.46,0l0.09,0.06l0.06,0.09l0,4.77c0,5.28,0,4.89,-0.18,5.01c-0.18,0.12,-0.42,0.06,-0.54,-0.12c-0.06,-0.09,-0.06,-0.18,-0.06,-2.97l0,-2.85l-4.83,0l-4.83,0l0,2.85c0,2.79,0,2.88,-0.06,2.97c-0.15,0.24,-0.51,0.24,-0.66,0c-0.06,-0.09,-0.06,-0.21,-0.06,-4.89l0,-4.77z"
+    },
+    "scripts.turn": {
+        "w": 16.366,
+        "h": 7.893,
+        "d": "M-4.77,-3.9c0.36,-0.06,1.05,-0.06,1.44,0.03c0.78,0.15,1.5,0.51,2.34,1.14c0.6,0.45,1.05,0.87,2.22,2.01c1.11,1.08,1.62,1.5,2.22,1.86c0.6,0.36,1.32,0.57,1.92,0.57c0.9,0,1.71,-0.57,1.89,-1.35c0.24,-0.93,-0.39,-1.89,-1.35,-2.1l-0.15,-0.06l-0.09,0.15c-0.03,0.09,-0.15,0.24,-0.24,0.33c-0.72,0.72,-2.04,0.54,-2.49,-0.36c-0.48,-0.93,0.03,-1.86,1.17,-2.19c0.3,-0.09,1.02,-0.09,1.35,0c0.99,0.27,1.74,0.87,2.25,1.83c0.69,1.41,0.63,3,-0.21,4.26c-0.21,0.3,-0.69,0.81,-0.99,1.02c-0.3,0.21,-0.84,0.45,-1.17,0.54c-1.23,0.36,-2.49,0.15,-3.72,-0.6c-0.75,-0.48,-1.41,-1.02,-2.85,-2.46c-1.11,-1.08,-1.62,-1.5,-2.22,-1.86c-0.6,-0.36,-1.32,-0.57,-1.92,-0.57c-0.9,0,-1.71,0.57,-1.89,1.35c-0.24,0.93,0.39,1.89,1.35,2.1l0.15,0.06l0.09,-0.15c0.03,-0.09,0.15,-0.24,0.24,-0.33c0.72,-0.72,2.04,-0.54,2.49,0.36c0.48,0.93,-0.03,1.86,-1.17,2.19c-0.3,0.09,-1.02,0.09,-1.35,0c-0.99,-0.27,-1.74,-0.87,-2.25,-1.83c-0.69,-1.41,-0.63,-3,0.21,-4.26c0.21,-0.3,0.69,-0.81,0.99,-1.02c0.48,-0.33,1.11,-0.57,1.74,-0.66z"
+    },
+    "scripts.trill": {
+        "w": 17.963,
+        "h": 16.49,
+        "d": "M-0.51,-16.02c0.12,-0.09,0.21,-0.18,0.21,-0.18l-0.81,4.02l-0.81,4.02c0.03,0,0.51,-0.27,1.08,-0.6c0.6,-0.3,1.14,-0.63,1.26,-0.66c1.14,-0.54,2.31,-0.6,3.09,-0.18c0.27,0.15,0.54,0.36,0.6,0.51l0.06,0.12l0.21,-0.21c0.9,-0.81,2.22,-0.99,3.12,-0.42c0.6,0.42,0.9,1.14,0.78,2.07c-0.15,1.29,-1.05,2.31,-1.95,2.25c-0.48,-0.03,-0.78,-0.3,-0.96,-0.81c-0.09,-0.27,-0.09,-0.9,-0.03,-1.2c0.21,-0.75,0.81,-1.23,1.59,-1.32l0.24,-0.03l-0.09,-0.12c-0.51,-0.66,-1.62,-0.63,-2.31,0.03c-0.39,0.42,-0.3,0.09,-1.23,4.77l-0.81,4.14c-0.03,0,-0.12,-0.03,-0.21,-0.09c-0.33,-0.15,-0.54,-0.18,-0.99,-0.18c-0.42,0,-0.66,0.03,-1.05,0.18c-0.12,0.06,-0.21,0.09,-0.21,0.09c0,-0.03,0.36,-1.86,0.81,-4.11c0.9,-4.47,0.87,-4.26,0.69,-4.53c-0.21,-0.36,-0.66,-0.51,-1.17,-0.36c-0.15,0.06,-2.22,1.14,-2.58,1.38c-0.12,0.09,-0.12,0.09,-0.21,0.6l-0.09,0.51l0.21,0.24c0.63,0.75,1.02,1.47,1.2,2.19c0.06,0.27,0.06,0.36,0.06,0.81c0,0.42,0,0.54,-0.06,0.78c-0.15,0.54,-0.33,0.93,-0.63,1.35c-0.18,0.24,-0.57,0.63,-0.81,0.78c-0.24,0.15,-0.63,0.36,-0.84,0.42c-0.27,0.06,-0.66,0.06,-0.87,0.03c-0.81,-0.18,-1.32,-1.05,-1.38,-2.46c-0.03,-0.6,0.03,-0.99,0.33,-2.46c0.21,-1.08,0.24,-1.32,0.21,-1.29c-1.2,0.48,-2.4,0.75,-3.21,0.72c-0.69,-0.06,-1.17,-0.3,-1.41,-0.72c-0.39,-0.75,-0.12,-1.8,0.66,-2.46c0.24,-0.18,0.69,-0.42,1.02,-0.51c0.69,-0.18,1.53,-0.15,2.31,0.09c0.3,0.09,0.75,0.3,0.99,0.45c0.12,0.09,0.15,0.09,0.15,0.03c0.03,-0.03,0.33,-1.59,0.72,-3.45c0.36,-1.86,0.66,-3.42,0.69,-3.45c0,-0.03,0.03,-0.03,0.21,0.03c0.21,0.06,0.27,0.06,0.48,0.06c0.42,-0.03,0.78,-0.18,1.26,-0.48c0.15,-0.12,0.36,-0.27,0.48,-0.39zm-5.73,7.68c-0.27,-0.03,-0.96,-0.06,-1.2,-0.03c-0.81,0.12,-1.35,0.57,-1.5,1.2c-0.18,0.66,0.12,1.14,0.75,1.29c0.66,0.12,1.92,-0.12,3.18,-0.66l0.33,-0.15l0.09,-0.39c0.06,-0.21,0.09,-0.42,0.09,-0.45c0,-0.03,-0.45,-0.3,-0.75,-0.45c-0.27,-0.15,-0.66,-0.27,-0.99,-0.36zm4.29,3.63c-0.24,-0.39,-0.51,-0.75,-0.51,-0.69c-0.06,0.12,-0.39,1.92,-0.45,2.28c-0.09,0.54,-0.12,1.14,-0.06,1.38c0.06,0.42,0.21,0.6,0.51,0.57c0.39,-0.06,0.75,-0.48,0.93,-1.14c0.09,-0.33,0.09,-1.05,0,-1.38c-0.09,-0.39,-0.24,-0.69,-0.42,-1.02z"
+    },
+    "scripts.segno": {
+        "w": 15,
+        "h": 22.504,
+        "d": "M-3.72,-11.22c0.78,-0.09,1.59,0.03,2.31,0.42c1.2,0.6,2.01,1.71,2.31,3.09c0.09,0.42,0.09,1.2,0.03,1.5c-0.15,0.45,-0.39,0.81,-0.66,0.93c-0.33,0.18,-0.84,0.21,-1.23,0.15c-0.81,-0.18,-1.32,-0.93,-1.26,-1.89c0.03,-0.36,0.09,-0.57,0.24,-0.9c0.15,-0.33,0.45,-0.6,0.72,-0.75c0.12,-0.06,0.18,-0.09,0.18,-0.12c0,-0.03,-0.03,-0.15,-0.09,-0.24c-0.18,-0.45,-0.54,-0.87,-0.96,-1.08c-1.11,-0.57,-2.34,-0.18,-2.88,0.9c-0.24,0.51,-0.33,1.11,-0.24,1.83c0.27,1.92,1.5,3.54,3.93,5.13c0.48,0.33,1.26,0.78,1.29,0.78c0.03,0,1.35,-2.19,2.94,-4.89l2.88,-4.89l0.84,0l0.87,0l-0.03,0.06c-0.15,0.21,-6.15,10.41,-6.15,10.44c0,0,0.21,0.15,0.48,0.27c2.61,1.47,4.35,3.03,5.13,4.65c1.14,2.34,0.51,5.07,-1.44,6.39c-0.66,0.42,-1.32,0.63,-2.13,0.69c-2.01,0.09,-3.81,-1.41,-4.26,-3.54c-0.09,-0.42,-0.09,-1.2,-0.03,-1.5c0.15,-0.45,0.39,-0.81,0.66,-0.93c0.33,-0.18,0.84,-0.21,1.23,-0.15c0.81,0.18,1.32,0.93,1.26,1.89c-0.03,0.36,-0.09,0.57,-0.24,0.9c-0.15,0.33,-0.45,0.6,-0.72,0.75c-0.12,0.06,-0.18,0.09,-0.18,0.12c0,0.03,0.03,0.15,0.09,0.24c0.18,0.45,0.54,0.87,0.96,1.08c1.11,0.57,2.34,0.18,2.88,-0.9c0.24,-0.51,0.33,-1.11,0.24,-1.83c-0.27,-1.92,-1.5,-3.54,-3.93,-5.13c-0.48,-0.33,-1.26,-0.78,-1.29,-0.78c-0.03,0,-1.35,2.19,-2.91,4.89l-2.88,4.89l-0.87,0l-0.87,0l0.03,-0.06c0.15,-0.21,6.15,-10.41,6.15,-10.44c0,0,-0.21,-0.15,-0.48,-0.3c-2.61,-1.44,-4.35,-3,-5.13,-4.62c-0.9,-1.89,-0.72,-4.02,0.48,-5.52c0.69,-0.84,1.68,-1.41,2.73,-1.53zm8.76,9.09c0.03,-0.03,0.15,-0.03,0.27,-0.03c0.33,0.03,0.57,0.18,0.72,0.48c0.09,0.18,0.09,0.57,0,0.75c-0.09,0.18,-0.21,0.3,-0.36,0.39c-0.15,0.06,-0.21,0.06,-0.39,0.06c-0.21,0,-0.27,0,-0.39,-0.06c-0.3,-0.15,-0.48,-0.45,-0.48,-0.75c0,-0.39,0.24,-0.72,0.63,-0.84zm-10.53,2.61c0.03,-0.03,0.15,-0.03,0.27,-0.03c0.33,0.03,0.57,0.18,0.72,0.48c0.09,0.18,0.09,0.57,0,0.75c-0.09,0.18,-0.21,0.3,-0.36,0.39c-0.15,0.06,-0.21,0.06,-0.39,0.06c-0.21,0,-0.27,0,-0.39,-0.06c-0.3,-0.15,-0.48,-0.45,-0.48,-0.75c0,-0.39,0.24,-0.72,0.63,-0.84z"
+    },
+    "scripts.coda": {
+        "w": 16.035,
+        "h": 21.062,
+        "d": "M-0.21,-10.47c0.18,-0.12,0.42,-0.06,0.54,0.12c0.06,0.09,0.06,0.18,0.06,1.5l0,1.38l0.18,0c0.39,0.06,0.96,0.24,1.38,0.48c1.68,0.93,2.82,3.24,3.03,6.12c0.03,0.24,0.03,0.45,0.03,0.45c0,0.03,0.6,0.03,1.35,0.03c1.5,0,1.47,0,1.59,0.18c0.09,0.12,0.09,0.3,0,0.42c-0.12,0.18,-0.09,0.18,-1.59,0.18c-0.75,0,-1.35,0,-1.35,0.03c0,0,0,0.21,-0.03,0.42c-0.24,3.15,-1.53,5.58,-3.45,6.36c-0.27,0.12,-0.72,0.24,-0.96,0.27l-0.18,0l0,1.38c0,1.32,0,1.41,-0.06,1.5c-0.15,0.24,-0.51,0.24,-0.66,0c-0.06,-0.09,-0.06,-0.18,-0.06,-1.5l0,-1.38l-0.18,0c-0.39,-0.06,-0.96,-0.24,-1.38,-0.48c-1.68,-0.93,-2.82,-3.24,-3.03,-6.15c-0.03,-0.21,-0.03,-0.42,-0.03,-0.42c0,-0.03,-0.6,-0.03,-1.35,-0.03c-1.5,0,-1.47,0,-1.59,-0.18c-0.09,-0.12,-0.09,-0.3,0,-0.42c0.12,-0.18,0.09,-0.18,1.59,-0.18c0.75,0,1.35,0,1.35,-0.03c0,0,0,-0.21,0.03,-0.45c0.24,-3.12,1.53,-5.55,3.45,-6.33c0.27,-0.12,0.72,-0.24,0.96,-0.27l0.18,0l0,-1.38c0,-1.53,0,-1.5,0.18,-1.62zm-0.18,6.93c0,-2.97,0,-3.15,-0.06,-3.15c-0.09,0,-0.51,0.15,-0.66,0.21c-0.87,0.51,-1.38,1.62,-1.56,3.51c-0.06,0.54,-0.12,1.59,-0.12,2.16l0,0.42l1.2,0l1.2,0l0,-3.15zm1.17,-3.06c-0.09,-0.03,-0.21,-0.06,-0.27,-0.09l-0.12,0l0,3.15l0,3.15l1.2,0l1.2,0l0,-0.81c-0.06,-2.4,-0.33,-3.69,-0.93,-4.59c-0.27,-0.39,-0.66,-0.69,-1.08,-0.81zm-1.17,10.14l0,-3.15l-1.2,0l-1.2,0l0,0.81c0.03,0.96,0.06,1.47,0.15,2.13c0.24,2.04,0.96,3.12,2.13,3.36l0.12,0l0,-3.15zm3.18,-2.34l0,-0.81l-1.2,0l-1.2,0l0,3.15l0,3.15l0.12,0c1.17,-0.24,1.89,-1.32,2.13,-3.36c0.09,-0.66,0.12,-1.17,0.15,-2.13z"
+    },
+    "scripts.comma": {
+        "w": 3.042,
+        "h": 9.237,
+        "d": "M1.14,-4.62c0.3,-0.12,0.69,-0.03,0.93,0.15c0.12,0.12,0.36,0.45,0.51,0.78c0.9,1.77,0.54,4.05,-1.08,6.75c-0.36,0.63,-0.87,1.38,-0.96,1.44c-0.18,0.12,-0.42,0.06,-0.54,-0.12c-0.09,-0.18,-0.09,-0.3,0.12,-0.6c0.96,-1.44,1.44,-2.97,1.38,-4.35c-0.06,-0.93,-0.3,-1.68,-0.78,-2.46c-0.27,-0.39,-0.33,-0.63,-0.24,-0.96c0.09,-0.27,0.36,-0.54,0.66,-0.63z"
+    },
+    "scripts.roll": {
+        "w": 10.817,
+        "h": 6.125,
+        "d": "M1.95,-6c0.21,-0.09,0.36,-0.09,0.57,0c0.39,0.15,0.63,0.39,1.47,1.35c0.66,0.75,0.78,0.87,1.08,1.05c0.75,0.45,1.65,0.42,2.4,-0.06c0.12,-0.09,0.27,-0.27,0.54,-0.6c0.42,-0.54,0.51,-0.63,0.69,-0.63c0.09,0,0.3,0.12,0.36,0.21c0.09,0.12,0.12,0.3,0.03,0.42c-0.06,0.12,-3.15,3.9,-3.3,4.08c-0.06,0.06,-0.18,0.12,-0.27,0.18c-0.27,0.12,-0.6,0.06,-0.99,-0.27c-0.27,-0.21,-0.42,-0.39,-1.08,-1.14c-0.63,-0.72,-0.81,-0.9,-1.17,-1.08c-0.36,-0.18,-0.57,-0.21,-0.99,-0.21c-0.39,0,-0.63,0.03,-0.93,0.18c-0.36,0.15,-0.51,0.27,-0.9,0.81c-0.24,0.27,-0.45,0.51,-0.48,0.54c-0.12,0.09,-0.27,0.06,-0.39,0c-0.24,-0.15,-0.33,-0.39,-0.21,-0.6c0.09,-0.12,3.18,-3.87,3.33,-4.02c0.06,-0.06,0.18,-0.15,0.24,-0.21z"
+    },
+    "scripts.prall": {
+        "w": 15.011,
+        "h": 7.5,
+        "d": "M-4.38,-3.69c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83c0.03,0,0.57,-0.84,1.23,-1.83c1.14,-1.68,1.23,-1.83,1.35,-1.89c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83l0.48,-0.69c0.51,-0.78,0.54,-0.84,0.69,-0.9c0.42,-0.18,0.87,0.15,0.81,0.6c-0.03,0.12,-0.3,0.51,-1.5,2.37c-1.38,2.07,-1.5,2.22,-1.62,2.28c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83c-0.03,0,-0.57,0.84,-1.23,1.83c-1.14,1.68,-1.23,1.83,-1.35,1.89c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83l-0.48,0.69c-0.51,0.78,-0.54,0.84,-0.69,0.9c-0.42,0.18,-0.87,-0.15,-0.81,-0.6c0.03,-0.12,0.3,-0.51,1.5,-2.37c1.38,-2.07,1.5,-2.22,1.62,-2.28z"
+    },
+    "scripts.mordent": {
+        "w": 15.011,
+        "h": 10.012,
+        "d": "M-0.21,-4.95c0.27,-0.15,0.63,0,0.75,0.27c0.06,0.12,0.06,0.24,0.06,1.44l0,1.29l0.57,-0.84c0.51,-0.75,0.57,-0.84,0.69,-0.9c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83l0.48,-0.69c0.51,-0.78,0.54,-0.84,0.69,-0.9c0.42,-0.18,0.87,0.15,0.81,0.6c-0.03,0.12,-0.3,0.51,-1.5,2.37c-1.38,2.07,-1.5,2.22,-1.62,2.28c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.83,-1.89c-0.81,-0.99,-1.5,-1.8,-1.53,-1.86c-0.06,-0.03,-0.06,-0.03,-0.12,0.03c-0.06,0.06,-0.06,0.15,-0.06,2.28c0,1.95,0,2.25,-0.06,2.34c-0.18,0.45,-0.81,0.48,-1.05,0.03c-0.03,-0.06,-0.06,-0.24,-0.06,-1.41l0,-1.35l-0.57,0.84c-0.54,0.78,-0.6,0.87,-0.72,0.93c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83l-0.48,0.69c-0.51,0.78,-0.54,0.84,-0.69,0.9c-0.42,0.18,-0.87,-0.15,-0.81,-0.6c0.03,-0.12,0.3,-0.51,1.5,-2.37c1.38,-2.07,1.5,-2.22,1.62,-2.28c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83c0.03,0,0.06,-0.06,0.09,-0.09c0.06,-0.12,0.06,-0.15,0.06,-2.28c0,-1.92,0,-2.22,0.06,-2.31c0.06,-0.15,0.15,-0.24,0.3,-0.3z"
+    },
+    "flags.u8th": {
+        "w": 6.692,
+        "h": 22.59,
+        "d": "M-0.42,3.75l0,-3.75l0.21,0l0.21,0l0,0.18c0,0.3,0.06,0.84,0.12,1.23c0.24,1.53,0.9,3.12,2.13,5.16l0.99,1.59c0.87,1.44,1.38,2.34,1.77,3.09c0.81,1.68,1.2,3.06,1.26,4.53c0.03,1.53,-0.21,3.27,-0.75,5.01c-0.21,0.69,-0.51,1.5,-0.6,1.59c-0.09,0.12,-0.27,0.21,-0.42,0.21c-0.15,0,-0.42,-0.12,-0.51,-0.21c-0.15,-0.18,-0.18,-0.42,-0.09,-0.66c0.15,-0.33,0.45,-1.2,0.57,-1.62c0.42,-1.38,0.6,-2.58,0.6,-3.9c0,-0.66,0,-0.81,-0.06,-1.11c-0.39,-2.07,-1.8,-4.26,-4.59,-7.14l-0.42,-0.45l-0.21,0l-0.21,0l0,-3.75z"
+    },
+    "flags.u16th": {
+        "w": 6.693,
+        "h": 26.337,
+        "d": "M-0.42,7.5l0,-7.5l0.21,0l0.21,0l0,0.39c0.06,1.08,0.39,2.19,0.99,3.39c0.45,0.9,0.87,1.59,1.95,3.12c1.29,1.86,1.77,2.64,2.22,3.57c0.45,0.93,0.72,1.8,0.87,2.64c0.06,0.51,0.06,1.5,0,1.92c-0.12,0.6,-0.3,1.2,-0.54,1.71l-0.09,0.24l0.18,0.45c0.51,1.2,0.72,2.22,0.69,3.42c-0.06,1.53,-0.39,3.03,-0.99,4.53c-0.3,0.75,-0.36,0.81,-0.57,0.9c-0.15,0.09,-0.33,0.06,-0.48,0c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.12,-0.75c0.66,-1.41,1.02,-2.88,1.08,-4.32c0,-0.6,-0.03,-1.05,-0.18,-1.59c-0.3,-1.2,-0.99,-2.4,-2.25,-3.87c-0.42,-0.48,-1.53,-1.62,-2.19,-2.22l-0.45,-0.42l-0.03,1.11l0,1.11l-0.21,0l-0.21,0l0,-7.5zm1.65,0.09c-0.3,-0.3,-0.69,-0.72,-0.9,-0.87l-0.33,-0.33l0,0.15c0,0.3,0.06,0.81,0.15,1.26c0.27,1.29,0.87,2.61,2.04,4.29c0.15,0.24,0.6,0.87,0.96,1.38l1.08,1.53l0.42,0.63c0.03,0,0.12,-0.36,0.21,-0.72c0.06,-0.33,0.06,-1.2,0,-1.62c-0.33,-1.71,-1.44,-3.48,-3.63,-5.7z"
+    },
+    "flags.u32nd": {
+        "w": 6.697,
+        "h": 32.145,
+        "d": "M-0.42,11.247l0,-11.25l0.21,0l0.21,0l0,0.36c0.09,1.68,0.69,3.27,2.07,5.46l0.87,1.35c1.02,1.62,1.47,2.37,1.86,3.18c0.48,1.02,0.78,1.92,0.93,2.88c0.06,0.48,0.06,1.5,0,1.89c-0.09,0.42,-0.21,0.87,-0.36,1.26l-0.12,0.3l0.15,0.39c0.69,1.56,0.84,2.88,0.54,4.38c-0.09,0.45,-0.27,1.08,-0.45,1.47l-0.12,0.24l0.18,0.36c0.33,0.72,0.57,1.56,0.69,2.34c0.12,1.02,-0.06,2.52,-0.42,3.84c-0.27,0.93,-0.75,2.13,-0.93,2.31c-0.18,0.15,-0.45,0.18,-0.66,0.09c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.06,-0.6c0.21,-0.36,0.42,-0.9,0.57,-1.38c0.51,-1.41,0.69,-3.06,0.48,-4.08c-0.15,-0.81,-0.57,-1.68,-1.2,-2.55c-0.72,-0.99,-1.83,-2.13,-3.3,-3.33l-0.48,-0.42l-0.03,1.53l0,1.56l-0.21,0l-0.21,0l0,-11.25zm1.26,-3.96c-0.27,-0.3,-0.54,-0.6,-0.66,-0.72l-0.18,-0.21l0,0.42c0.06,0.87,0.24,1.74,0.66,2.67c0.36,0.87,0.96,1.86,1.92,3.18c0.21,0.33,0.63,0.87,0.87,1.23c0.27,0.39,0.6,0.84,0.75,1.08l0.27,0.39l0.03,-0.12c0.12,-0.45,0.15,-1.05,0.09,-1.59c-0.27,-1.86,-1.38,-3.78,-3.75,-6.33zm-0.27,6.09c-0.27,-0.21,-0.48,-0.42,-0.51,-0.45c-0.06,-0.03,-0.06,-0.03,-0.06,0.21c0,0.9,0.3,2.04,0.81,3.09c0.48,1.02,0.96,1.77,2.37,3.63c0.6,0.78,1.05,1.44,1.29,1.77c0.06,0.12,0.15,0.21,0.15,0.18c0.03,-0.03,0.18,-0.57,0.24,-0.87c0.06,-0.45,0.06,-1.32,-0.03,-1.74c-0.09,-0.48,-0.24,-0.9,-0.51,-1.44c-0.66,-1.35,-1.83,-2.7,-3.75,-4.38z"
+    },
+    "flags.u64th": {
+        "w": 6.682,
+        "h": 39.694,
+        "d": "M-0.42,15l0,-15l0.21,0l0.21,0l0,0.36c0.06,1.2,0.39,2.37,1.02,3.66c0.39,0.81,0.84,1.56,1.8,3.09c0.81,1.26,1.05,1.68,1.35,2.22c0.87,1.5,1.35,2.79,1.56,4.08c0.06,0.54,0.06,1.56,-0.03,2.04c-0.09,0.48,-0.21,0.99,-0.36,1.35l-0.12,0.27l0.12,0.27c0.09,0.15,0.21,0.45,0.27,0.66c0.69,1.89,0.63,3.66,-0.18,5.46l-0.18,0.39l0.15,0.33c0.3,0.66,0.51,1.44,0.63,2.1c0.06,0.48,0.06,1.35,0,1.71c-0.15,0.57,-0.42,1.2,-0.78,1.68l-0.21,0.27l0.18,0.33c0.57,1.05,0.93,2.13,1.02,3.18c0.06,0.72,0,1.83,-0.21,2.79c-0.18,1.02,-0.63,2.34,-1.02,3.09c-0.15,0.33,-0.48,0.45,-0.78,0.3c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.03,-0.54c0.75,-1.5,1.23,-3.45,1.17,-4.89c-0.06,-1.02,-0.42,-2.01,-1.17,-3.15c-0.48,-0.72,-1.02,-1.35,-1.89,-2.22c-0.57,-0.57,-1.56,-1.5,-1.92,-1.77l-0.12,-0.09l0,1.68l0,1.68l-0.21,0l-0.21,0l0,-15zm0.93,-8.07c-0.27,-0.3,-0.48,-0.54,-0.51,-0.54c0,0,0,0.69,0.03,1.02c0.15,1.47,0.75,2.94,2.04,4.83l1.08,1.53c0.39,0.57,0.84,1.2,0.99,1.44c0.15,0.24,0.3,0.45,0.3,0.45c0,0,0.03,-0.09,0.06,-0.21c0.36,-1.59,-0.15,-3.33,-1.47,-5.4c-0.63,-0.93,-1.35,-1.83,-2.52,-3.12zm0.06,6.72c-0.24,-0.21,-0.48,-0.42,-0.51,-0.45l-0.06,-0.06l0,0.33c0,1.2,0.3,2.34,0.93,3.6c0.45,0.9,0.96,1.68,2.25,3.51c0.39,0.54,0.84,1.17,1.02,1.44c0.21,0.33,0.33,0.51,0.33,0.48c0.06,-0.09,0.21,-0.63,0.3,-0.99c0.06,-0.33,0.06,-0.45,0.06,-0.96c0,-0.6,-0.03,-0.84,-0.18,-1.35c-0.3,-1.08,-1.02,-2.28,-2.13,-3.57c-0.39,-0.45,-1.44,-1.47,-2.01,-1.98zm0,6.72c-0.24,-0.21,-0.48,-0.39,-0.51,-0.42l-0.06,-0.06l0,0.33c0,1.41,0.45,2.82,1.38,4.35c0.42,0.72,0.72,1.14,1.86,2.73c0.36,0.45,0.75,0.99,0.87,1.2c0.15,0.21,0.3,0.36,0.3,0.36c0.06,0,0.3,-0.48,0.39,-0.75c0.09,-0.36,0.12,-0.63,0.12,-1.05c-0.06,-1.05,-0.45,-2.04,-1.2,-3.18c-0.57,-0.87,-1.11,-1.53,-2.07,-2.49c-0.36,-0.33,-0.84,-0.78,-1.08,-1.02z"
+    },
+    "flags.d8th": {
+        "w": 8.492,
+        "h": 21.691,
+        "d": "M5.67,-21.63c0.24,-0.12,0.54,-0.06,0.69,0.15c0.06,0.06,0.21,0.36,0.39,0.66c0.84,1.77,1.26,3.36,1.32,5.1c0.03,1.29,-0.21,2.37,-0.81,3.63c-0.6,1.23,-1.26,2.13,-3.21,4.38c-1.35,1.53,-1.86,2.19,-2.4,2.97c-0.63,0.93,-1.11,1.92,-1.38,2.79c-0.15,0.54,-0.27,1.35,-0.27,1.8l0,0.15l-0.21,0l-0.21,0l0,-3.75l0,-3.75l0.21,0l0.21,0l0.48,-0.3c1.83,-1.11,3.12,-2.1,4.17,-3.12c0.78,-0.81,1.32,-1.53,1.71,-2.31c0.45,-0.93,0.6,-1.74,0.51,-2.88c-0.12,-1.56,-0.63,-3.18,-1.47,-4.68c-0.12,-0.21,-0.15,-0.33,-0.06,-0.51c0.06,-0.15,0.15,-0.24,0.33,-0.33z"
+    },
+    "flags.ugrace": {
+        "w": 12.019,
+        "h": 9.954,
+        "d": "M6.03,6.93c0.15,-0.09,0.33,-0.06,0.51,0c0.15,0.09,0.21,0.15,0.3,0.33c0.09,0.18,0.06,0.39,-0.03,0.54c-0.06,0.15,-10.89,8.88,-11.07,8.97c-0.15,0.09,-0.33,0.06,-0.48,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.06,-0.39,0.03,-0.54c0.06,-0.15,10.89,-8.88,11.07,-8.97z"
+    },
+    "flags.dgrace": {
+        "w": 15.12,
+        "h": 9.212,
+        "d": "M-6.06,-15.93c0.18,-0.09,0.33,-0.12,0.48,-0.06c0.18,0.09,14.01,8.04,14.1,8.1c0.12,0.12,0.18,0.33,0.18,0.51c-0.03,0.21,-0.15,0.39,-0.36,0.48c-0.18,0.09,-0.33,0.12,-0.48,0.06c-0.18,-0.09,-14.01,-8.04,-14.1,-8.1c-0.12,-0.12,-0.18,-0.33,-0.18,-0.51c0.03,-0.21,0.15,-0.39,0.36,-0.48z"
+    },
+    "flags.d16th": {
+        "w": 8.475,
+        "h": 22.591,
+        "d": "M6.84,-22.53c0.27,-0.12,0.57,-0.06,0.72,0.15c0.15,0.15,0.33,0.87,0.45,1.56c0.06,0.33,0.06,1.35,0,1.65c-0.06,0.33,-0.15,0.78,-0.27,1.11c-0.12,0.33,-0.45,0.96,-0.66,1.32l-0.18,0.27l0.09,0.18c0.48,1.02,0.72,2.25,0.69,3.3c-0.06,1.23,-0.42,2.28,-1.26,3.45c-0.57,0.87,-0.99,1.32,-3,3.39c-1.56,1.56,-2.22,2.4,-2.76,3.45c-0.42,0.84,-0.66,1.8,-0.66,2.55l0,0.15l-0.21,0l-0.21,0l0,-7.5l0,-7.5l0.21,0l0.21,0l0,1.14l0,1.11l0.27,-0.15c1.11,-0.57,1.77,-0.99,2.52,-1.47c2.37,-1.56,3.69,-3.15,4.05,-4.83c0.03,-0.18,0.03,-0.39,0.03,-0.78c0,-0.6,-0.03,-0.93,-0.24,-1.5c-0.06,-0.18,-0.12,-0.39,-0.15,-0.45c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.63,7.5c-0.06,-0.18,-0.15,-0.36,-0.15,-0.36c-0.03,0,-0.03,0.03,-0.06,0.06c-0.06,0.12,-0.96,1.02,-1.95,1.98c-0.63,0.57,-1.26,1.17,-1.44,1.35c-1.53,1.62,-2.28,2.85,-2.55,4.32c-0.03,0.18,-0.03,0.54,-0.06,0.99l0,0.69l0.18,-0.09c0.93,-0.54,2.1,-1.29,2.82,-1.83c0.69,-0.51,1.02,-0.81,1.53,-1.29c1.86,-1.89,2.37,-3.66,1.68,-5.82z"
+    },
+    "flags.d32nd": {
+        "w": 8.475,
+        "h": 29.191,
+        "d": "M6.794,-29.13c0.27,-0.12,0.57,-0.06,0.72,0.15c0.12,0.12,0.27,0.63,0.36,1.11c0.33,1.59,0.06,3.06,-0.81,4.47l-0.18,0.27l0.09,0.15c0.12,0.24,0.33,0.69,0.45,1.05c0.63,1.83,0.45,3.57,-0.57,5.22l-0.18,0.3l0.15,0.27c0.42,0.87,0.6,1.71,0.57,2.61c-0.06,1.29,-0.48,2.46,-1.35,3.78c-0.54,0.81,-0.93,1.29,-2.46,3c-0.51,0.54,-1.05,1.17,-1.26,1.41c-1.56,1.86,-2.25,3.36,-2.37,5.01l0,0.33l-0.21,0l-0.21,0l0,-11.25l0,-11.25l0.21,0l0.21,0l0,1.35l0.03,1.35l0.78,-0.39c1.38,-0.69,2.34,-1.26,3.24,-1.92c1.38,-1.02,2.28,-2.13,2.64,-3.21c0.15,-0.48,0.18,-0.72,0.18,-1.29c0,-0.57,-0.06,-0.9,-0.24,-1.47c-0.06,-0.18,-0.12,-0.39,-0.15,-0.45c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.63,7.2c-0.09,-0.18,-0.12,-0.21,-0.12,-0.15c-0.03,0.09,-1.02,1.08,-2.04,2.04c-1.17,1.08,-1.65,1.56,-2.07,2.04c-0.84,0.96,-1.38,1.86,-1.68,2.76c-0.21,0.57,-0.27,0.99,-0.3,1.65l0,0.54l0.66,-0.33c3.57,-1.86,5.49,-3.69,5.94,-5.7c0.06,-0.39,0.06,-1.2,-0.03,-1.65c-0.06,-0.39,-0.24,-0.9,-0.36,-1.2zm-0.06,7.2c-0.06,-0.15,-0.12,-0.33,-0.15,-0.45l-0.06,-0.18l-0.18,0.21l-1.83,1.83c-0.87,0.9,-1.77,1.8,-1.95,2.01c-1.08,1.29,-1.62,2.31,-1.89,3.51c-0.06,0.3,-0.06,0.51,-0.09,0.93l0,0.57l0.09,-0.06c0.75,-0.45,1.89,-1.26,2.52,-1.74c0.81,-0.66,1.74,-1.53,2.22,-2.16c1.26,-1.53,1.68,-3.06,1.32,-4.47z"
+    },
+    "flags.d64th": {
+        "w": 8.485,
+        "h": 32.932,
+        "d": "M7.08,-32.88c0.3,-0.12,0.66,-0.03,0.78,0.24c0.18,0.33,0.27,2.1,0.15,2.64c-0.09,0.39,-0.21,0.78,-0.39,1.08l-0.15,0.3l0.09,0.27c0.03,0.12,0.09,0.45,0.12,0.69c0.27,1.44,0.18,2.55,-0.3,3.6l-0.12,0.33l0.06,0.42c0.27,1.35,0.33,2.82,0.21,3.63c-0.12,0.6,-0.3,1.23,-0.57,1.8l-0.15,0.27l0.03,0.42c0.06,1.02,0.06,2.7,0.03,3.06c-0.15,1.47,-0.66,2.76,-1.74,4.41c-0.45,0.69,-0.75,1.11,-1.74,2.37c-1.05,1.38,-1.5,1.98,-1.95,2.73c-0.93,1.5,-1.38,2.82,-1.44,4.2l0,0.42l-0.21,0l-0.21,0l0,-15l0,-15l0.21,0l0.21,0l0,1.86l0,1.89c0,0,0.21,-0.03,0.45,-0.09c2.22,-0.39,4.08,-1.11,5.19,-2.01c0.63,-0.54,1.02,-1.14,1.2,-1.8c0.06,-0.3,0.06,-1.14,-0.03,-1.65c-0.03,-0.18,-0.06,-0.39,-0.09,-0.48c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.45,6.15c-0.03,-0.18,-0.06,-0.42,-0.06,-0.54l-0.03,-0.18l-0.33,0.3c-0.42,0.36,-0.87,0.72,-1.68,1.29c-1.98,1.38,-2.25,1.59,-2.85,2.16c-0.75,0.69,-1.23,1.44,-1.47,2.19c-0.15,0.45,-0.18,0.63,-0.21,1.35l0,0.66l0.39,-0.18c1.83,-0.9,3.45,-1.95,4.47,-2.91c0.93,-0.9,1.53,-1.83,1.74,-2.82c0.06,-0.33,0.06,-0.87,0.03,-1.32zm-0.27,4.86c-0.03,-0.21,-0.06,-0.36,-0.06,-0.36c0,-0.03,-0.12,0.09,-0.24,0.24c-0.39,0.48,-0.99,1.08,-2.16,2.19c-1.47,1.38,-1.92,1.83,-2.46,2.49c-0.66,0.87,-1.08,1.74,-1.29,2.58c-0.09,0.42,-0.15,0.87,-0.15,1.44l0,0.54l0.48,-0.33c1.5,-1.02,2.58,-1.89,3.51,-2.82c1.47,-1.47,2.25,-2.85,2.4,-4.26c0.03,-0.39,0.03,-1.17,-0.03,-1.71zm-0.66,7.68c0.03,-0.15,0.03,-0.6,0.03,-0.99l0,-0.72l-0.27,0.33l-1.74,1.98c-1.77,1.92,-2.43,2.76,-2.97,3.9c-0.51,1.02,-0.72,1.77,-0.75,2.91c0,0.63,0,0.63,0.06,0.6c0.03,-0.03,0.3,-0.27,0.63,-0.54c0.66,-0.6,1.86,-1.8,2.31,-2.31c1.65,-1.89,2.52,-3.54,2.7,-5.16z"
+    },
+    "clefs.C": {
+        "w": 20.31,
+        "h": 29.97,
+        "d": "M0.06,-14.94l0.09,-0.06l1.92,0l1.92,0l0.09,0.06l0.06,0.09l0,14.85l0,14.82l-0.06,0.09l-0.09,0.06l-1.92,0l-1.92,0l-0.09,-0.06l-0.06,-0.09l0,-14.82l0,-14.85zm5.37,0c0.09,-0.06,0.09,-0.06,0.57,-0.06c0.45,0,0.45,0,0.54,0.06l0.06,0.09l0,7.14l0,7.11l0.09,-0.06c0.18,-0.18,0.72,-0.84,0.96,-1.2c0.3,-0.45,0.66,-1.17,0.84,-1.65c0.36,-0.9,0.57,-1.83,0.6,-2.79c0.03,-0.48,0.03,-0.54,0.09,-0.63c0.12,-0.18,0.36,-0.21,0.54,-0.12c0.18,0.09,0.21,0.15,0.24,0.66c0.06,0.87,0.21,1.56,0.57,2.22c0.51,1.02,1.26,1.68,2.22,1.92c0.21,0.06,0.33,0.06,0.78,0.06c0.45,0,0.57,0,0.84,-0.06c0.45,-0.12,0.81,-0.33,1.08,-0.6c0.57,-0.57,0.87,-1.41,0.99,-2.88c0.06,-0.54,0.06,-3,0,-3.57c-0.21,-2.58,-0.84,-3.87,-2.16,-4.5c-0.48,-0.21,-1.17,-0.36,-1.77,-0.36c-0.69,0,-1.29,0.27,-1.5,0.72c-0.06,0.15,-0.06,0.21,-0.06,0.42c0,0.24,0,0.3,0.06,0.45c0.12,0.24,0.24,0.39,0.63,0.66c0.42,0.3,0.57,0.48,0.69,0.72c0.06,0.15,0.06,0.21,0.06,0.48c0,0.39,-0.03,0.63,-0.21,0.96c-0.3,0.6,-0.87,1.08,-1.5,1.26c-0.27,0.06,-0.87,0.06,-1.14,0c-0.78,-0.24,-1.44,-0.87,-1.65,-1.68c-0.12,-0.42,-0.09,-1.17,0.09,-1.71c0.51,-1.65,1.98,-2.82,3.81,-3.09c0.84,-0.09,2.46,0.03,3.51,0.27c2.22,0.57,3.69,1.8,4.44,3.75c0.36,0.93,0.57,2.13,0.57,3.36c0,1.44,-0.48,2.73,-1.38,3.81c-1.26,1.5,-3.27,2.43,-5.28,2.43c-0.48,0,-0.51,0,-0.75,-0.09c-0.15,-0.03,-0.48,-0.21,-0.78,-0.36c-0.69,-0.36,-0.87,-0.42,-1.26,-0.42c-0.27,0,-0.3,0,-0.51,0.09c-0.57,0.3,-0.81,0.9,-0.81,2.1c0,1.23,0.24,1.83,0.81,2.13c0.21,0.09,0.24,0.09,0.51,0.09c0.39,0,0.57,-0.06,1.26,-0.42c0.3,-0.15,0.63,-0.33,0.78,-0.36c0.24,-0.09,0.27,-0.09,0.75,-0.09c2.01,0,4.02,0.93,5.28,2.4c0.9,1.11,1.38,2.4,1.38,3.84c0,1.5,-0.3,2.88,-0.84,3.96c-0.78,1.59,-2.19,2.64,-4.17,3.15c-1.05,0.24,-2.67,0.36,-3.51,0.27c-1.83,-0.27,-3.3,-1.44,-3.81,-3.09c-0.18,-0.54,-0.21,-1.29,-0.09,-1.74c0.15,-0.6,0.63,-1.2,1.23,-1.47c0.36,-0.18,0.57,-0.21,0.99,-0.21c0.42,0,0.63,0.03,1.02,0.21c0.42,0.21,0.84,0.63,1.05,1.05c0.18,0.36,0.21,0.6,0.21,0.96c0,0.3,0,0.36,-0.06,0.51c-0.12,0.24,-0.27,0.42,-0.69,0.72c-0.57,0.42,-0.69,0.63,-0.69,1.08c0,0.24,0,0.3,0.06,0.45c0.12,0.21,0.3,0.39,0.57,0.54c0.42,0.18,0.87,0.21,1.53,0.15c1.08,-0.15,1.8,-0.57,2.34,-1.32c0.54,-0.75,0.84,-1.83,0.99,-3.51c0.06,-0.57,0.06,-3.03,0,-3.57c-0.12,-1.47,-0.42,-2.31,-0.99,-2.88c-0.27,-0.27,-0.63,-0.48,-1.08,-0.6c-0.27,-0.06,-0.39,-0.06,-0.84,-0.06c-0.45,0,-0.57,0,-0.78,0.06c-1.14,0.27,-2.01,1.17,-2.46,2.49c-0.21,0.57,-0.3,0.99,-0.33,1.65c-0.03,0.51,-0.06,0.57,-0.24,0.66c-0.12,0.06,-0.27,0.06,-0.39,0c-0.21,-0.09,-0.21,-0.15,-0.24,-0.75c-0.09,-1.92,-0.78,-3.72,-2.01,-5.19c-0.18,-0.21,-0.36,-0.42,-0.39,-0.45l-0.09,-0.06l0,7.11l0,7.14l-0.06,0.09c-0.09,0.06,-0.09,0.06,-0.54,0.06c-0.48,0,-0.48,0,-0.57,-0.06l-0.06,-0.09l0,-14.82l0,-14.85z"
+    },
+    "clefs.F": {
+        "w": 20.153,
+        "h": 23.142,
+        "d": "M6.3,-7.8c0.36,-0.03,1.65,0,2.13,0.03c3.6,0.42,6.03,2.1,6.93,4.86c0.27,0.84,0.36,1.5,0.36,2.58c0,0.9,-0.03,1.35,-0.18,2.16c-0.78,3.78,-3.54,7.08,-8.37,9.96c-1.74,1.05,-3.87,2.13,-6.18,3.12c-0.39,0.18,-0.75,0.33,-0.81,0.36c-0.06,0.03,-0.15,0.06,-0.18,0.06c-0.15,0,-0.33,-0.18,-0.33,-0.33c0,-0.15,0.06,-0.21,0.51,-0.48c3,-1.77,5.13,-3.21,6.84,-4.74c0.51,-0.45,1.59,-1.5,1.95,-1.95c1.89,-2.19,2.88,-4.32,3.15,-6.78c0.06,-0.42,0.06,-1.77,0,-2.19c-0.24,-2.01,-0.93,-3.63,-2.04,-4.71c-0.63,-0.63,-1.29,-1.02,-2.07,-1.2c-1.62,-0.39,-3.36,0.15,-4.56,1.44c-0.54,0.6,-1.05,1.47,-1.32,2.22l-0.09,0.21l0.24,-0.12c0.39,-0.21,0.63,-0.24,1.11,-0.24c0.3,0,0.45,0,0.66,0.06c1.92,0.48,2.85,2.55,1.95,4.38c-0.45,0.99,-1.41,1.62,-2.46,1.71c-1.47,0.09,-2.91,-0.87,-3.39,-2.25c-0.18,-0.57,-0.21,-1.32,-0.03,-2.28c0.39,-2.25,1.83,-4.2,3.81,-5.19c0.69,-0.36,1.59,-0.6,2.37,-0.69zm11.58,2.52c0.84,-0.21,1.71,0.3,1.89,1.14c0.3,1.17,-0.72,2.19,-1.89,1.89c-0.99,-0.21,-1.5,-1.32,-1.02,-2.25c0.18,-0.39,0.6,-0.69,1.02,-0.78zm0,7.5c0.84,-0.21,1.71,0.3,1.89,1.14c0.21,0.87,-0.3,1.71,-1.14,1.89c-0.87,0.21,-1.71,-0.3,-1.89,-1.14c-0.21,-0.84,0.3,-1.71,1.14,-1.89z"
+    },
+    "clefs.G": {
+        "w": 19.051,
+        "h": 57.057,
+        "d": "M9.69,-37.41c0.09,-0.09,0.24,-0.06,0.36,0c0.12,0.09,0.57,0.6,0.96,1.11c1.77,2.34,3.21,5.85,3.57,8.73c0.21,1.56,0.03,3.27,-0.45,4.86c-0.69,2.31,-1.92,4.47,-4.23,7.44c-0.3,0.39,-0.57,0.72,-0.6,0.75c-0.03,0.06,0,0.15,0.18,0.78c0.54,1.68,1.38,4.44,1.68,5.49l0.09,0.42l0.39,0c1.47,0.09,2.76,0.51,3.96,1.29c1.83,1.23,3.06,3.21,3.39,5.52c0.09,0.45,0.12,1.29,0.06,1.74c-0.09,1.02,-0.33,1.83,-0.75,2.73c-0.84,1.71,-2.28,3.06,-4.02,3.72l-0.33,0.12l0.03,1.26c0,1.74,-0.06,3.63,-0.21,4.62c-0.45,3.06,-2.19,5.49,-4.47,6.21c-0.57,0.18,-0.9,0.21,-1.59,0.21c-0.69,0,-1.02,-0.03,-1.65,-0.21c-1.14,-0.27,-2.13,-0.84,-2.94,-1.65c-0.99,-0.99,-1.56,-2.16,-1.71,-3.54c-0.09,-0.81,0.06,-1.53,0.45,-2.13c0.63,-0.99,1.83,-1.56,3,-1.53c1.5,0.09,2.64,1.32,2.73,2.94c0.06,1.47,-0.93,2.7,-2.37,2.97c-0.45,0.06,-0.84,0.03,-1.29,-0.09l-0.21,-0.09l0.09,0.12c0.39,0.54,0.78,0.93,1.32,1.26c1.35,0.87,3.06,1.02,4.35,0.36c1.44,-0.72,2.52,-2.28,2.97,-4.35c0.15,-0.66,0.24,-1.5,0.3,-3.03c0.03,-0.84,0.03,-2.94,0,-3c-0.03,0,-0.18,0,-0.36,0.03c-0.66,0.12,-0.99,0.12,-1.83,0.12c-1.05,0,-1.71,-0.06,-2.61,-0.3c-4.02,-0.99,-7.11,-4.35,-7.8,-8.46c-0.12,-0.66,-0.12,-0.99,-0.12,-1.83c0,-0.84,0,-1.14,0.15,-1.92c0.36,-2.28,1.41,-4.62,3.3,-7.29l2.79,-3.6c0.54,-0.66,0.96,-1.2,0.96,-1.23c0,-0.03,-0.09,-0.33,-0.18,-0.69c-0.96,-3.21,-1.41,-5.28,-1.59,-7.68c-0.12,-1.38,-0.15,-3.09,-0.06,-3.96c0.33,-2.67,1.38,-5.07,3.12,-7.08c0.36,-0.42,0.99,-1.05,1.17,-1.14zm2.01,4.71c-0.15,-0.3,-0.3,-0.54,-0.3,-0.54c-0.03,0,-0.18,0.09,-0.3,0.21c-2.4,1.74,-3.87,4.2,-4.26,7.11c-0.06,0.54,-0.06,1.41,-0.03,1.89c0.09,1.29,0.48,3.12,1.08,5.22c0.15,0.42,0.24,0.78,0.24,0.81c0,0.03,0.84,-1.11,1.23,-1.68c1.89,-2.73,2.88,-5.07,3.15,-7.53c0.09,-0.57,0.12,-1.74,0.06,-2.37c-0.09,-1.23,-0.27,-1.92,-0.87,-3.12zm-2.94,20.7c-0.21,-0.72,-0.39,-1.32,-0.42,-1.32c0,0,-1.2,1.47,-1.86,2.37c-2.79,3.63,-4.02,6.3,-4.35,9.3c-0.03,0.21,-0.03,0.69,-0.03,1.08c0,0.69,0,0.75,0.06,1.11c0.12,0.54,0.27,0.99,0.51,1.47c0.69,1.38,1.83,2.55,3.42,3.42c0.96,0.54,2.07,0.9,3.21,1.08c0.78,0.12,2.04,0.12,2.94,-0.03c0.51,-0.06,0.45,-0.03,0.42,-0.3c-0.24,-3.33,-0.72,-6.33,-1.62,-10.08c-0.09,-0.39,-0.18,-0.75,-0.18,-0.78c-0.03,-0.03,-0.42,0,-0.81,0.09c-0.9,0.18,-1.65,0.57,-2.22,1.14c-0.72,0.72,-1.08,1.65,-1.05,2.64c0.06,0.96,0.48,1.83,1.23,2.58c0.36,0.36,0.72,0.63,1.17,0.9c0.33,0.18,0.36,0.21,0.42,0.33c0.18,0.42,-0.18,0.9,-0.6,0.87c-0.18,-0.03,-0.84,-0.36,-1.26,-0.63c-0.78,-0.51,-1.38,-1.11,-1.86,-1.83c-1.77,-2.7,-0.99,-6.42,1.71,-8.19c0.3,-0.21,0.81,-0.48,1.17,-0.63c0.3,-0.09,1.02,-0.3,1.14,-0.3c0.06,0,0.09,0,0.09,-0.03c0.03,-0.03,-0.51,-1.92,-1.23,-4.26zm3.78,7.41c-0.18,-0.03,-0.36,-0.06,-0.39,-0.06c-0.03,0,0,0.21,0.18,1.02c0.75,3.18,1.26,6.3,1.5,9.09c0.06,0.72,0,0.69,0.51,0.42c0.78,-0.36,1.44,-0.96,1.98,-1.77c1.08,-1.62,1.2,-3.69,0.3,-5.55c-0.81,-1.62,-2.31,-2.79,-4.08,-3.15z"
+    },
+    "clefs.perc": {
+        "w": 9.99,
+        "h": 14.97,
+        "d": "M5.07,-7.44l0.09,-0.06l1.53,0l1.53,0l0.09,0.06l0.06,0.09l0,7.35l0,7.32l-0.06,0.09l-0.09,0.06l-1.53,0l-1.53,0l-0.09,-0.06l-0.06,-0.09l0,-7.32l0,-7.35zm6.63,0l0.09,-0.06l1.53,0l1.53,0l0.09,0.06l0.06,0.09l0,7.35l0,7.32l-0.06,0.09l-0.09,0.06l-1.53,0l-1.53,0l-0.09,-0.06l-0.06,-0.09l0,-7.32l0,-7.35z"
+    },
+    "timesig.common": {
+        "w": 13.038,
+        "h": 15.697,
+        "d": "M6.66,-7.826c0.72,-0.06,1.41,-0.03,1.98,0.09c1.2,0.27,2.34,0.96,3.09,1.92c0.63,0.81,1.08,1.86,1.14,2.73c0.06,1.02,-0.51,1.92,-1.44,2.22c-0.24,0.09,-0.3,0.09,-0.63,0.09c-0.33,0,-0.42,0,-0.63,-0.06c-0.66,-0.24,-1.14,-0.63,-1.41,-1.2c-0.15,-0.3,-0.21,-0.51,-0.24,-0.9c-0.06,-1.08,0.57,-2.04,1.56,-2.37c0.18,-0.06,0.27,-0.06,0.63,-0.06l0.45,0c0.06,0.03,0.09,0.03,0.09,0c0,0,-0.09,-0.12,-0.24,-0.27c-1.02,-1.11,-2.55,-1.68,-4.08,-1.5c-1.29,0.15,-2.04,0.69,-2.4,1.74c-0.36,0.93,-0.42,1.89,-0.42,5.37c0,2.97,0.06,3.96,0.24,4.77c0.24,1.08,0.63,1.68,1.41,2.07c0.81,0.39,2.16,0.45,3.18,0.09c1.29,-0.45,2.37,-1.53,3.03,-2.97c0.15,-0.33,0.33,-0.87,0.39,-1.17c0.09,-0.24,0.15,-0.36,0.3,-0.39c0.21,-0.03,0.42,0.15,0.39,0.36c-0.06,0.39,-0.42,1.38,-0.69,1.89c-0.96,1.8,-2.49,2.94,-4.23,3.18c-0.99,0.12,-2.58,-0.06,-3.63,-0.45c-0.96,-0.36,-1.71,-0.84,-2.4,-1.5c-1.11,-1.11,-1.8,-2.61,-2.04,-4.56c-0.06,-0.6,-0.06,-2.01,0,-2.61c0.24,-1.95,0.9,-3.45,2.01,-4.56c0.69,-0.66,1.44,-1.11,2.37,-1.47c0.63,-0.24,1.47,-0.42,2.22,-0.48z"
+    },
+    "timesig.cut": {
+        "w": 13.038,
+        "h": 20.97,
+        "d": "M6.24,-10.44c0.09,-0.06,0.09,-0.06,0.48,-0.06c0.36,0,0.36,0,0.45,0.06l0.06,0.09l0,1.23l0,1.26l0.27,0c1.26,0,2.49,0.45,3.48,1.29c1.05,0.87,1.8,2.28,1.89,3.48c0.06,1.02,-0.51,1.92,-1.44,2.22c-0.24,0.09,-0.3,0.09,-0.63,0.09c-0.33,0,-0.42,0,-0.63,-0.06c-0.66,-0.24,-1.14,-0.63,-1.41,-1.2c-0.15,-0.3,-0.21,-0.51,-0.24,-0.9c-0.06,-1.08,0.57,-2.04,1.56,-2.37c0.18,-0.06,0.27,-0.06,0.63,-0.06l0.45,0c0.06,0.03,0.09,0.03,0.09,0c0,-0.03,-0.45,-0.51,-0.66,-0.69c-0.87,-0.69,-1.83,-1.05,-2.94,-1.11l-0.42,0l0,7.17l0,7.14l0.42,0c0.69,-0.03,1.23,-0.18,1.86,-0.51c1.05,-0.51,1.89,-1.47,2.46,-2.7c0.15,-0.33,0.33,-0.87,0.39,-1.17c0.09,-0.24,0.15,-0.36,0.3,-0.39c0.21,-0.03,0.42,0.15,0.39,0.36c-0.03,0.24,-0.21,0.78,-0.39,1.2c-0.96,2.37,-2.94,3.9,-5.13,3.9l-0.3,0l0,1.26l0,1.23l-0.06,0.09c-0.09,0.06,-0.09,0.06,-0.45,0.06c-0.39,0,-0.39,0,-0.48,-0.06l-0.06,-0.09l0,-1.29l0,-1.29l-0.21,-0.03c-1.23,-0.21,-2.31,-0.63,-3.21,-1.29c-0.15,-0.09,-0.45,-0.36,-0.66,-0.57c-1.11,-1.11,-1.8,-2.61,-2.04,-4.56c-0.06,-0.6,-0.06,-2.01,0,-2.61c0.24,-1.95,0.93,-3.45,2.04,-4.59c0.42,-0.39,0.78,-0.66,1.26,-0.93c0.75,-0.45,1.65,-0.75,2.61,-0.9l0.21,-0.03l0,-1.29l0,-1.29zm-0.06,10.44c0,-5.58,0,-6.99,-0.03,-6.99c-0.15,0,-0.63,0.27,-0.87,0.45c-0.45,0.36,-0.75,0.93,-0.93,1.77c-0.18,0.81,-0.24,1.8,-0.24,4.74c0,2.97,0.06,3.96,0.24,4.77c0.24,1.08,0.66,1.68,1.41,2.07c0.12,0.06,0.3,0.12,0.33,0.15l0.09,0l0,-6.96z"
+    },
+    "f": {
+        "w": 16.155,
+        "h": 19.445,
+        "d": "M9.93,-14.28c1.53,-0.18,2.88,0.45,3.12,1.5c0.12,0.51,0,1.32,-0.27,1.86c-0.15,0.3,-0.42,0.57,-0.63,0.69c-0.69,0.36,-1.56,0.03,-1.83,-0.69c-0.09,-0.24,-0.09,-0.69,0,-0.87c0.06,-0.12,0.21,-0.24,0.45,-0.42c0.42,-0.24,0.57,-0.45,0.6,-0.72c0.03,-0.33,-0.09,-0.39,-0.63,-0.42c-0.3,0,-0.45,0,-0.6,0.03c-0.81,0.21,-1.35,0.93,-1.74,2.46c-0.06,0.27,-0.48,2.25,-0.48,2.31c0,0.03,0.39,0.03,0.9,0.03c0.72,0,0.9,0,0.99,0.06c0.42,0.15,0.45,0.72,0.03,0.9c-0.12,0.06,-0.24,0.06,-1.17,0.06l-1.05,0l-0.78,2.55c-0.45,1.41,-0.87,2.79,-0.96,3.06c-0.87,2.37,-2.37,4.74,-3.78,5.91c-1.05,0.9,-2.04,1.23,-3.09,1.08c-1.11,-0.18,-1.89,-0.78,-2.04,-1.59c-0.12,-0.66,0.15,-1.71,0.54,-2.19c0.69,-0.75,1.86,-0.54,2.22,0.39c0.06,0.15,0.09,0.27,0.09,0.48c0,0.24,-0.03,0.27,-0.12,0.42c-0.03,0.09,-0.15,0.18,-0.27,0.27c-0.09,0.06,-0.27,0.21,-0.36,0.27c-0.24,0.18,-0.36,0.36,-0.39,0.6c-0.03,0.33,0.09,0.39,0.63,0.42c0.42,0,0.63,-0.03,0.9,-0.15c0.6,-0.3,0.96,-0.96,1.38,-2.64c0.09,-0.42,0.63,-2.55,1.17,-4.77l1.02,-4.08c0,-0.03,-0.36,-0.03,-0.81,-0.03c-0.72,0,-0.81,0,-0.93,-0.06c-0.42,-0.18,-0.39,-0.75,0.03,-0.9c0.09,-0.06,0.27,-0.06,1.05,-0.06l0.96,0l0,-0.09c0.06,-0.18,0.3,-0.72,0.51,-1.17c1.2,-2.46,3.3,-4.23,5.34,-4.5z"
+    },
+    "m": {
+        "w": 14.687,
+        "h": 9.126,
+        "d": "M2.79,-8.91c0.09,0,0.3,-0.03,0.45,-0.03c0.24,0.03,0.3,0.03,0.45,0.12c0.36,0.15,0.63,0.54,0.75,1.02l0.03,0.21l0.33,-0.3c0.69,-0.69,1.38,-1.02,2.07,-1.02c0.27,0,0.33,0,0.48,0.06c0.21,0.09,0.48,0.36,0.63,0.6c0.03,0.09,0.12,0.27,0.18,0.42c0.03,0.15,0.09,0.27,0.12,0.27c0,0,0.09,-0.09,0.18,-0.21c0.33,-0.39,0.87,-0.81,1.29,-0.99c0.78,-0.33,1.47,-0.21,2.01,0.33c0.3,0.33,0.48,0.69,0.6,1.14c0.09,0.42,0.06,0.54,-0.54,3.06c-0.33,1.29,-0.57,2.4,-0.57,2.43c0,0.12,0.09,0.21,0.21,0.21c0.24,0,0.75,-0.3,1.2,-0.72c0.45,-0.39,0.6,-0.45,0.78,-0.27c0.18,0.18,0.09,0.36,-0.45,0.87c-1.05,0.96,-1.83,1.47,-2.58,1.71c-0.93,0.33,-1.53,0.21,-1.8,-0.33c-0.06,-0.15,-0.06,-0.21,-0.06,-0.45c0,-0.24,0.03,-0.48,0.6,-2.82c0.42,-1.71,0.6,-2.64,0.63,-2.79c0.03,-0.57,-0.3,-0.75,-0.84,-0.48c-0.24,0.12,-0.54,0.39,-0.66,0.63c-0.03,0.09,-0.42,1.38,-0.9,3c-0.9,3.15,-0.84,3,-1.14,3.15l-0.15,0.09l-0.78,0c-0.6,0,-0.78,0,-0.84,-0.06c-0.09,-0.03,-0.18,-0.18,-0.18,-0.27c0,-0.03,0.36,-1.38,0.84,-2.97c0.57,-2.04,0.81,-2.97,0.84,-3.12c0.03,-0.54,-0.3,-0.72,-0.84,-0.45c-0.24,0.12,-0.57,0.42,-0.66,0.63c-0.06,0.09,-0.51,1.44,-1.05,2.97c-0.51,1.56,-0.99,2.85,-0.99,2.91c-0.06,0.12,-0.21,0.24,-0.36,0.3c-0.12,0.06,-0.21,0.06,-0.9,0.06c-0.6,0,-0.78,0,-0.84,-0.06c-0.09,-0.03,-0.18,-0.18,-0.18,-0.27c0,-0.03,0.45,-1.38,0.99,-2.97c1.05,-3.18,1.05,-3.18,0.93,-3.45c-0.12,-0.27,-0.39,-0.3,-0.72,-0.15c-0.54,0.27,-1.14,1.17,-1.56,2.4c-0.06,0.15,-0.15,0.3,-0.18,0.36c-0.21,0.21,-0.57,0.27,-0.72,0.09c-0.09,-0.09,-0.06,-0.21,0.06,-0.63c0.48,-1.26,1.26,-2.46,2.01,-3.21c0.57,-0.54,1.2,-0.87,1.83,-1.02z"
+    },
+    "p": {
+        "w": 14.689,
+        "h": 13.127,
+        "d": "M1.92,-8.7c0.27,-0.09,0.81,-0.06,1.11,0.03c0.54,0.18,0.93,0.51,1.17,0.99c0.09,0.15,0.15,0.33,0.18,0.36l0,0.12l0.3,-0.27c0.66,-0.6,1.35,-1.02,2.13,-1.2c0.21,-0.06,0.33,-0.06,0.78,-0.06c0.45,0,0.51,0,0.84,0.09c1.29,0.33,2.07,1.32,2.25,2.79c0.09,0.81,-0.09,2.01,-0.45,2.79c-0.54,1.26,-1.86,2.55,-3.18,3.03c-0.45,0.18,-0.81,0.24,-1.29,0.24c-0.69,-0.03,-1.35,-0.18,-1.86,-0.45c-0.3,-0.15,-0.51,-0.18,-0.69,-0.09c-0.09,0.03,-0.18,0.09,-0.18,0.12c-0.09,0.12,-1.05,2.94,-1.05,3.06c0,0.24,0.18,0.48,0.51,0.63c0.18,0.06,0.54,0.15,0.75,0.15c0.21,0,0.36,0.06,0.42,0.18c0.12,0.18,0.06,0.42,-0.12,0.54c-0.09,0.03,-0.15,0.03,-0.78,0c-1.98,-0.15,-3.81,-0.15,-5.79,0c-0.63,0.03,-0.69,0.03,-0.78,0c-0.24,-0.15,-0.24,-0.57,0.03,-0.66c0.06,-0.03,0.48,-0.09,0.99,-0.12c0.87,-0.06,1.11,-0.09,1.35,-0.21c0.18,-0.06,0.33,-0.18,0.39,-0.3c0.06,-0.12,3.24,-9.42,3.27,-9.6c0.06,-0.33,0.03,-0.57,-0.15,-0.69c-0.09,-0.06,-0.12,-0.06,-0.3,-0.06c-0.69,0.06,-1.53,1.02,-2.28,2.61c-0.09,0.21,-0.21,0.45,-0.27,0.51c-0.09,0.12,-0.33,0.24,-0.48,0.24c-0.18,0,-0.36,-0.15,-0.36,-0.3c0,-0.24,0.78,-1.83,1.26,-2.55c0.72,-1.11,1.47,-1.74,2.28,-1.92zm5.37,1.47c-0.27,-0.12,-0.75,-0.03,-1.14,0.21c-0.75,0.48,-1.47,1.68,-1.89,3.15c-0.45,1.47,-0.42,2.34,0,2.7c0.45,0.39,1.26,0.21,1.83,-0.36c0.51,-0.51,0.99,-1.68,1.38,-3.27c0.3,-1.17,0.33,-1.74,0.15,-2.13c-0.09,-0.15,-0.15,-0.21,-0.33,-0.3z"
+    },
+    "r": {
+        "w": 9.41,
+        "h": 9.132,
+        "d": "M6.33,-9.12c0.27,-0.03,0.93,0,1.2,0.06c0.84,0.21,1.23,0.81,1.02,1.53c-0.24,0.75,-0.9,1.17,-1.56,0.96c-0.33,-0.09,-0.51,-0.3,-0.66,-0.75c-0.03,-0.12,-0.09,-0.24,-0.12,-0.3c-0.09,-0.15,-0.3,-0.24,-0.48,-0.24c-0.57,0,-1.38,0.54,-1.65,1.08c-0.06,0.15,-0.33,1.17,-0.9,3.27c-0.57,2.31,-0.81,3.12,-0.87,3.21c-0.03,0.06,-0.12,0.15,-0.18,0.21l-0.12,0.06l-0.81,0.03c-0.69,0,-0.81,0,-0.9,-0.03c-0.09,-0.06,-0.18,-0.21,-0.18,-0.3c0,-0.06,0.39,-1.62,0.9,-3.51c0.84,-3.24,0.87,-3.45,0.87,-3.72c0,-0.21,0,-0.27,-0.03,-0.36c-0.12,-0.15,-0.21,-0.24,-0.42,-0.24c-0.24,0,-0.45,0.15,-0.78,0.42c-0.33,0.36,-0.45,0.54,-0.72,1.14c-0.03,0.12,-0.21,0.24,-0.36,0.27c-0.12,0,-0.15,0,-0.24,-0.06c-0.18,-0.12,-0.18,-0.21,-0.06,-0.54c0.21,-0.57,0.42,-0.93,0.78,-1.32c0.54,-0.51,1.2,-0.81,1.95,-0.87c0.81,-0.03,1.53,0.3,1.92,0.87l0.12,0.18l0.09,-0.09c0.57,-0.45,1.41,-0.84,2.19,-0.96z"
+    },
+    "s": {
+        "w": 6.632,
+        "h": 8.758,
+        "d": "M4.47,-8.73c0.09,0,0.36,-0.03,0.57,-0.03c0.75,0.03,1.29,0.24,1.71,0.63c0.51,0.54,0.66,1.26,0.36,1.83c-0.24,0.42,-0.63,0.57,-1.11,0.42c-0.33,-0.09,-0.6,-0.36,-0.6,-0.57c0,-0.03,0.06,-0.21,0.15,-0.39c0.12,-0.21,0.15,-0.33,0.18,-0.48c0,-0.24,-0.06,-0.48,-0.15,-0.6c-0.15,-0.21,-0.42,-0.24,-0.75,-0.15c-0.27,0.06,-0.48,0.18,-0.69,0.36c-0.39,0.39,-0.51,0.96,-0.33,1.38c0.09,0.21,0.42,0.51,0.78,0.72c1.11,0.69,1.59,1.11,1.89,1.68c0.21,0.39,0.24,0.78,0.15,1.29c-0.18,1.2,-1.17,2.16,-2.52,2.52c-1.02,0.24,-1.95,0.12,-2.7,-0.42c-0.72,-0.51,-0.99,-1.47,-0.6,-2.19c0.24,-0.48,0.72,-0.63,1.17,-0.42c0.33,0.18,0.54,0.45,0.57,0.81c0,0.21,-0.03,0.3,-0.33,0.51c-0.33,0.24,-0.39,0.42,-0.27,0.69c0.06,0.15,0.21,0.27,0.45,0.33c0.3,0.09,0.87,0.09,1.2,0c0.75,-0.21,1.23,-0.72,1.29,-1.35c0.03,-0.42,-0.15,-0.81,-0.54,-1.2c-0.24,-0.24,-0.48,-0.42,-1.41,-1.02c-0.69,-0.42,-1.05,-0.93,-1.05,-1.47c0,-0.39,0.12,-0.87,0.3,-1.23c0.27,-0.57,0.78,-1.05,1.38,-1.35c0.24,-0.12,0.63,-0.27,0.9,-0.3z"
+    },
+    "z": {
+        "w": 8.573,
+        "h": 8.743,
+        "d": "M2.64,-7.95c0.36,-0.09,0.81,-0.03,1.71,0.27c0.78,0.21,0.96,0.27,1.74,0.3c0.87,0.06,1.02,0.03,1.38,-0.21c0.21,-0.15,0.33,-0.15,0.48,-0.06c0.15,0.09,0.21,0.3,0.15,0.45c-0.03,0.06,-1.26,1.26,-2.76,2.67l-2.73,2.55l0.54,0.03c0.54,0.03,0.72,0.03,2.01,0.15c0.36,0.03,0.9,0.06,1.2,0.09c0.66,0,0.81,-0.03,1.02,-0.24c0.3,-0.3,0.39,-0.72,0.27,-1.23c-0.06,-0.27,-0.06,-0.27,-0.03,-0.39c0.15,-0.3,0.54,-0.27,0.69,0.03c0.15,0.33,0.27,1.02,0.27,1.5c0,1.47,-1.11,2.7,-2.52,2.79c-0.57,0.03,-1.02,-0.09,-2.01,-0.51c-1.02,-0.42,-1.23,-0.48,-2.13,-0.54c-0.81,-0.06,-0.96,-0.03,-1.26,0.18c-0.12,0.06,-0.24,0.12,-0.27,0.12c-0.27,0,-0.45,-0.3,-0.36,-0.51c0.03,-0.06,1.32,-1.32,2.91,-2.79l2.88,-2.73c-0.03,0,-0.21,0.03,-0.42,0.06c-0.21,0.03,-0.78,0.09,-1.23,0.12c-1.11,0.12,-1.23,0.15,-1.95,0.27c-0.72,0.15,-1.17,0.18,-1.29,0.09c-0.27,-0.18,-0.21,-0.75,0.12,-1.26c0.39,-0.6,0.93,-1.02,1.59,-1.2z"
+    },
+    "+": {
+        "w": 7.507,
+        "h": 7.515,
+        "d": "M3.48,-11.19c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,1.29l0,1.29l1.29,0c1.23,0,1.29,0,1.41,0.06c0.06,0.03,0.15,0.09,0.18,0.12c0.12,0.09,0.21,0.33,0.21,0.48c0,0.15,-0.09,0.39,-0.21,0.48c-0.03,0.03,-0.12,0.09,-0.18,0.12c-0.12,0.06,-0.18,0.06,-1.41,0.06l-1.29,0l0,1.29c0,1.23,0,1.29,-0.06,1.41c-0.09,0.18,-0.15,0.24,-0.3,0.33c-0.21,0.09,-0.39,0.09,-0.57,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.06,-0.12,-0.06,-0.18,-0.06,-1.41l0,-1.29l-1.29,0c-1.23,0,-1.29,0,-1.41,-0.06c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.09,-0.36,0,-0.54c0.09,-0.18,0.15,-0.24,0.33,-0.33l0.15,-0.06l1.26,0l1.29,0l0,-1.29c0,-1.23,0,-1.29,0.06,-1.41c0.09,-0.18,0.15,-0.24,0.33,-0.33z"
+    },
+    ",": {
+        "w": 3.452,
+        "h": 8.143,
+        "d": "M1.32,-3.36c0.57,-0.15,1.17,0.03,1.59,0.45c0.45,0.45,0.6,0.96,0.51,1.89c-0.09,1.23,-0.42,2.46,-0.99,3.93c-0.3,0.72,-0.72,1.62,-0.78,1.68c-0.18,0.21,-0.51,0.18,-0.66,-0.06c-0.03,-0.06,-0.06,-0.15,-0.06,-0.18c0,-0.06,0.12,-0.33,0.24,-0.63c0.84,-1.8,1.02,-2.61,0.69,-3.24c-0.12,-0.24,-0.27,-0.36,-0.75,-0.6c-0.36,-0.15,-0.42,-0.21,-0.6,-0.39c-0.69,-0.69,-0.69,-1.71,0,-2.4c0.21,-0.21,0.51,-0.39,0.81,-0.45z"
+    },
+    "-": {
+        "w": 5.001,
+        "h": 0.81,
+        "d": "M0.18,-5.34c0.09,-0.06,0.15,-0.06,2.31,-0.06c2.46,0,2.37,0,2.46,0.21c0.12,0.21,0.03,0.42,-0.15,0.54c-0.09,0.06,-0.15,0.06,-2.28,0.06c-2.16,0,-2.22,0,-2.31,-0.06c-0.27,-0.15,-0.27,-0.54,-0.03,-0.69z"
+    },
+    ".": {
+        "w": 3.413,
+        "h": 3.402,
+        "d": "M1.32,-3.36c1.05,-0.27,2.1,0.57,2.1,1.65c0,1.08,-1.05,1.92,-2.1,1.65c-0.9,-0.21,-1.5,-1.14,-1.26,-2.04c0.12,-0.63,0.63,-1.11,1.26,-1.26z"
+    },
+    "stave": {
+        "d": "M0,0L800,0M0,8L800,8M0,16L800,16M0,24L800,24M0,32L800,32z"
+    }
+};
+},{}],18:[function(require,module,exports){
+'use strict';
+
+var s = require('virtual-dom/virtual-hyperscript/svg');
+
+var drawing_functions = {},
+    randomColor = require('randomcolor'),
+    glyphs = require('./glyphs'),
+    _ = require('lodash'),
+    data_tables = require("../data_tables"),
+    dispatcher = require("../dispatcher");
+
+var
+    POS_SWITCH = 6,
+    MAX_GRAD = 0.05, 
+    STEM_LENGTH = 28;
+
+var transpose = 0;
+dispatcher.on("transpose_change", function(data) {
+    transpose = data;
+});
+
+/**
+ * Draws a stave of width 'width'
+ * @param  {SVG.Group} line  [line group to draw the stave in]
+ * @param  {Number} width [width of line]
+ * @return {Undefined}
+ */
+
+var staveObject = s("path", {
+    stroke: "black",
+    d: glyphs.stave.d
+});
+
+drawing_functions.stave = function() {
+    return staveObject;
+}
+
+function ledgerLineCount(a) {
+    return ((Math.abs(a) / 2) >> 0) + 1;
+}
+
+function drawLedgerLines(currentNote, offset, colGroup) {
+    if (currentNote.truepos < 1) {
+        for (var i = 0, tar = ledgerLineCount(currentNote.truepos); i < tar; i++) {
+            colGroup.children.push(s("path", {
+                stroke: 'black',
+                d: "M0 0L14 0",
+                transform: `translate(-2, ${32 + 8 * (i + 1)})`
+            }));
+        }
+    }
+
+    if (currentNote.truepos > 11) {
+        for (var i = 0, tar = ledgerLineCount(currentNote.truepos-12); i < tar; i++) {
+            colGroup.children.push(s("path", {
+                stroke: 'black',
+                d: "M0 0L14 0",
+                //transform: `translate(6, ${0 - (8 * (i + 1))})`
+                transform: `translate(-2, ${0 - (8 * (i + 1))})`
+            }));
+        }
+    }
+}
+
+drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
+
+    //return;   
+
+    var colGroup = s("g", {
+        transform: `translate(${offset},0)`
+    });
+
+    /*
+    var color = '#000',
+        stem_end = {
+            x: 0,
+            y: 0
+        },
+        stem_tail = null,
+        stem = null;
+
+    //invalid note length?
+    if (data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
+        console.log("INVALID NOTE LENGTH");
+        for (var i = 0; i < data_tables.allowed_note_lengths.length; i++) {
+            if (currentNote.notelength > data_tables.allowed_note_lengths[i]) {
+                currentNote.notelength = data_tables.allowed_note_lengths[i - 1];
+                break;
+            }
+        }
+    }*/
+
+    if(currentNote.chord !== "") {
+        colGroup.children.push(s("text", {
+           x: 0,
+           y: -20,
+           fill: "black",
+           transform: "scale(0.8, 0.8)"
+        }, [currentNote.chord.getText(transpose)]));
+    }
+
+    //ledger line
+    drawLedgerLines(currentNote, offset, colGroup);
+
+    var downstem = (currentNote.truepos >= POS_SWITCH || currentNote.forceStem === 1) && !(currentNote.forceStem === -1);
+
+    //DECORATIONS
+    if(currentNote.decorations.length > 0) {
+        for(var i=0; i<currentNote.decorations.length; i++) {
+            switch(currentNote.decorations[i].data) {
+                case "~": {
+                    var transform = "";
+
+                    var relativePositioning = downstem ? currentNote.y > 4 : currentNote.y > 16;
+
+                    if(relativePositioning) {
+                        transform = "translate(0, -6)";
+                    } else {
+                        transform = `translate(0, ${currentNote.y - 10})`
+                    }
+                    colGroup.children.push(s("path", {
+                            d: glyphs["scripts.roll"].d,
+                            fill: "black",
+                            transform: transform
+                        }));
+                    break;
+                }
+            }
+        }
+    }
+
+
+    var noteDot, stem, accidental;
+
+    //noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(10,0)"}) : s("g", { class: "noteHead"});
+    var elementName = `g#note_${currentNote.renderNoteId}`;
+     noteDot = downstem ? s(elementName, { class: "noteHead", transform: "translate(0,0)"}) : s(elementName, { class: "noteHead"});
+
+    //dotted note?
+    if ((2 * currentNote.noteLength) % 3 === 0) {
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 14,
+            cy: currentNote.truepos % 2 === 0 ? -4 : 0,
+            fill: 'black'
+        }));
+    }
+
+    //double dotted note?
+    if ((4 * currentNote.noteLength) % 7 === 0) {
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 14,
+            cy: 0,
+            fill: 'black'
+        }));
+        noteDot.children.push(s("ellipse",{
+            rx: 2,
+            ry: 2,
+            cx: 18,
+            cy: 0,
+            fill: 'black'
+        }));
+    }    
+
+    var dotType;
+    //dot type
+    if (currentNote.noteLength < 4) {
+        dotType = glyphs["noteheads.quarter"].d;
+    } else {
+        if (currentNote.noteLength < 8) {
+            dotType = glyphs["noteheads.half"].d;
+        } else {
+            dotType = glyphs["noteheads.whole"].d;
+        }
+    }
+
+    noteDot.children.push(s("path", {
+        d: dotType
+    }));
+
+    
+    if (currentNote.noteLength < 8) {
+        if (downstem) {
+
+            //basic stem
+            stem = s("g", {
+                transform: "translate(0, 0)"
+            });       
+ 
+            if(!currentNote.beamed) {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y+2}L0 ${currentNote.y + 28}`
+                }));
+
+                if(currentNote.noteLength === 1) {
+                    stem.children.push(s("path", {
+                        d: glyphs["flags.d8th"].d,
+                        fill: 'black',
+                        transform: `translate(0,${currentNote.y + 28})`
+                    }));
+                }
+            } else {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y}L0 ${currentNote.beamOffsetFactor}`
+                }));
+            }
+
+        } else {
+
+            stem = s("g", {
+                transform: "translate(10, 0)"
+            });
+        
+            if(!currentNote.beamed) {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y-3}L0 ${currentNote.y - 32}`
+                }));
+
+                if(currentNote.noteLength === 1) {
+                    stem.children.push(s("path", {
+                        d: glyphs["flags.u8th"].d,
+                        fill: 'black',
+                        transform: `translate(0,${currentNote.y - 34})`
+                    }));
+                }
+            } else {
+                stem.children.push(s("path", {
+                    stroke: 'black',
+                    d: `M0 ${currentNote.y-3}L0 ${currentNote.beamOffsetFactor}`
+                }));
+            }
+
+            /*
+            //curly bit for quavers            
+            if (currentNote.notelength == 1) {
+                stem_tail = noteGroup.path(glyphs["flags.u8th"].d).attr({
+                    fill: 'black'
+                }).move(0, -24).scale(1);
+            }
+
+            //store point
+            stem_end.y = -24;*/
+        }
+    }
+
+    //accidentals
+
+    switch (currentNote.accidental) {
+        case "_":
+            accidental = s("path", {
+                d: glyphs["accidentals.flat"].d,
+                fill: "black",
+                transform: "translate(-8, 0)"
+            });
+            break;
+        case "^":
+            accidental = s("path", {
+                d: glyphs["accidentals.sharp"].d,
+                fill: "black",
+                transform: "translate(-10, 0)"
+            });           
+            break;
+        case "=":
+            accidental = s("path", {
+                d: glyphs["accidentals.nat"].d,
+                fill: "black",
+                transform: "translate(-7, 0)"
+            });
+            break;
+        case "__":
+            accidental = s("path", {
+                d: glyphs["accidentals.dblflat"].d,
+                fill: "black",
+                transform: "translate(-6,-12)"
+            });
+            break;
+        case "^^":
+            accidental = s("path", {
+                d: glyphs["accidentals.dblsharp"].d,
+                fill: "black",
+                transform: "translate(-6,-12)"
+            });
+            break;
+        default:
+    }/*
+
+    currentNote.stem_end = stem_end;
+
+    noteGroup.stem_tail = stem_tail;
+    noteGroup.stem = stem;
+    noteGroup.dot = noteDot;
+    currentNote.truepos = truepos;
+
+
+    currentNote.x = totalOffset;
+    currentNote.y = 28 - (truepos * 4);
+
+    noteGroup.move(currentNote.x, currentNote.y);*/
+
+    var noteGroup = s("g", {
+        transform: `translate(0,${currentNote.y})`
+    }, [noteDot, accidental]);    
+
+    colGroup.children.push(noteGroup, stem);
+
+    if(currentNote.beams.length > 0) {
+        for(var i=0; i<currentNote.beams.length; i++) {
+            drawing_functions.beam(currentNote.beams[i], colGroup, noteAreaWidth);
+        }
+    }
+
+    return colGroup;
+};
+
+drawing_functions.barline = function(currentSymbol, offset) {
+    var 
+        barlineGroup = s("g");
+
+    var rightAligned = currentSymbol.align === 2;
+
+    switch (currentSymbol.subType) {
+        case "normal":
+            barlineGroup.children.push(s("rect", {
+                x: offset + 4 + (rightAligned ? 4 : 0),
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            break;
+        case "double":
+            var alignment = currentSymbol.align === 2 ? -2 : 0;
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2 + alignment,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset + 2 + alignment,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            break;
+
+        case "repeat_start":
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 12,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 20,
+                fill: 'black'
+            }));
+
+        case "heavy_start":
+
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2,
+                width: 4,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset + 6,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            break;
+
+        case "repeat_end":
+
+            var alignment = currentSymbol.align === 2 ? -6 : 0;
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12 + 20,
+                cy: 12,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12 + 20,
+                cy: 20,
+                fill: 'black'
+            }));
+
+        case "heavy_end":
+
+            var alignment = currentSymbol.align === 2 ? -6 : 0;
+
+            barlineGroup.children.push(s("rect", {
+                x: offset + 2 + 20 + alignment,
+                width: 4,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2 + 20  + alignment,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            break; 
+
+        case "double_repeat":
+            barlineGroup.children.push(s("rect", {
+                x: offset - 2,
+                width: 4,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset + 5,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+            barlineGroup.children.push(s("rect", {
+                x: offset - 6,
+                width: 1,
+                height: 32,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 12,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset + 12,
+                cy: 20,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 12,
+                fill: 'black'
+            }));
+
+            barlineGroup.children.push(s("ellipse",{
+                rx: 2,
+                ry: 2,
+                cx: offset - 12,
+                cy: 20,
+                fill: 'black'
+            }));
+            break;
+
+        default:
+    }
+
+    return barlineGroup;
+};
+
+drawing_functions.chord_annotation = function(line, currentSymbol, totalOffset) {
+   /* return line.text(currentSymbol.text).font({
+        family: 'Helvetica',
+        size: 16,
+        anchor: 'middle',
+        leading: '1.5em'
+    }).move(totalOffset, -30).attr({
+        fill: 'black'
+    });*/
+};
+
+drawing_functions.tie = function(currentSymbol, ignore, noteAreaWidth) {
+
+    var 
+        startX = currentSymbol.start.xp * noteAreaWidth+4,
+        startY = currentSymbol.start.y + 8,
+        endX = currentSymbol.end.xp * noteAreaWidth+4,
+        endY = currentSymbol.end.y + 8;
+ 
+    var path = `M${startX} ${startY}C${startX+4} ${startY+14}, ${endX - 4} ${endY + 14}, ${endX} ${endY}C${endX+4} ${endY+12}, ${startX - 4} ${startY + 12}, ${startX} ${startY}`;
+
+    return s("path", {
+        d: path,
+        stroke: 'black'
+    });
+};
+
+drawing_functions.space = function() {
+    return s("g");
+}
+
+/**
+ * [beat_rest description]
+ * @param  {[type]} line          [description]
+ * @param  {[type]} currentSymbol [description]
+ * @param  {[type]} totalOffset   [description]
+ * @return {[type]}               [description]
+ */
+drawing_functions.beat_rest = function(line, currentSymbol, totalOffset) {
+    return line.path(glyphs["rests.quarter"].d).attr({
+        fill: 'black'
+    }).move(totalOffset, 6);
+}
+
+/**
+ * [treble_clef description]
+ * @param  {[type]} line [description]
+ * @return {[type]}      [description]
+ */
+
+var trebleClefObject = s("path", {
+    fill: "black",
+    d: glyphs["clefs.G"].d,
+    transform: "translate(8, 24)"
+});
+
+drawing_functions.treble_clef = function(line) {
+    return {
+        node: trebleClefObject,
+        width: 40
+    };
+}
+
+/**
+ * [timesig description]
+ * @param  {[type]} line   [description]
+ * @param  {[type]} top    [description]
+ * @param  {[type]} bottom [description]
+ * @return {[type]}        [description]
+ */
+drawing_functions.timesig = function(top, bottom, xoffset) {
+
+    var top_group = s("g"),
+        bottom_group = s("g"),
+        timeSig = s("g", [top_group, bottom_group]);
+    //top
+
+    top.toString().split('').forEach(function(num, i) {
+        top_group.children.push(s("path", {
+            fill: "black",
+            d: glyphs[num].d,
+            transform: ["translate(", xoffset + (i * 10), ",16)"].join('')
+        }));
+    });
+
+    bottom.toString().split('').forEach(function(num, i) {
+        bottom_group.children.push(s("path", {
+            fill: "black",
+            d: glyphs[num].d,
+            transform: ["translate(", xoffset + (i * 10), ",32)"].join('')
+        }));
+    });
+    /*
+    var top_width = top_group.bbox().width,
+        bottom_width = bottom_group.bbox().width;
+
+    if (top_width > bottom_width) {
+        bottom_group.move((top_width - bottom_width) / 2, 0);
+    } else {
+        top_group.move((bottom_width - top_width) / 2, 0);
+    }
+*/
+    return {
+        node: timeSig,
+        width: 24
+    };
+}
+
+function sigmoid(a) {
+    return (1 / (Math.exp(0.05 * (14 - a)) + 1) * 96) - 32;
+}
+
+/**
+ * [beam description]
+ * @param  {[type]} line         [description]
+ * @param  {[type]} beamed_notes [description]
+ * @return {[type]}              [description]
+ */
+drawing_functions.beam = function(beam, group, noteAreaWidth) {
+
+    //var startX = -((beam.notes[beam.count - 1].xp - beam.notes[0].xp) * noteAreaWidth) + (beam.downBeam ? 0 : 10);
+    var startX = -(beam.notes[beam.count - 1].renderedXPos - beam.notes[0].renderedXPos) + (beam.downBeam ? 0 : 10);
+    var endY = beam.notes[beam.count - 1].beamOffsetFactor; 
+    var startY = beam.notes[0].beamOffsetFactor;
+
+    if(beam.downBeam) {
+        group.children.push(s("path", {
+            //d: `M${startX} ${startY}L10 ${endY}L10 ${endY-4}L${startX} ${startY-4}L${startX} ${startY}Z`
+            d: `M${startX} ${startY}L0 ${endY}L0 ${endY-4}L${startX} ${startY-4}L${startX} ${startY}Z`
+        }));
+    } else {
+        group.children.push(s("path", {
+            d: `M${startX} ${startY}L10 ${endY}L10 ${endY+4}L${startX} ${startY+4}L${startX} ${startY}Z`
+        }));
+    }
+
+    for(var i=0; i<beam.notes.length; i++) {
+
+        var bm = beam.notes[i];
+
+        if(bm.beamDepth < -1) {
+
+            var tailsToDraw = Math.abs(bm.beamDepth) - 1;
+
+            for(var j=0; j<tailsToDraw; j++) {
+                var notePos = -(beam.notes[beam.count - 1].xp - bm.xp) * noteAreaWidth + (beam.downBeam ? 0 : 10);
+                var tailPosY = bm.beamOffsetFactor+6+(j*6);
+                group.children.push(s("path", {
+                    d: `M${notePos} ${tailPosY}L${notePos} ${tailPosY+4}L${notePos-4} ${tailPosY+4}L${notePos-4} ${tailPosY}L${notePos} ${tailPosY}Z`
+                }));
+            }
+        }
+    }
+}
+
+/**
+ * [keysig description]
+ * @param  {[type]} draw   [description]
+ * @param  {[type]} keysig [description]
+ * @return {[type]}        [description]
+ */
+drawing_functions.keysig = function(keysig, xoffset, lineId, transpose) {
+
+    var keySigGroup = s("g");
+    var undefined;
+
+    var accidentals = data_tables.getKeySig(keysig.note, keysig.mode) + transpose;
+
+    
+    dispatcher.send("remove_abc_error", "KEYSIG");
+
+    if(_.isNaN(accidentals)) {
+        var error = {
+            line: lineId,
+            message: `Malformed key signature: ${keysig.note + keysig.mode}`,
+            severity: 1,
+            type: "KEYSIG"
+        };
+
+        console.log(error);
+
+        dispatcher.send("abc_error", error);
+
+        return false;
+    }
+
+    if (accidentals === 0) return {
+        node: keySigGroup,
+        width: 0
+    };
+
+    var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
+    var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;    
+
+    for (var i = 0; i < Math.abs(accidentals); i++) {
+
+        keySigGroup.children.push(s("path", {
+            d: symbol,
+            fill: "black",
+            transform: `translate(${xoffset + i * 8}, ${44 - ((dataset[i] + 1) * 4)})`
+        }));
+    }
+
+    return {
+        node: keySigGroup,
+        width: (Math.abs(accidentals) * 10) + 12
+    };
+};
+
+drawing_functions.varientEndings = function (currentEnding, noteAreaWidth, continuation) {
+    var
+        startX = currentEnding.start.renderedXPos,//(currentEnding.start.xp * noteAreaWidth) - 8,
+        endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.renderedXPos,
+        path = "";
+        //path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
+
+    path = continuation ? `M${startX} -40` : `M${startX} -25L${startX} -40`;
+    path = path + `L${endX} -40`;
+    path = currentEnding.end === null ? path : path + `L${endX} -25`;
+
+    var endingGroup = s("g");
+
+    endingGroup.children.push(s("path", {
+        d: path,
+        stroke: 'black',
+        fill: 'none'
+    }));
+
+    endingGroup.children.push(s("text", {
+       x: 0,
+       y: 0,
+       fill: "black",
+       transform: `translate(${startX + 4}, -30)scale(0.5, 0.5)`
+    }, [currentEnding.name]));
+
+    return endingGroup;
+};
+
+drawing_functions.slur = function(currentSymbol, ignore, noteAreaWidth) {
+
+    var 
+        startX = currentSymbol.notes[0].xp * noteAreaWidth+4,
+        startY = currentSymbol.notes[0].y + 8,
+        endX = currentSymbol.notes[currentSymbol.notes.length - 1].xp * noteAreaWidth+4,
+        endY = currentSymbol.notes[currentSymbol.notes.length - 1].y + 8;
+ 
+    var path = `M${startX} ${startY}C${startX+4} ${startY+14}, ${endX - 4} ${endY + 14}, ${endX} ${endY}C${endX+4} ${endY+12}, ${startX - 4} ${startY + 12}, ${startX} ${startY}`;
+
+    return s("path", {
+        d: path,
+        stroke: 'black'
+    });
+};
+
+var restLengthMap = {
+    "0.125": "rests.64th",
+    "0.25": "rests.32th",
+    "0.5": "rests.16th",
+    "1": "rests.8th",
+    "2": "rests.quarter",
+    "4": "rests.half",
+    "8": "rests.whole",
+};
+
+drawing_functions.rest = function(currentNote, offset, noteAreaWidth) {
+
+    var restLength = currentNote.restLength === undefined ? 1 : currentNote.restLength;
+
+    var colGroup = s("g", {
+        transform: `translate(${offset},16)`
+    });
+
+    if(!currentNote.visible) return colGroup;
+
+    colGroup.children.push(s("path", {
+        d: glyphs[restLengthMap[restLength]].d
+    }));
+
+    return colGroup;
+}
+
+drawing_functions.tuplets = function(currentTuplet, noteAreaWidth) {
+
+    var middle = (currentTuplet.notes.length - 1) / 2;
+
+    var offset = currentTuplet.notes[middle].renderedXPos + (currentTuplet.notes[middle].forceStem === -1 ? 10 : 0);//xp * noteAreaWidth;
+
+    var tupletNumberY = currentTuplet.notes[middle].forceStem === -1 ?
+        currentTuplet.notes[middle].beamOffsetFactor - 10 :
+        currentTuplet.notes[middle].beamOffsetFactor + 10;
+
+    var colGroup = s("g", {
+        transform: `translate(${offset},${tupletNumberY})`
+    });
+
+    colGroup.children.push(s("text", {
+       x: 0,
+       y: 0,
+       "text-anchor": "middle",
+       fill: "black",
+       transform: "scale(0.5, 0.5)",
+       "font-weight": "bold"
+    }, [currentTuplet.value.toString()]));
+
+    return colGroup;
+}
+
+module.exports = drawing_functions;
+},{"../data_tables":8,"../dispatcher":10,"./glyphs":17,"lodash":97,"randomcolor":101,"virtual-dom/virtual-hyperscript/svg":121}],19:[function(require,module,exports){
+var data = {
+	note: 13,
+	barline: {
+		normal: 8,
+		repeat_start: 16,
+		repeat_end: 20
+	},
+	rest: 13
+};
+
+module.exports = data;
+},{}],20:[function(require,module,exports){
+var
+    POS_SWITCH = 6;
+
+var AbcBeam = function(notes) {
+
+	var hNote, lNote, hNoteIndex, lNoteIndex;
+
+    var avgPos = this.avgPos = notes.reduce(function(a, b, i) { 
+
+    	if(lNote === undefined || lNote.truepos > b.truepos) {
+            lNote = b;
+            lNoteIndex = i;
+        }
+
+    	if(hNote === undefined || hNote.truepos < b.truepos) {
+            hNote = b;
+            hNoteIndex = i;
+        }
+
+    	return a + b.truepos; 
+
+    }, 0) / notes.length;
+
+    var downBeam = this.downBeam = avgPos > POS_SWITCH;
+
+    notes.forEach(function(note) {
+    	note.forceStem = downBeam ? 1 : -1;
+    });
+
+    var baseNote = this.baseNote = this.downBeam ? lNote : hNote;
+    this.baseNoteIndex = this.downBeam ? lNoteIndex : hNoteIndex;
+
+    var x, y;
+    var sum_x = 0;
+    var sum_y = 0;
+    var sum_xy = 0;
+    var sum_xx = 0;
+    var count = 0;
+
+    for (var v = 0; v < notes.length; v++) {
+        x = notes[v].xp;//notes[v].truepos;
+        y = notes[v].truepos;
+        sum_x += x;
+        sum_y += y;
+        sum_xx += x*x;
+        sum_xy += x*y;
+        count++;
+    }
+
+    var m = ((count*sum_xy - sum_x*sum_y) / (count*sum_xx - sum_x*sum_x))*2;
+
+    notes.forEach(function(note) {
+        var xpDist = note.xp - baseNote.xp;
+        var heightDiff = Math.abs(note.y - baseNote.y);
+        note.beamOffsetFactor = (xpDist * -m) + baseNote.y + (downBeam ? 28 : -28);
+        note.beamed = true;
+    });
+
+    this.gradient = m;
+    this.depth = 0;
+    this.notes = notes;
+    this.count = notes.length;
+}
+
+AbcBeam.prototype.subType = "";
+AbcBeam.prototype.weight = 0;
+
+module.exports = AbcBeam;
+},{}],21:[function(require,module,exports){
+////////////
+// Symbol //
+////////////
+
+var chordRegex = /^([A-G](?:b|#)?)(m|min|maj|dim|aug|\+|sus)?(2|4|7|9|13)?(\/[A-G](?:b|#)?)?$/i;
+
+var zaz = require('zazate.js');
+
+var transposeNote = function (note, a) {
+	var transposedInt = zaz.notes.note_to_int(note.toUpperCase()) + a;
+	var hashed = ((transposedInt % 12) + 12) % 12;
+	return zaz.notes.int_to_note(hashed); 
+}
+
+var AbcChord = function(text) {
+    this.text = text;
+
+    var regexTestResult = chordRegex.exec(text);
+
+    if(regexTestResult === null) {
+    	this.parsed = false;
+    } else {
+    	this.parsed = true;
+
+    	this.note = regexTestResult[1];
+    	this.type = regexTestResult[2];
+    	this.number = regexTestResult[3];
+    	this.base = regexTestResult[4];
+    }
+
+    this.getText = function (transpose) {
+    	if(!this.parsed || transpose === 0) return this.text;
+
+    	var output = transposeNote(this.note, transpose);
+    	if(this.type) output += this.type;
+    	if(this.number) output += this.number;
+    	if(this.base) output += "/" + transposeNote(this.base.substr(1), transpose);
+   		return output; 	
+    };
+}
+
+module.exports = {
+    AbcChord: AbcChord,
+};
+},{"zazate.js":137}],22:[function(require,module,exports){
+////////////
+// Symbol //
+////////////
+
+var AbcSymbol = function(type) {
+    this.type = type;
+}
+
+AbcSymbol.prototype.subType = "";
+AbcSymbol.prototype.visible = true;
+AbcSymbol.prototype.xp = 0;
+AbcSymbol.prototype.align = 0;
+
+AbcSymbol.prototype.fixedWidth = 0;
+AbcSymbol.prototype.springConstant = 0;
+
+
+AbcSymbol.prototype.getX = function(leadInWidth, lineWidth) {
+    return (this.xp * (lineWidth - leadInWidth)) + leadInWidth;
+}
+
+
+var AbcNote = function() {
+    AbcSymbol.call(this, "note");
+    this.decorations = [];
+}
+
+AbcNote.prototype = Object.create(AbcSymbol.prototype);
+AbcNote.prototype.beamDepth = 0;
+AbcNote.prototype.octave = 4;
+AbcNote.prototype.pitch = 0;
+AbcNote.prototype.pos = 0;
+AbcNote.prototype.truepos = 0;
+AbcNote.prototype.letter = "";
+AbcNote.prototype.accidentals = "";
+AbcNote.prototype.noteLength = 1;
+AbcNote.prototype.beams = [];
+AbcNote.prototype.forceStem = 0;
+AbcNote.prototype.beamOffsetFactor = 0;
+AbcNote.prototype.y = null;
+AbcNote.prototype.beamed = false;
+AbcNote.prototype.chord = "";
+
+var AbcRest = function() {
+    AbcSymbol.call(this, "rest", 1);
+}
+
+AbcRest.prototype = Object.create(AbcSymbol.prototype);
+AbcRest.prototype.restLength = 1;
+
+module.exports = {
+    AbcNote: AbcNote,
+    AbcSymbol: AbcSymbol,
+    AbcRest: AbcRest
+};
+},{}],23:[function(require,module,exports){
+/////////////
+// ABCLine //
+/////////////
+
+var AbcLine = function(raw, id) {
+    this.raw = raw;
+    this.id = id;
+    this.endings = [];
+    this.tuplets = [];
+    this.firstEndingEnder = null;
+}
+
+AbcLine.prototype.type = "hidden";
+AbcLine.prototype.di = -1;
+AbcLine.prototype.parsed = [];
+AbcLine.prototype.weight = 0;
+AbcLine.prototype.error = false;
+AbcLine.prototype.changed = false;
+AbcLine.prototype.endWithEndingBar = false;
+
+///////////////////
+//LineCollection //
+///////////////////
+
+var LineCollection = function(id, raw, action) {
+    
+    var split = raw.split(/\r\n|\r|\n/);
+
+    if (split[split.length - 1] === '') {
+        split = split.slice(0, split.length - 1);
+    }
+
+    this.lines = split.map(function(line, i) {
+        return new AbcLine(line, i + id);
+    });
+
+    this.count = this.lines.length;
+
+    this.action = action;
+
+    this.startId = id;
+};
+
+module.exports = {
+    LineCollection: LineCollection,
+    AbcLine: AbcLine
+};
+},{}],24:[function(require,module,exports){
+// injects the vDOM structure into the actual DOM tree
+// BROWSER ONLY
+
+'use strict';
+
+var createElement = require('virtual-dom/create-element');
+var diff = require('virtual-dom/diff');
+var patch = require('virtual-dom/patch');
+var renderElement = null;
+var lastVDOMTree = null;
+var lastRenderElement = null;
+ 
+var vDom2DOM = function(vDOMTree) {
+
+	var canvasElement = document.getElementById("canvas");
+
+	
+
+	if(false) {
+		let diffed = diff(lastVDOMTree, vDOMTree);
+		let ro = patch(lastRenderElement, diffed);
+
+		console.log(diffed, ro);
+
+	} else {
+		canvasElement.innerHTML = "";
+		renderElement = createElement(vDOMTree);
+		lastRenderElement = renderElement;
+		canvasElement.appendChild(renderElement);
+	}
+
+	lastVDOMTree = vDOMTree; 
+
+    var svgs = document.getElementById("tuneSVGCanvas");    
+
+    var scrollDist = canvasElement.scrollTop;
+    svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
+    canvasElement.scrollTop = scrollDist;
+}
+
+module.exports = vDom2DOM;
+},{"virtual-dom/create-element":105,"virtual-dom/diff":106,"virtual-dom/patch":108}],25:[function(require,module,exports){
+'use strict';
+
+//polyfill 
+require('isomorphic-fetch');
+
+module.exports = {
+	lodash: require('lodash'),
+	lex: require('lex'),
+	Ractive: require('ractive/ractive'),
+    
+    page: require('page'),
+    jsDiff: require('diff'),
+    codeMirror: require('codemirror'),
+    codeMirrorLint: require('codemirror/addon/lint/lint'),
+    combokeys: require('combokeys'),
+    screenfull: require('screenfull'),
+    zazate: require('zazate.js'),
+
+    queryString: require('query-string'),
+    sizzle: require('sizzle'),
+    domready: require('domready'),
+    sortable: require('sortablejs')
+}; 
+},{"codemirror":53,"codemirror/addon/lint/lint":52,"combokeys":54,"diff":86,"domready":88,"isomorphic-fetch":95,"lex":96,"lodash":97,"page":98,"query-string":99,"ractive/ractive":100,"screenfull":102,"sizzle":103,"sortablejs":104,"zazate.js":137}],26:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -1377,170 +5449,181 @@ module.exports = { v:1,
                                           a:{ "class":"tune-rhythm" },
                                           f:[ { t:2,
                                               r:"settings.rhythm" } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] } ] }
-},{}],5:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    toastr = require('./../../engine/vendor.js').toastr,
-    ractive = require('./../../engine/vendor.js').ractive,
+var
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    toastr = require('../engine/vendor').toastr,
+    ractive = require('../engine/vendor').ractive,
     _ = require('lodash');
+
 
 var template = require("./home.html");
 
-module.exports = function (ractive, context, page, urlcontext, user) {
 
-    var onInit = function onInit() {
+module.exports = function(ractive, context, page, urlcontext, user) {
+
+    var onInit = function() {
 
         var ractive = this;
 
         ractive.set("showingKeySelectorPopup", false);
 
         ractive.on({
-            'new_tune': function new_tune(event) {
+            'new_tune': function(event) {
                 ractive.fire("navigate_to_page", "/editor");
             },
-            'view_tutorial': function view_tutorial(event) {
-                ractive.fire("navigate_to_page", "/tutorial");
+            'view_tutorial': function(event) {
+                ractive.fire("navigate_to_page", "/tutorial")
             },
-            'view_new_tunebook': function view_new_tunebook() {
-                ractive.fire("navigate_to_page", "/tunebook");
+            'view_new_tunebook': function() {
+                ractive.fire("navigate_to_page", "/tunebook")
             },
-            'updated_search': function updated_search(event, data) {
+            'updated_search': function(event, data) {
                 console.log("EVENT", event.context.search_filter);
 
                 var keynoteData = ractive.get("keynote");
                 var keynoteFilter = "disallowkeys=";
 
-                _.forOwn(keynoteData, function (val, key) {
-                    if (!val) {
-                        if (key.length === 1) {
-                            keynoteFilter += key[0] + ",";
-                        } else {
-                            keynoteFilter += key[0] + "^,";
-                        }
+                _.forOwn(keynoteData, function(val, key) {
+                    if(!val) {
+                        if(key.length === 1) {
+                            keynoteFilter += (key[0] + ",")
+                         } else {
+                            keynoteFilter += (key[0] + "^,")
+                         }
+                       
                     }
                 });
 
-                fetch("/api/tunes?name=" + event.context.search_filter + "&" + keynoteFilter).then(function (response) {
-                    return response.json();
-                }).then(function (data) {
+                fetch("/api/tunes?name=" + event.context.search_filter + "&" + keynoteFilter)
+                .then(function(response) {
+                    return response.json()
+                })
+                .then(function(data) {
                     console.log("DONE", data);
                     ractive.set("publicTuneNames", data);
                     ractive.update("publicTuneNames");
-                }).catch(function (ex) {
-                    console.log('parsing failed', ex);
+                }).catch(function(ex) {
+                    console.log('parsing failed', ex)
                 });
             },
-            'view_tunebook': function view_tunebook(event) {
-                ractive.fire("navigate_to_page", "/tunebook/view?tunebook=" + event.node.attributes.tunebookId.value);
+            'view_tunebook': function(event) {
+                ractive.fire("navigate_to_page", "/tunebook/view?tunebook=" + event.node.attributes.tunebookId.value)
             },
-            'view_tune': function view_tune(event) {
+            'view_tune': function(event) {
                 var tuneId = event.node.attributes["tune-id"].value;
                 console.log(tuneId);
                 ractive.fire("navigate_to_page", "/viewer?tuneid=" + tuneId);
             }
         });
 
-        ractive.on('toggle-note', function (event) {
+        ractive.on('toggle-note', function(event) {
             var note = event.node.attributes.note.value;
             ractive.set("keynote." + note, !ractive.get("keynote." + note));
             ractive.fire("updated_search", event);
         });
 
-        ractive.on('toggle-mode', function (event) {
+        ractive.on('toggle-mode', function(event) {
             var mode = event.node.attributes.mode.value;
             ractive.set("keymode." + mode, !ractive.get("keymode." + mode));
         });
 
         ractive.on({
-            "clear-all-keys": function clearAllKeys(event) {
+            "clear-all-keys": function(event) {
                 ractive.set("keynote", {
                     'A': false,
                     'A#': false,
                     'B': false,
                     'C': false,
                     'C#': false,
-                    'D': false,
-                    'D#': false,
-                    'E': false,
-                    'F': false,
-                    'F#': false,
+                    'D': false, 
+                    'D#': false, 
+                    'E': false, 
+                    'F': false, 
+                    'F#': false, 
                     'G': false,
                     'G#': false
                 });
                 ractive.fire("updated_search", event);
             },
-            "select-all-keys": function selectAllKeys(event) {
+             "select-all-keys": function(event) {
                 ractive.set("keynote", {
                     'A': true,
                     'A#': true,
                     'B': true,
                     'C': true,
                     'C#': true,
-                    'D': true,
-                    'D#': true,
-                    'E': true,
-                    'F': true,
-                    'F#': true,
+                    'D': true, 
+                    'D#': true, 
+                    'E': true, 
+                    'F': true, 
+                    'F#': true, 
                     'G': true,
                     'G#': true
                 });
                 ractive.fire("updated_search", event);
             },
-            "clear-all-modes": function clearAllModes() {
+            "clear-all-modes": function() {
                 ractive.set("keymode", {
                     'Major': false,
                     'Dorian': false,
                     'Phrygian': false,
                     'Lydian': false,
                     'Mixolydian': false,
-                    'Minor': false,
+                    'Minor': false, 
                     'Locrian': false
                 });
             },
-            "select-all-modes": function selectAllModes() {
+             "select-all-modes": function() {
                 ractive.set("keymode", {
                     'Major': true,
                     'Dorian': true,
                     'Phrygian': true,
                     'Lydian': true,
                     'Mixolydian': true,
-                    'Minor': true,
+                    'Minor': true, 
                     'Locrian': true
                 });
             },
-            "key-selector-value-clicked": function keySelectorValueClicked() {
+            "key-selector-value-clicked": function() {
                 ractive.set("showingKeySelectorPopup", !ractive.get("showingKeySelectorPopup"));
                 return false;
             },
-            "page-clicked": function pageClicked() {
-                if (ractive.get("showingKeySelectorPopup")) ractive.set("showingKeySelectorPopup", false);
+            "page-clicked": function() {
+                if(ractive.get("showingKeySelectorPopup"))ractive.set("showingKeySelectorPopup", false);
             },
-            "key-popup-clicked": function keyPopupClicked() {
+            "key-popup-clicked": function() {
                 console.log("meh");
-                if (ractive.get("showingKeySelectorPopup")) return false;
+                if(ractive.get("showingKeySelectorPopup"))return false;
             }
         });
 
         //ractive.on("init", function() {
-        fetch("/api/tunes").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            ractive.set("publicTuneNames", data);
-        }).catch(function (ex) {
-            console.log('parsing failed', ex);
-        });
+            fetch("/api/tunes")
+            .then(function(response) {
+                return response.json()
+            }).then(function(data) {
+                ractive.set("publicTuneNames", data);
+            }).catch(function(ex) {
+                console.log('parsing failed', ex)
+            });
 
-        fetch("/api/tunebooks").then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            ractive.set("myTunebookNames", data);
-        }).catch(function (ex) {
-            console.log('parsing failed', ex);
-        });
+
+            fetch("/api/tunebooks")
+            .then(function(response) {
+                return response.json()
+            }).then(function(data) {
+                ractive.set("myTunebookNames", data);
+             }).catch(function(ex) {
+                console.log('parsing failed', ex)
+            });
 
         //});
+
+        
 
         ractive.set("keynote", {
             'A': true,
@@ -1548,11 +5631,11 @@ module.exports = function (ractive, context, page, urlcontext, user) {
             'B': true,
             'C': true,
             'C#': true,
-            'D': true,
-            'D#': true,
-            'E': true,
-            'F': true,
-            'F#': true,
+            'D': true, 
+            'D#': true, 
+            'E': true, 
+            'F': true, 
+            'F#': true, 
             'G': true,
             'G#': true
         });
@@ -1563,23 +5646,23 @@ module.exports = function (ractive, context, page, urlcontext, user) {
             'Phrygian': true,
             'Lydian': true,
             'Mixolydian': true,
-            'Minor': true,
+            'Minor': true, 
             'Locrian': true
         });
 
         ractive.set("rhythm", ["Jig", "Reel"]);
-    };
+    }
+
 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit
-    });
+      isolated: false,
+      template: template,
+      oninit: onInit
+    }); 
 
     return ractive;
 };
-
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./home.html":4,"lodash":93}],6:[function(require,module,exports){
+},{"../engine/vendor":25,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./home.html":26,"lodash":97}],28:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:4,
       n:50,
@@ -1629,7 +5712,7 @@ module.exports = { v:1,
         s:"_0===\"/tunebook/view\"" },
       f:[ { t:7,
           e:"TunebookViewerPage" } ] } ] }
-},{}],7:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"div",
@@ -1683,9 +5766,7 @@ module.exports = { v:1,
                             r:"user.picture" } ] } } ] } ] } ],
           x:{ r:[ "loggedIn" ],
             s:"_0===false" } } ] } ] }
-},{}],8:[function(require,module,exports){
-"use strict";
-
+},{}],30:[function(require,module,exports){
 var inBrowser = typeof window !== 'undefined';
 
 module.exports = {
@@ -1715,11 +5796,494 @@ module.exports = {
     },
     "/tunebook/view": {
         name: "TunebookViewerPage",
-        model: inBrowser ? require('./tunebook/tunebook_view') : null
+        model: inBrowser ? require('./tunebook/tunebook_view')  : null
     }
 };
+},{"./editor/editor":3,"./home/home":27,"./tunebook/tunebook_edit":36,"./tunebook/tunebook_view":38,"./tutorial/tutorial":42,"./user/user":43,"./viewer/viewer":45}],31:[function(require,module,exports){
+/* Example definition of a simple mode that understands a subset of
+ * JavaScript:
+ */
+var CodeMirror = require('codemirror'),
+  CodeMirrorSimple = require('./codemirror_simple');
 
-},{"./editor/editor":3,"./home/home":5,"./tunebook/tunebook_edit":10,"./tunebook/tunebook_view":12,"./tutorial/tutorial":16,"./user/user":17,"./viewer/viewer":19}],9:[function(require,module,exports){
+CodeMirror.defineSimpleMode("abc", {
+  // The start state contains the rules that are intially used
+  start: [
+    // The regex matches the token, the token property contains the type
+    {regex: /\|/, token: "barline"},
+    {regex: /(X|T|Z|S|R|M|L|K):/, token: "header-indicator", next: "header"},
+    {regex: /[0-9]+/, token: "note-length"},
+    {regex: /`/, token: "backtick"},
+    // You can match multiple tokens at once. Note that the captured
+    // groups must span the whole string in this case
+    //{regex: /(function)(\s+)([a-z$][\w$]*)/,
+     //token: ["keyword", null, "variable-2"]},
+    // Rules are matched in the order in which they appear, so there is
+    // no ambiguity between this one and the one above
+    //{regex: /(?:function|var|return|if|for|while|else|do|this)\b/,
+    // token: "keyword"},
+    //{regex: /true|false|null|undefined/, token: "atom"},
+    //{regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i,
+    // token: "number"},
+    //{regex: /\/\/.*/, token: "comment"},
+    //{regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3"},
+    // A next property will cause the mode to move to a different state
+   // {regex: /\/\*/, token: "comment", next: "comment"},
+    //{regex: /[-+\/*=<>!]+/, token: "operator"},
+    // indent and dedent properties guide autoindentation
+    //{regex: /[\{\[\(]/, indent: true},
+    //{regex: /[\}\]\)]/, dedent: true},
+    //{regex: /[a-z$][\w$]*/, token: "variable"},
+    // You can embed other modes with the mode property. This rule
+    // causes all code between << and >> to be highlighted with the XML
+    // mode.
+    //{regex: /<</, token: "meta", mode: {spec: "xml", end: />>/}}
+  ],
+  // The multi-line comment state.
+  //comment: [
+  //  {regex: /.*?\*\//, token: "comment", next: "start"},
+  //  {regex: /.*/, token: "comment"}
+  //],
+  header: [
+    {regex: /.*/, token: "header-text", next: "start"},
+  ],
+  // The meta property contains global information about the mode. It
+  // can contain properties like lineComment, which are supported by
+  // all modes, and also directives like dontIndentStates, which are
+  // specific to simple modes.
+  meta: {
+    //dontIndentStates: ["comment"],
+    lineComment: "//"
+  }
+});
+
+},{"./codemirror_simple":32,"codemirror":53}],32:[function(require,module,exports){
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require('codemirror'));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+  "use strict";
+
+  CodeMirror.defineSimpleMode = function(name, states) {
+    CodeMirror.defineMode(name, function(config) {
+      return CodeMirror.simpleMode(config, states);
+    });
+  };
+
+  CodeMirror.simpleMode = function(config, states) {
+    ensureState(states, "start");
+    var states_ = {}, meta = states.meta || {}, hasIndentation = false;
+    for (var state in states) if (state != meta && states.hasOwnProperty(state)) {
+      var list = states_[state] = [], orig = states[state];
+      for (var i = 0; i < orig.length; i++) {
+        var data = orig[i];
+        list.push(new Rule(data, states));
+        if (data.indent || data.dedent) hasIndentation = true;
+      }
+    }
+    var mode = {
+      startState: function() {
+        return {state: "start", pending: null,
+                local: null, localState: null,
+                indent: hasIndentation ? [] : null};
+      },
+      copyState: function(state) {
+        var s = {state: state.state, pending: state.pending,
+                 local: state.local, localState: null,
+                 indent: state.indent && state.indent.slice(0)};
+        if (state.localState)
+          s.localState = CodeMirror.copyState(state.local.mode, state.localState);
+        if (state.stack)
+          s.stack = state.stack.slice(0);
+        for (var pers = state.persistentStates; pers; pers = pers.next)
+          s.persistentStates = {mode: pers.mode,
+                                spec: pers.spec,
+                                state: pers.state == state.localState ? s.localState : CodeMirror.copyState(pers.mode, pers.state),
+                                next: s.persistentStates};
+        return s;
+      },
+      token: tokenFunction(states_, config),
+      innerMode: function(state) { return state.local && {mode: state.local.mode, state: state.localState}; },
+      indent: indentFunction(states_, meta)
+    };
+    if (meta) for (var prop in meta) if (meta.hasOwnProperty(prop))
+      mode[prop] = meta[prop];
+    return mode;
+  };
+
+  function ensureState(states, name) {
+    if (!states.hasOwnProperty(name))
+      throw new Error("Undefined state " + name + "in simple mode");
+  }
+
+  function toRegex(val, caret) {
+    if (!val) return /(?:)/;
+    var flags = "";
+    if (val instanceof RegExp) {
+      if (val.ignoreCase) flags = "i";
+      val = val.source;
+    } else {
+      val = String(val);
+    }
+    return new RegExp((caret === false ? "" : "^") + "(?:" + val + ")", flags);
+  }
+
+  function asToken(val) {
+    if (!val) return null;
+    if (typeof val == "string") return val.replace(/\./g, " ");
+    var result = [];
+    for (var i = 0; i < val.length; i++)
+      result.push(val[i] && val[i].replace(/\./g, " "));
+    return result;
+  }
+
+  function Rule(data, states) {
+    if (data.next || data.push) ensureState(states, data.next || data.push);
+    this.regex = toRegex(data.regex);
+    this.token = asToken(data.token);
+    this.data = data;
+  }
+
+  function tokenFunction(states, config) {
+    return function(stream, state) {
+      if (state.pending) {
+        var pend = state.pending.shift();
+        if (state.pending.length == 0) state.pending = null;
+        stream.pos += pend.text.length;
+        return pend.token;
+      }
+
+      if (state.local) {
+        if (state.local.end && stream.match(state.local.end)) {
+          var tok = state.local.endToken || null;
+          state.local = state.localState = null;
+          return tok;
+        } else {
+          var tok = state.local.mode.token(stream, state.localState), m;
+          if (state.local.endScan && (m = state.local.endScan.exec(stream.current())))
+            stream.pos = stream.start + m.index;
+          return tok;
+        }
+      }
+
+      var curState = states[state.state];
+      for (var i = 0; i < curState.length; i++) {
+        var rule = curState[i];
+        var matches = (!rule.data.sol || stream.sol()) && stream.match(rule.regex);
+        if (matches) {
+          if (rule.data.next) {
+            state.state = rule.data.next;
+          } else if (rule.data.push) {
+            (state.stack || (state.stack = [])).push(state.state);
+            state.state = rule.data.push;
+          } else if (rule.data.pop && state.stack && state.stack.length) {
+            state.state = state.stack.pop();
+          }
+
+          if (rule.data.mode)
+            enterLocalMode(config, state, rule.data.mode, rule.token);
+          if (rule.data.indent)
+            state.indent.push(stream.indentation() + config.indentUnit);
+          if (rule.data.dedent)
+            state.indent.pop();
+          if (matches.length > 2) {
+            state.pending = [];
+            for (var j = 2; j < matches.length; j++)
+              if (matches[j])
+                state.pending.push({text: matches[j], token: rule.token[j - 1]});
+            stream.backUp(matches[0].length - (matches[1] ? matches[1].length : 0));
+            return rule.token[0];
+          } else if (rule.token && rule.token.join) {
+            return rule.token[0];
+          } else {
+            return rule.token;
+          }
+        }
+      }
+      stream.next();
+      return null;
+    };
+  }
+
+  function cmp(a, b) {
+    if (a === b) return true;
+    if (!a || typeof a != "object" || !b || typeof b != "object") return false;
+    var props = 0;
+    for (var prop in a) if (a.hasOwnProperty(prop)) {
+      if (!b.hasOwnProperty(prop) || !cmp(a[prop], b[prop])) return false;
+      props++;
+    }
+    for (var prop in b) if (b.hasOwnProperty(prop)) props--;
+    return props == 0;
+  }
+
+  function enterLocalMode(config, state, spec, token) {
+    var pers;
+    if (spec.persistent) for (var p = state.persistentStates; p && !pers; p = p.next)
+      if (spec.spec ? cmp(spec.spec, p.spec) : spec.mode == p.mode) pers = p;
+    var mode = pers ? pers.mode : spec.mode || CodeMirror.getMode(config, spec.spec);
+    var lState = pers ? pers.state : CodeMirror.startState(mode);
+    if (spec.persistent && !pers)
+      state.persistentStates = {mode: mode, spec: spec.spec, state: lState, next: state.persistentStates};
+
+    state.localState = lState;
+    state.local = {mode: mode,
+                   end: spec.end && toRegex(spec.end),
+                   endScan: spec.end && spec.forceEnd !== false && toRegex(spec.end, false),
+                   endToken: token && token.join ? token[token.length - 1] : token};
+  }
+
+  function indexOf(val, arr) {
+    for (var i = 0; i < arr.length; i++) if (arr[i] === val) return true;
+  }
+
+  function indentFunction(states, meta) {
+    return function(state, textAfter, line) {
+      if (state.local && state.local.mode.indent)
+        return state.local.mode.indent(state.localState, textAfter, line);
+      if (state.indent == null || state.local || meta.dontIndentStates && indexOf(state.state, meta.dontIndentStates) > -1)
+        return CodeMirror.Pass;
+
+      var pos = state.indent.length - 1, rules = states[state.state];
+      scan: for (;;) {
+        for (var i = 0; i < rules.length; i++) {
+          var rule = rules[i];
+          if (rule.data.dedent && rule.data.dedentIfLineStart !== false) {
+            var m = rule.regex.exec(textAfter);
+            if (m && m[0]) {
+              pos--;
+              if (rule.next || rule.push) rules = states[rule.next || rule.push];
+              textAfter = textAfter.slice(m[0].length);
+              continue scan;
+            }
+          }
+        }
+        break;
+      }
+      return pos < 0 ? 0 : state.indent[pos];
+    };
+  }
+});
+},{"codemirror":53}],33:[function(require,module,exports){
+/*
+
+	ractive-transitions-fade
+	========================
+
+	Version 0.1.2.
+
+	This plugin does exactly what it says on the tin - it fades elements
+	in and out, using CSS transitions. You can control the following
+	properties: `duration`, `delay` and `easing` (which must be a valid
+	CSS transition timing function, and defaults to `linear`).
+
+	The `duration` property is in milliseconds, and defaults to 300 (you
+	can also use `fast` or `slow` instead of a millisecond value, which
+	equate to 200 and 600 respectively). As a shorthand, you can use
+	`intro='fade:500'` instead of `intro='fade:{"duration":500}'` - this
+	applies to many other transition plugins as well.
+
+	If an element has an opacity other than 1 (whether directly, because
+	of an inline style, or indirectly because of a CSS rule), it will be
+	respected. You can override the target opacity of an intro fade by
+	specifying a `to` property between 0 and 1.
+
+	==========================
+
+	Troubleshooting: If you're using a module system in your app (AMD or
+	something more nodey) then you may need to change the paths below,
+	where it says `require( 'Ractive' )` or `define([ 'Ractive' ]...)`.
+
+	==========================
+
+	Usage: Include this file on your page below Ractive, e.g:
+
+	    <script src='lib/ractive.js'></script>
+	    <script src='lib/ractive-transitions-fade.js'></script>
+
+	Or, if you're using a module loader, require this module:
+
+	    // requiring the plugin will 'activate' it - no need to use
+	    // the return value
+	    require( 'ractive-transitions-fade' );
+
+	Add a fade transition like so:
+
+	    <div intro='fade'>this will fade in</div>
+
+*/
+
+(function ( global, factory ) {
+
+	'use strict';
+
+	// Common JS (i.e. browserify) environment
+	if ( typeof module !== 'undefined' && module.exports && typeof require === 'function' ) {
+		factory( require( 'ractive' ) );
+	}
+
+	// AMD?
+	else if ( typeof define === 'function' && define.amd ) {
+		define([ 'ractive' ], factory );
+	}
+
+	// browser global
+	else if ( global.Ractive ) {
+		factory( global.Ractive );
+	}
+
+	else {
+		throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fade plugin' );
+	}
+
+}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
+
+	'use strict';
+
+	var fade, defaults;
+
+	defaults = {
+		delay: 0,
+		duration: 300,
+		easing: 'linear'
+	};
+
+	fade = function ( t, params ) {
+		var targetOpacity;
+
+		params = t.processParams( params, defaults );
+
+		if ( t.isIntro ) {
+			targetOpacity = t.getStyle( 'opacity' );
+			t.setStyle( 'opacity', 0 );
+		} else {
+			targetOpacity = 0;
+		}
+
+		t.animateStyle( 'opacity', targetOpacity, params ).then( t.complete );
+	};
+
+	Ractive.transitions.fade = fade;
+
+}));
+},{"ractive":100}],34:[function(require,module,exports){
+/*
+
+	ractive-transitions-fly
+	=======================
+
+	Version 0.1.3.
+
+	This transition uses CSS transforms to 'fly' elements to their
+	natural location on the page, fading in from transparent as they go.
+	By default, they will fly in from left.
+
+	==========================
+
+	Troubleshooting: If you're using a module system in your app (AMD or
+	something more nodey) then you may need to change the paths below,
+	where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
+
+	==========================
+
+	Usage: Include this file on your page below Ractive, e.g:
+
+	    <script src='lib/ractive.js'></script>
+	    <script src='lib/ractive-transitions-fly.js'></script>
+
+	Or, if you're using a module loader, require this module:
+
+	    // requiring the plugin will 'activate' it - no need to use
+	    // the return value
+	    require( 'ractive-transitions-fly' );
+
+	You can adjust the following parameters: `x`, `y`, `duration`,
+	`delay` and `easing`.
+
+*/
+
+(function ( global, factory ) {
+
+	'use strict';
+
+	// Common JS (i.e. browserify) environment
+	if ( typeof module !== 'undefined' && module.exports && typeof require === 'function' ) {
+		factory( require( 'ractive' ) );
+	}
+
+	// AMD?
+	else if ( typeof define === 'function' && define.amd ) {
+		define([ 'ractive' ], factory );
+	}
+
+	// browser global
+	else if ( global.Ractive ) {
+		factory( global.Ractive );
+	}
+
+	else {
+		throw new Error( 'Could not find Ractive! It must be loaded before the ractive-transitions-fly plugin' );
+	}
+
+}( typeof window !== 'undefined' ? window : this, function ( Ractive ) {
+
+	'use strict';
+
+	var fly, addPx, defaults;
+
+	defaults = {
+		duration: 400,
+		easing: 'easeOut',
+		opacity: 0,
+		x: -500,
+		y: 0
+	};
+
+	addPx = function ( num ) {
+		if ( num === 0 || typeof num === 'string' ) {
+			return num;
+		}
+
+		return num + 'px';
+	};
+
+	fly = function ( t, params ) {
+		var x, y, offscreen, target;
+
+		params = t.processParams( params, defaults );
+
+		x = addPx( params.x );
+		y = addPx( params.y );
+
+		offscreen = {
+			transform: 'translate(' + x + ',' + y + ')',
+			opacity: 0
+		};
+
+		if ( t.isIntro ) {
+			// animate to the current style
+			target = t.getStyle([ 'opacity', 'transform' ]);
+
+			// set offscreen style
+			t.setStyle( offscreen );
+		} else {
+			target = offscreen;
+		}
+
+		t.animateStyle( target, params ).then( t.complete );
+	};
+
+	Ractive.transitions.fly = fly;
+
+}));
+},{"ractive":100}],35:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2224,47 +6788,46 @@ module.exports = { v:1,
                               e:"button",
                               v:{ click:"save-tunebook" },
                               f:[ "Save" ] } ] } ] } ] } ] } ] } ] } ] }
-},{}],10:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    Sortable = require('./../../engine/vendor.js').sortable,
-    siz = require('./../../engine/vendor.js').sizzle;
+var
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    
+    Sortable = require('../engine/vendor').sortable,
+    siz = require('../engine/vendor').sizzle;
+
 
 var template = require("./tunebook_edit.html");
 
-module.exports = function () {
+module.exports = function() {
 
-    var onInit = function onInit() {
+    var onInit = function() {
 
         var ractive = this;
 
         var selectedTuneCount = 0;
 
-        var getSelectedTunes = function getSelectedTunes() {
-            return siz(".tunebook-tunes .tune-list-item").map(function (item) {
-                return JSON.parse(item.attributes.tuneData.value);
-            });
-        };
+        var getSelectedTunes = () => siz(".tunebook-tunes .tune-list-item").map((item) => JSON.parse(item.attributes.tuneData.value));
 
         ractive.set("selectedTuneCount", selectedTuneCount);
         ractive.set("tunebookName", "Untitled Tunebook");
 
         ractive.on({
-            "navigate_back": function navigate_back(event) {
-                ractive.fire("navigate_to_page", "/");
+            "navigate_back": function(event) {
+                ractive.fire("navigate_to_page","/");
             },
-            "save-tunebook": function saveTunebook(event) {
+            "save-tunebook": (event) => {
                 fetch('/api/tunebook/add', {
-                    method: 'post',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: ractive.get("tunebookName"),
-                        tunes: getSelectedTunes()
+                  method: 'post',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    name: ractive.get("tunebookName"),
+                    tunes: getSelectedTunes()                
                     })
                 });
 
@@ -2272,47 +6835,50 @@ module.exports = function () {
             }
         });
 
-        fetch("/api/tunes").then(function (response) {
-            return response.json();
-        }).then(function (data) {
+        fetch("/api/tunes")
+        .then(function(response) {
+            return response.json()
+        }).then(function(data) {
             ractive.set("publicTuneNames", data);
-        }).catch(function (ex) {
-            console.log('parsing failed', ex);
+        }).catch(function(ex) {
+            console.log('parsing failed', ex)
         });
-    };
 
-    var onRender = function onRender() {
-        Sortable.create(siz('#allTunes')[0], {
+    }
+
+    var onRender = function() {
+        Sortable.create(siz('#allTunes')[0], { 
             group: "omega",
-            sort: false,
+            sort: false,        
             animation: 150
-        });
+        }); 
 
         Sortable.create(siz('#selectedTunes')[0], {
             group: "omega",
             animation: 150,
-            onAdd: function onAdd(evt) {
+            onAdd: (evt) => {
                 selectedTuneCount++;
                 ractive.set("selectedTuneCount", selectedTuneCount);
             },
-            onRemove: function onRemove(evt) {
+            onRemove: (evt) => {
                 selectedTuneCount--;
                 ractive.set("selectedTuneCount", selectedTuneCount);
             }
         });
-    };
+    }
+
 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
+      isolated: false,
+      template: template,
+      oninit: onInit,
+      onrender: onRender
+    }); 
 
     return ractive;
-};
 
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./tunebook_edit.html":9}],11:[function(require,module,exports){
+};
+},{"../engine/vendor":25,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./tunebook_edit.html":35}],37:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2542,30 +7108,36 @@ module.exports = { v:1,
                   e:"div",
                   a:{ id:"canvas" },
                   f:[  ] } ] } ] } ] } ] }
-},{}],12:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    Sortable = require('./../../engine/vendor.js').sortable,
-    siz = require('./../../engine/vendor.js').sizzle,
-    queryString = require('./../../engine/vendor.js').queryString,
-    _ = require('./../../engine/vendor.js').lodash,
-    engine = require('./../../engine/engine'),
+var
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    
+    Sortable = require('../engine/vendor').sortable,
+    siz = require('../engine/vendor').sizzle,
+
+    queryString = require('../engine/vendor').queryString,
+    _ = require('../engine/vendor').lodash,
+
+    engine = require('../engine/engine'),
+
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
     ABCLayout = engine.layout,
     AudioRenderer = engine.audioRender,
+
     AudioEngine = engine.audio;
 
 var setListIdRegex = /^set_(.*)_list$/;
 
 var template = require("./tunebook_view.html");
 
-module.exports = function () {
+module.exports = function() {
 
-    var onInit = function onInit() {
+    var onInit = function() {
 
         var ractive = this;
 
@@ -2575,32 +7147,34 @@ module.exports = function () {
         ractive.set("selectedItem", "");
         var tunebookData = {};
 
-        if (params.tunebook != undefined) {
-            fetch("/api/tunebook/" + params.tunebook).then(function (response) {
-                return response.json();
-            }).then(function (data) {
+        if(params.tunebook != undefined) {
+            fetch("/api/tunebook/" + params.tunebook)
+            .then(function(response) {
+                return response.json()
+            }).then(function(data) {
                 tunebookData = data;
-                ractive.set("tunebook", data);
-            }).catch(function (ex) {
-                console.log('parsing failed', ex);
+                ractive.set("tunebook", data); 
+            }).catch(function(ex) {
+                console.log('parsing failed', ex)
             });
         } else {
             //error
-        }
+        }        
 
-        ractive.on({
-            "navigate_back": function navigate_back(event) {
+        ractive.on({ 
+            "navigate_back": function(event) {
                 ractive.fire("navigate_to_page", "/");
             },
-            "tune_item_click": function tune_item_click(event) {
+            "tune_item_click": function(event) {
 
                 var tuneId = event.node.attributes.tuneId.value;
 
                 ractive.set("selectedItem", tuneId);
 
-                fetch("/api/tune/" + tuneId).then(function (response) {
-                    return response.json();
-                }).then(function (res) {
+                fetch("/api/tune/" + tuneId)
+                .then(function(response) {
+                    return response.json()
+                }).then(function(res) {
 
                     var parser = ABCParser(),
                         layout = ABCLayout(),
@@ -2609,24 +7183,25 @@ module.exports = function () {
                     ractive.set("tune", res);
 
                     var diffed = diff({
-                        newValue: res.raw,
-                        oldValue: ""
-                    });
+                            newValue: res.raw,
+                            oldValue: ""
+                        });
                     var parsed = diffed.map(parser);
                     var done = parsed.reduce(layout, 0);
 
                     renderer(done);
                     console.log("It WORKED!!", res);
+
                 });
             },
-            "set_item_click": function set_item_click(event) {
+            "set_item_click": function(event) {
 
                 var setId = event.node.attributes.setId.value;
                 ractive.set("selectedItem", setId);
 
                 siz('#canvas')[0].innerHTML = "<h3>YAY A SET</h3>";
             },
-            "add-new-set": function addNewSet() {
+            "add-new-set": function() {
 
                 var newId = _.uniqueId("set_");
 
@@ -2636,15 +7211,15 @@ module.exports = function () {
                     _id: newId,
                     tunes: []
                 });
-
-                Sortable.create(siz('#' + newId + "_list")[0], {
+                
+                Sortable.create(siz('#' + newId + "_list")[0], { 
                     animation: 150,
                     group: "omega",
                     handle: ".drag-handle",
                     onSort: updateListOrderFunc
-                });
+                });              
             },
-            "convert-to-set": function convertToSet(event) {
+            "convert-to-set": function(event) {
 
                 var arrayId = event.node.attributes.arrayId.value;
 
@@ -2659,70 +7234,70 @@ module.exports = function () {
                     tunes: [oldTune]
                 });
 
-                Sortable.create(siz('#' + newId + "_list")[0], {
+                Sortable.create(siz('#' + newId + "_list")[0], { 
                     animation: 150,
                     group: "omega",
-                    handle: ".drag-handle"
-                });
+                    handle: ".drag-handle",
+                    //onSort: updateListOrderFunc
+                });  
             }
-        });
-    };
+        });         
+    }
 
-    //onSort: updateListOrderFunc
-    var onRender = function onRender() {
+    var onRender = function() {
 
         var ractive = this;
 
-        var updateListOrderFunc = function updateListOrderFunc(evt) {
+        var updateListOrderFunc = function(evt) {
             console.log(evt);
             var movedTune = null;
 
-            if (evt.from.id === "tunebookTunes") {
+            if(evt.from.id === "tunebookTunes") {
                 movedTune = tunebookData.tunes.splice(evt.oldIndex, 1);
             } else {
                 var regexTestResult = setListIdRegex.exec(evt.from.id);
-                if (regexTestResult !== null) {
-                    var currentSet = _.find(tunebookData.tunes, function (tuneItem) {
-                        return tuneItem.type === "set" && tuneItem._id === "set_" + regexTestResult[1];
+                if(regexTestResult !== null) {
+                    var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
+                         return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
                     });
                     movedTune = currentSet.tunes.splice(evt.oldIndex, 1);
                 }
             }
 
-            if (evt.target.id === "tunebookTunes") {
+            if(evt.target.id === "tunebookTunes") {
                 tunebookData.tunes.splice(evt.newIndex, 0, movedTune[0]);
             } else {
                 var regexTestResult = setListIdRegex.exec(evt.target.id);
-                if (regexTestResult !== null) {
-                    var currentSet = _.find(tunebookData.tunes, function (tuneItem) {
-                        return tuneItem.type === "set" && tuneItem._id === "set_" + regexTestResult[1];
+                if(regexTestResult !== null) {
+                    var currentSet = _.find(tunebookData.tunes, function(tuneItem) {
+                         return tuneItem.type === "set" && tuneItem._id === ("set_" + regexTestResult[1])
                     });
                     currentSet.tunes.splice(evt.newIndex, 0, movedTune[0]);
                 }
-            }
+            } 
 
-            ractive.set("tunebook", tunebookData);
-        };
+            ractive.set("tunebook", tunebookData); 
+        }
 
-        Sortable.create(siz('#tunebookTunes')[0], {
+        Sortable.create(siz('#tunebookTunes')[0], { 
             animation: 150,
             group: "omega",
             handle: ".drag-handle",
             onSort: updateListOrderFunc
         });
-    };
+    }
+
 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
+      isolated: false,
+      template: template,
+      oninit: onInit,
+      onrender: onRender
+    }); 
 
     return ractive;
 };
-
-},{"./../../engine/engine":27,"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./tunebook_view.html":11}],13:[function(require,module,exports){
+},{"../engine/engine":11,"../engine/vendor":25,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./tunebook_view.html":37}],39:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2731,9 +7306,9 @@ module.exports = { v:1,
       f:[ { t:7,
           e:"h1",
           f:[ "Tutorial 1" ] } ] } ] }
-},{}],14:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],15:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
+arguments[4][39][0].apply(exports,arguments)
+},{"dup":39}],41:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -2797,91 +7372,93 @@ module.exports = { v:1,
                 a:[ { delay:200 } ] },
               f:[ { t:7,
                   e:"h1" } ] } ] } ] } ] }
-},{}],16:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
+var
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
 
-
-//well these work... but are they useful?
-tut01 = require('./tut/tut01.html'),
+    //well these work... but are they useful?
+    tut01 = require('./tut/tut01.html'),
     tut02 = require('./tut/tut02.html');
+
 
 var template = require("./tutorial.html");
 
-module.exports = function () {
+module.exports = function() {
 
-    var onInit = function onInit() {
+    var onInit = function() {
 
         var ractive = this;
 
         ractive.on({
-            'new_tune': function new_tune(event) {
+            'new_tune': function(event) {
                 page("/editor");
             },
-            "navigate_back": function navigate_back(event) {
+            "navigate_back": function(event) {
                 window.history.back();
             },
-            "goto_p1": function goto_p1(event) {
+            "goto_p1": (event) => {
                 console.log("p1");
             },
-            "goto_p2": function goto_p2(event) {
+            "goto_p2": (event) => {
                 console.log("p2");
             }
         });
-    };
-
+    }
+ 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit
-    });
+      isolated: false,
+      template: template,
+      oninit: onInit
+    }); 
 
     return ractive;
-};
-
-},{"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./tut/tut01.html":13,"./tut/tut02.html":14,"./tutorial.html":15}],17:[function(require,module,exports){
+}; 
+},{"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./tut/tut01.html":39,"./tut/tut02.html":40,"./tutorial.html":41}],43:[function(require,module,exports){
 'use strict';
 
-var $ = require('./../../engine/vendor.js').jquery;
+var $ = require("../engine/vendor").jquery;
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    toastr = require('./../../engine/vendor.js').toastr;
+var
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    toastr = require('../engine/vendor').toastr;
 
-module.exports = function (ractive, context, page, urlcontext, user) {
+
+module.exports = function(ractive, context, page, urlcontext, user) {
 
     ractive.on({
-        'new_tune': function new_tune(event) {
+        'new_tune': function(event) {
             page("/editor");
         },
-        "navigate_back": function navigate_back(event) {
+        "navigate_back": function(event) {
             page.show("/");
         }
     });
 
-    ractive.on('view_tune', function (event) {
+    ractive.on('view_tune', function(event) {
         var tuneId = event.node.attributes["tune-id"].value;
         console.log(tuneId);
         page("/editor?tuneid=" + tuneId);
     });
 
-    $.getJSON("/api/tunes").then(function (data) {
-        ractive.set("tuneNames", data);
-    });
+    $.getJSON("/api/tunes")
+        .then(function(data) {
+            ractive.set("tuneNames", data);
+        });
 
-    ractive.set("filterTuneNames", function (tuneNames, filter) {
+    ractive.set("filterTuneNames", function(tuneNames, filter) {
         if (filter.length <= 0) return tuneNames;
-        return tuneNames.filter(function (a) {
+        return tuneNames.filter(function(a) {
             return a.name.toLowerCase().lastIndexOf(filter.toLowerCase(), 0) === 0;
         });
     });
 
     // toastr.success("YAY");
 };
-
-},{"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142}],18:[function(require,module,exports){
+},{"../engine/vendor":25,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34}],44:[function(require,module,exports){
 module.exports = { v:1,
   t:[ { t:7,
       e:"section",
@@ -3093,31 +7670,37 @@ module.exports = { v:1,
                         { t:7,
                           e:"i",
                           a:{ "class":"fa fa-cog fa-spin" } } ] } ] } ] } ] } ] } ] }
-},{}],19:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 'use strict';
 
-var fade = require('./../../scripts/transitions/ractive.transitions.fade'),
-    fly = require('./../../scripts/transitions/ractive.transitions.fly'),
-    screenfull = require('./../../engine/vendor.js').screenfull,
-    queryString = require('./../../engine/vendor.js').queryString,
-    Drop = require('./../../engine/vendor.js').drop,
-    engine = require('./../../engine/engine'),
+var 
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+
+    screenfull = require('../engine/vendor').screenfull,
+    queryString = require('../engine/vendor').queryString,
+    Drop = require('../engine/vendor').drop,
+
+    engine = require('../engine/engine'),
+
     ABCParser = engine.parser,
     ABCRenderer = engine.render,
     diff = engine.diff,
     ABCLayout = engine.layout,
-    AudioRenderer = require('./../../engine/audio_render'),
-    ABCRenderToDOM = require('./../../engine/vdom2dom'),
-    AudioEngine = require('./../../engine/audio/audio'),
-    TunePlayer = require('./../../engine/audio/myplayer');
+    AudioRenderer = require('../engine/audio_render'),
+    ABCRenderToDOM = require('../engine/vdom2dom'),
+
+    AudioEngine = require('../engine/audio/audio'),
+
+    TunePlayer = require('../engine/audio/myplayer');
 
 var template = require("./viewer.html");
 
-module.exports = function (r) {
+module.exports = function(r) {
 
     var downloadOptionsTether = null;
 
-    var onInit = function onInit() {
+    var onInit = function() {
 
         var ractive = this;
 
@@ -3137,74 +7720,73 @@ module.exports = function (r) {
         ractive.set("downloadOptionsOpen", false);
 
         ractive.on({
-            show_fullscreen: function show_fullscreen() {
+            show_fullscreen() {
                 var elem = document.getElementById('fullscreenZone');
                 if (screenfull.enabled) {
                     screenfull.request(elem);
                 }
             },
-            publish_tune: function publish_tune() {
+            publish_tune() {
                 $.ajax({
                     type: "POST",
                     url: "/api/tunes/publish",
                     data: {
                         tuneId: ractive.get("tune")._id
                     }
-                }).then(function () {
+                }).then(function() {
                     ractive.fire("tune_publish_success");
                     toastr.success("Tune published", "Success!");
                 });
             },
-            end_of_tune: function end_of_tune() {
+            end_of_tune() {            
                 ractive.set("playing", false);
+            },    
+            "navigate_back": function() {
+                window.history.back();                
             },
-
-            "navigate_back": function navigate_back() {
-                window.history.back();
-            },
-            "edit_tune": function edit_tune() {
-                if (ractive.get("playing")) ractive.fire("toggle-stop-tune");
+            "edit_tune": () => { 
+                if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
                 ractive.fire("navigate_to_page", "/editor?tuneid=" + ractive.get('tune')._id);
             },
-            "toggle-stop-tune": function toggleStopTune() {
+            "toggle-stop-tune": () => {
                 tunePlayer.stopTune();
                 ractive.set("playing", false);
             },
-            "play-tune-end": function playTuneEnd() {
-                if (ractive.get("repeatingTune")) {
+            "play-tune-end": function() {
+                if(ractive.get("repeatingTune")) {
                     tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
                 } else {
                     ractive.set("playing", false);
-                }
+                }                
             },
-            "toggle-play-tune": function togglePlayTune() {
+            "toggle-play-tune": () => {
 
-                if (!ractive.get("playbackReady")) return;
+                if(!ractive.get("playbackReady")) return;
 
                 tunePlayer.playTune(AudioRenderer(doneThing), ractive.get("playTempo"));
                 ractive.set("playing", true);
             },
-            "toggle-repeat-tune": function toggleRepeatTune() {
+            "toggle-repeat-tune": function() {
                 ractive.set("repeatingTune", !ractive.get("repeatingTune"));
             },
-            "play-tune-ready": function playTuneReady() {
-                ractive.set("playbackReady", true);
+            "play-tune-ready": function() {
+                ractive.set("playbackReady", true)
             },
-            "download_tune_options": function download_tune_options() {
+            "download_tune_options": function() {
                 ractive.set("downloadOptionsOpen", true);
                 downloadOptionsTether.position();
                 return false;
             },
-            "mouse-over-window": function mouseOverWindow() {
+            "mouse-over-window": function() {
                 ractive.set("downloadOptionsOpen", false);
             },
-            "download-abc": function downloadAbc() {
+            "download-abc": function() {
                 ractive.set("downloadOptionsOpen", false);
             },
-            "download-midi": function downloadMidi() {
+            "download-midi": function() {
                 ractive.set("downloadOptionsOpen", false);
             },
-            "download-pdf": function downloadPdf() {
+            "download-pdf": function() {
                 window.location.href = "/pdf?tune=" + encodeURIComponent(ractive.get("tune").raw);
                 ractive.set("downloadOptionsOpen", false);
             }
@@ -3214,9 +7796,10 @@ module.exports = function (r) {
 
         if (parameters.tuneid) {
 
-            fetch("/api/tune/" + parameters.tuneid).then(function (response) {
-                return response.json();
-            }).then(function (res) {
+            fetch("/api/tune/" + parameters.tuneid)
+            .then(function(response) {
+                return response.json()
+            }).then(function(res) {
 
                 ractive.set("tune", res);
 
@@ -3234,4078 +7817,36 @@ module.exports = function (r) {
             });
         }
 
-        if (parameters.transpose) {
+        if(parameters.transpose) {
             ractive.fire("transpose_change", parseInt(parameters.transpose));
         }
 
-        window.addEventListener("popstate", function () {
-            if (ractive.get("playing")) ractive.fire("toggle-stop-tune");
+        window.addEventListener("popstate", function() {
+            if(ractive.get("playing"))ractive.fire("toggle-stop-tune");
         });
-    };
+    }
 
-    var onRender = function onRender() {
+    var onRender = function() {
         downloadOptionsTether = new Drop({
-            target: document.querySelector('#download-button'),
-            element: document.querySelector('.download.popover-menu'),
-            attachment: 'top center',
-            targetAttachment: 'bottom center',
-            offset: "0px 35px"
+          target: document.querySelector('#download-button'),
+          element: document.querySelector('.download.popover-menu'),
+          attachment: 'top center',
+          targetAttachment: 'bottom center',
+          offset: "0px 35px"
         });
-    };
+    }
 
     var ractive = Ractive.extend({
-        isolated: false,
-        template: template,
-        oninit: onInit,
-        onrender: onRender
-    });
+      isolated: false,
+      template: template,
+      oninit: onInit,
+      onrender: onRender
+    }); 
 
     return ractive;
-};
-
-},{"./../../engine/audio/audio":20,"./../../engine/audio/myplayer":22,"./../../engine/audio_render":23,"./../../engine/engine":27,"./../../engine/vdom2dom":40,"./../../engine/vendor.js":41,"./../../scripts/transitions/ractive.transitions.fade":141,"./../../scripts/transitions/ractive.transitions.fly":142,"./viewer.html":18}],20:[function(require,module,exports){
-'use strict';
-
-var base64 = require('base64-js');
-var _ = require('lodash');
-
-var midiGen = require('./midi');
-
-var dispatcher = require('../dispatcher');
-
-var context = new AudioContext();
-var source = 0;
-var audioBufferSize = 8192;
-var waveBuffer;
-var midiFileBuffer;
-var read_wave_bytes = 0;
-var song = 0;
-var midijs_url = "";
-
-var num_missing = 0;
-var midiFileArray;
-var stream;
-var rval;
-
-function get_next_wave(ev) {
-    // collect new wave data from libtimidity into waveBuffer
-    read_wave_bytes = Module.ccall('mid_song_read_wave', 'number', ['number', 'number', 'number', 'number'], [song, waveBuffer, audioBufferSize * 2, false]);
-    if (0 == read_wave_bytes) {
-        dispatcher.send("end_of_tune");
-        stop();
-        return;
-    }
-
-    var max_i16 = Math.pow(2, 15);
-    for (var i = 0; i < audioBufferSize; i++) {
-        if (i < read_wave_bytes) {
-            // convert PCM data from C sint16 to JavaScript number (range -1.0 .. +1.0)
-            ev.outputBuffer.getChannelData(0)[i] = Module.getValue(waveBuffer + 2 * i, 'i16') / max_i16;
-        } else {
-
-            ev.outputBuffer.getChannelData(0)[i] = 0; // fill end of buffer with zeroes, may happen at the end of a piece
-        }
-    }
-}
-
-function loadMissingPatch(url, path, filename) {
-
-    var request = new XMLHttpRequest();
-    request.open('GET', path + filename, true);
-    request.responseType = 'arraybuffer';
-
-    request.onerror = function () {
-        // MIDIjs.message_callback("Error: Cannot retrieve patch file " + path + filename);
-    };
-
-    request.onload = function () {
-        if (200 != request.status) {
-            //MIDIjs.message_callback("Error: Cannot retrieve patch filee " + path + filename + " : " + request.status);
-            return;
-        }
-
-        num_missing--;
-        FS.createDataFile('pat/', filename, new Int8Array(request.response), true, true);
-        //MIDIjs.message_callback("Loading instruments: " + num_missing);
-        if (num_missing == 0) {
-            stream = Module.ccall('mid_istream_open_mem', 'number', ['number', 'number', 'number'], [midiFileBuffer, midiFileArray.length, false]);
-            var MID_AUDIO_S16LSB = 0x8010; // signed 16-bit samples
-            var options = Module.ccall('mid_create_options', 'number', ['number', 'number', 'number', 'number'], [context.sampleRate, MID_AUDIO_S16LSB, 1, audioBufferSize * 2]);
-            song = Module.ccall('mid_song_load', 'number', ['number', 'number'], [stream, options]);
-            rval = Module.ccall('mid_istream_close', 'number', ['number'], [stream]);
-            Module.ccall('mid_song_start', 'void', ['number'], [song]);
-
-            // create script Processor with buffer of size audioBufferSize and a single output channel
-            source = context.createScriptProcessor(audioBufferSize, 0, 1);
-            waveBuffer = Module._malloc(audioBufferSize * 2);
-            source.onaudioprocess = get_next_wave; // add eventhandler for next buffer full of audio data
-            source.connect(context.destination); // connect the source to the context's destination (the speakers)
-        }
-    };
-    request.send();
-}
-
-var play = function play(base64) {
-
-    midiFileArray = base64;
-    midiFileBuffer = Module._malloc(midiFileArray.length);
-    Module.writeArrayToMemory(midiFileArray, midiFileBuffer);
-
-    rval = Module.ccall('mid_init', 'number', [], []);
-    stream = Module.ccall('mid_istream_open_mem', 'number', ['number', 'number', 'number'], [midiFileBuffer, midiFileArray.length, false]);
-    var MID_AUDIO_S16LSB = 0x8010; // signed 16-bit samples
-    var options = Module.ccall('mid_create_options', 'number', ['number', 'number', 'number', 'number'], [context.sampleRate, MID_AUDIO_S16LSB, 1, audioBufferSize * 2]);
-    song = Module.ccall('mid_song_load', 'number', ['number', 'number'], [stream, options]);
-    rval = Module.ccall('mid_istream_close', 'number', ['number'], [stream]);
-
-    num_missing = Module.ccall('mid_song_get_num_missing_instruments', 'number', ['number'], [song]);
-    if (0 < num_missing) {
-        for (var i = 0; i < num_missing; i++) {
-            var missingPatch = Module.ccall('mid_song_get_missing_instrument', 'string', ['number', 'number'], [song, i]);
-            loadMissingPatch("", "/pat/", missingPatch);
-        }
-    } else {
-        Module.ccall('mid_song_start', 'void', ['number'], [song]);
-        // create script Processor with auto buffer size and a single output channel
-        source = context.createScriptProcessor(audioBufferSize, 0, 1);
-        waveBuffer = Module._malloc(audioBufferSize * 2);
-        source.onaudioprocess = get_next_wave; // add eventhandler for next buffer full of audio data
-        source.connect(context.destination); // connect the source to the context's destination (the speakers)
-    }
-};
-
-var stop = function stop() {
-    if (source) {
-        // terminate playback
-        source.disconnect();
-
-        // hack: without this, Firfox 25 keeps firing the onaudioprocess callback
-        source.onaudioprocess = 0;
-
-        source = 0;
-
-        // free libtimitdiy ressources
-        Module._free(waveBuffer);
-        Module._free(midiFileBuffer);
-        Module.ccall('mid_song_free', 'void', ['number'], [song]);
-        song = 0;
-        Module.ccall('mid_exit', 'void', [], []);
-        source = 0;
-    }
-};
-
-var playTune = function playTune(tuneData) {
-    var noteEvents = [];
-    tuneData.forEach(function (note) {
-        noteEvents.push(midiGen.MidiEvent.noteOn({ pitch: note[0], duration: 16 }));
-        noteEvents.push(midiGen.MidiEvent.noteOff({ pitch: note[0], duration: note[1] }));
-    });
-
-    // Create a track that contains the events to play the notes above
-    var track = new midiGen.MidiTrack({ events: noteEvents });
-
-    var song = midiGen.MidiWriter({ tracks: [track] });
-
-    var convertDataURIToBinary = function convertDataURIToBinary(raw) {
-        var rawLength = raw.length;
-        var array = new Uint8Array(new ArrayBuffer(rawLength));
-
-        for (var i = 0; i < rawLength; i++) {
-            array[i] = raw.charCodeAt(i);
-        }
-        return array;
-    };
-
-    // Creates an object that contains the final MIDI track in base64 and some
-    // useful methods.
-    var song = convertDataURIToBinary(song);
-
-    play(song);
-};
-
-module.exports = {
-    play: playTune,
-    stop: stop
-};
-
-},{"../dispatcher":26,"./midi":21,"base64-js":44,"lodash":93}],21:[function(require,module,exports){
-"use strict";
-
-/*jslint es5: true, laxbreak: true */
-
-var AP = Array.prototype;
-
-// Create a mock console object to void undefined errors if the console object
-// is not defined.
-if (window !== undefined) {
-    if (!window.console || !console.firebug) {
-        var names = ["log", "debug", "info", "warn", "error"];
-
-        window.console = {};
-        for (var i = 0; i < names.length; ++i) {
-            window.console[names[i]] = function () {};
-        }
-    }
-}
-
-var DEFAULT_VOLUME = 90;
-var DEFAULT_DURATION = 128;
-var DEFAULT_CHANNEL = 0;
-
-// These are the different values that compose a MID header. They are already
-// expressed in their string form, so no useless conversion has to take place
-// since they are constants.
-
-var HDR_CHUNKID = "MThd";
-var HDR_CHUNK_SIZE = "\x00\x00\x00\x06"; // Header size for SMF
-var HDR_TYPE0 = "\x00\x00"; // Midi Type 0 id
-var HDR_TYPE1 = "\x00\x01"; // Midi Type 1 id
-var HDR_SPEED = "\x00\x80"; // Defaults to 128 ticks per beat
-
-// Midi event codes
-var EVT_NOTE_OFF = 0x8;
-var EVT_NOTE_ON = 0x9;
-var EVT_AFTER_TOUCH = 0xA;
-var EVT_CONTROLLER = 0xB;
-var EVT_PROGRAM_CHANGE = 0xC;
-var EVT_CHANNEL_AFTERTOUCH = 0xD;
-var EVT_PITCH_BEND = 0xE;
-
-var META_SEQUENCE = 0x00;
-var META_TEXT = 0x01;
-var META_COPYRIGHT = 0x02;
-var META_TRACK_NAME = 0x03;
-var META_INSTRUMENT = 0x04;
-var META_LYRIC = 0x05;
-var META_MARKER = 0x06;
-var META_CUE_POINT = 0x07;
-var META_CHANNEL_PREFIX = 0x20;
-var META_END_OF_TRACK = 0x2f;
-var META_TEMPO = 0x51;
-var META_SMPTE = 0x54;
-var META_TIME_SIG = 0x58;
-var META_KEY_SIG = 0x59;
-var META_SEQ_EVENT = 0x7f;
-
-// This is the conversion table from notes to its MIDI number. Provided for
-// convenience, it is not used in this code.
-var noteTable = { "G9": 0x7F, "Gb9": 0x7E, "F9": 0x7D, "E9": 0x7C, "Eb9": 0x7B,
-    "D9": 0x7A, "Db9": 0x79, "C9": 0x78, "B8": 0x77, "Bb8": 0x76, "A8": 0x75, "Ab8": 0x74,
-    "G8": 0x73, "Gb8": 0x72, "F8": 0x71, "E8": 0x70, "Eb8": 0x6F, "D8": 0x6E, "Db8": 0x6D,
-    "C8": 0x6C, "B7": 0x6B, "Bb7": 0x6A, "A7": 0x69, "Ab7": 0x68, "G7": 0x67, "Gb7": 0x66,
-    "F7": 0x65, "E7": 0x64, "Eb7": 0x63, "D7": 0x62, "Db7": 0x61, "C7": 0x60, "B6": 0x5F,
-    "Bb6": 0x5E, "A6": 0x5D, "Ab6": 0x5C, "G6": 0x5B, "Gb6": 0x5A, "F6": 0x59, "E6": 0x58,
-    "Eb6": 0x57, "D6": 0x56, "Db6": 0x55, "C6": 0x54, "B5": 0x53, "Bb5": 0x52, "A5": 0x51,
-    "Ab5": 0x50, "G5": 0x4F, "Gb5": 0x4E, "F5": 0x4D, "E5": 0x4C, "Eb5": 0x4B, "D5": 0x4A,
-    "Db5": 0x49, "C5": 0x48, "B4": 0x47, "Bb4": 0x46, "A4": 0x45, "Ab4": 0x44, "G4": 0x43,
-    "Gb4": 0x42, "F4": 0x41, "E4": 0x40, "Eb4": 0x3F, "D4": 0x3E, "Db4": 0x3D, "C4": 0x3C,
-    "B3": 0x3B, "Bb3": 0x3A, "A3": 0x39, "Ab3": 0x38, "G3": 0x37, "Gb3": 0x36, "F3": 0x35,
-    "E3": 0x34, "Eb3": 0x33, "D3": 0x32, "Db3": 0x31, "C3": 0x30, "B2": 0x2F, "Bb2": 0x2E,
-    "A2": 0x2D, "Ab2": 0x2C, "G2": 0x2B, "Gb2": 0x2A, "F2": 0x29, "E2": 0x28, "Eb2": 0x27,
-    "D2": 0x26, "Db2": 0x25, "C2": 0x24, "B1": 0x23, "Bb1": 0x22, "A1": 0x21, "Ab1": 0x20,
-    "G1": 0x1F, "Gb1": 0x1E, "F1": 0x1D, "E1": 0x1C, "Eb1": 0x1B, "D1": 0x1A, "Db1": 0x19,
-    "C1": 0x18, "B0": 0x17, "Bb0": 0x16, "A0": 0x15, "Ab0": 0x14, "G0": 0x13, "Gb0": 0x12,
-    "F0": 0x11, "E0": 0x10, "Eb0": 0x0F, "D0": 0x0E, "Db0": 0x0D, "C0": 0x0C };
-
-// Helper functions
-
-/*
- * Converts a string into an array of ASCII char codes for every character of
- * the string.
- *
- * @param str {String} String to be converted
- * @returns array with the charcode values of the string
- */
-function StringToNumArray(str) {
-    return AP.map.call(str, function (char) {
-        return char.charCodeAt(0);
-    });
-}
-
-/*
- * Converts an array of bytes to a string of hexadecimal characters. Prepares
- * it to be converted into a base64 string.
- *
- * @param byteArray {Array} array of bytes that will be converted to a string
- * @returns hexadecimal string
- */
-function codes2Str(byteArray) {
-    return String.fromCharCode.apply(null, byteArray);
-}
-
-/*
- * Converts a String of hexadecimal values to an array of bytes. It can also
- * add remaining "0" nibbles in order to have enough bytes in the array as the
- * |finalBytes| parameter.
- *
- * @param str {String} string of hexadecimal values e.g. "097B8A"
- * @param finalBytes {Integer} Optional. The desired number of bytes that the returned array should contain
- * @returns array of nibbles.
- */
-
-function str2Bytes(str, finalBytes) {
-    if (finalBytes) {
-        while (str.length / 2 < finalBytes) {
-            str = "0" + str;
-        }
-    }
-
-    var bytes = [];
-    for (var i = str.length - 1; i >= 0; i = i - 2) {
-        var chars = i === 0 ? str[i] : str[i - 1] + str[i];
-        bytes.unshift(parseInt(chars, 16));
-    }
-
-    return bytes;
-}
-
-function isArray(obj) {
-    return !!(obj && obj.concat && obj.unshift && !obj.callee);
-}
-
-/**
- * Translates number of ticks to MIDI timestamp format, returning an array of
- * bytes with the time values. Midi has a very particular time to express time,
- * take a good look at the spec before ever touching this function.
- *
- * @param ticks {Integer} Number of ticks to be translated
- * @returns Array of bytes that form the MIDI time value
- */
-var translateTickTime = function translateTickTime(ticks) {
-    var buffer = ticks & 0x7F;
-
-    while (ticks = ticks >> 7) {
-        buffer <<= 8;
-        buffer |= ticks & 0x7F | 0x80;
-    }
-
-    var bList = [];
-    while (true) {
-        bList.push(buffer & 0xff);
-
-        if (buffer & 0x80) {
-            buffer >>= 8;
-        } else {
-            break;
-        }
-    }
-    return bList;
-};
-
-/*
- * This is the function that assembles the MIDI file. It writes the
- * necessary constants for the MIDI header and goes through all the tracks, appending
- * their data to the final MIDI stream.
- * It returns an object with the final values in hex and in base64, and with
- * some useful methods to play an manipulate the resulting MIDI stream.
- *
- * @param config {Object} Configuration object. It contains the tracks, tempo
- * and other values necessary to generate the MIDI stream.
- *
- * @returns An object with the hex and base64 resulting streams, as well as
- * with some useful methods.
- */
-
-var MidiWriter = function MidiWriter(config) {
-    if (config) {
-        var tracks = config.tracks || [];
-        // Number of tracks in hexadecimal
-        var tracksLength = tracks.length.toString(16);
-
-        // This variable will hold the whole midi stream and we will add every
-        // chunk of MIDI data to it in the next lines.
-        var hexMidi = HDR_CHUNKID + HDR_CHUNK_SIZE + HDR_TYPE0;
-
-        // Appends the number of tracks expressed in 2 bytes, as the MIDI
-        // standard requires.
-        hexMidi += codes2Str(str2Bytes(tracksLength, 2));
-        hexMidi += HDR_SPEED;
-        // Goes through the tracks appending the hex strings that compose them.
-        tracks.forEach(function (trk) {
-            hexMidi += codes2Str(trk.toBytes());
-        });
-
-        return hexMidi;
-    } else {
-        throw new Error("No parameters have been passed to MidiWriter.");
-    }
-};
-
-/*
- * Generic MidiEvent object. This object is used to create standard MIDI events
- * (note Meta events nor SysEx events). It is passed a |params| object that may
- * contain the keys time, type, channel, param1 and param2. Note that only the
- * type, channel and param1 are strictly required. If the time is not provided,
- * a time of 0 will be assumed.
- *
- * @param {object} params Object containing the properties of the event.
- */
-var MidiEvent = function MidiEvent(params) {
-    if (params && (params.type !== null || params.type !== undefined) && (params.channel !== null || params.channel !== undefined) && (params.param1 !== null || params.param1 !== undefined)) {
-        this.setTime(params.time);
-        this.setType(params.type);
-        this.setChannel(params.channel);
-        this.setParam1(params.param1);
-        this.setParam2(params.param2);
-    } else {
-        throw new Error("Not enough parameters to create an event.");
-    }
-};
-
-/**
- * Returns an event of the type NOTE_ON taking the values passed and falling
- * back to defaults if they are not specified.
- *
- * @param note {Note || String} Note object or string
- * @param time {Number} Duration of the note in ticks
- * @returns MIDI event with type NOTE_ON for the note specified
- */
-MidiEvent.noteOn = function (note, duration) {
-    return new MidiEvent({
-        time: note.duration || duration || 0,
-        type: EVT_NOTE_ON,
-        channel: note.channel || DEFAULT_CHANNEL,
-        param1: note.pitch || note,
-        param2: note.volume || DEFAULT_VOLUME
-    });
-};
-
-/**
- * Returns an event of the type NOTE_OFF taking the values passed and falling
- * back to defaults if they are not specified.
- *
- * @param note {Note || String} Note object or string
- * @param time {Number} Duration of the note in ticks
- * @returns MIDI event with type NOTE_OFF for the note specified
- */
-
-MidiEvent.noteOff = function (note, duration) {
-    return new MidiEvent({
-        time: note.duration || duration || 0,
-        type: EVT_NOTE_OFF,
-        channel: note.channel || DEFAULT_CHANNEL,
-        param1: note.pitch || note,
-        param2: note.volume || DEFAULT_VOLUME
-    });
-};
-
-MidiEvent.prototype = {
-    type: 0,
-    channel: 0,
-    time: 0,
-    setTime: function setTime(ticks) {
-        // The 0x00 byte is always the last one. This is how Midi
-        // interpreters know that the time measure specification ends and the
-        // rest of the event signature starts.
-
-        this.time = translateTickTime(ticks || 0);
-    },
-    setType: function setType(type) {
-        if (type < EVT_NOTE_OFF || type > EVT_PITCH_BEND) {
-            throw new Error("Trying to set an unknown event: " + type);
-        }
-
-        this.type = type;
-    },
-    setChannel: function setChannel(channel) {
-        if (channel < 0 || channel > 15) {
-            throw new Error("Channel is out of bounds.");
-        }
-
-        this.channel = channel;
-    },
-    setParam1: function setParam1(p) {
-        this.param1 = p;
-    },
-    setParam2: function setParam2(p) {
-        this.param2 = p;
-    },
-    toBytes: function toBytes() {
-        var byteArray = [];
-
-        var typeChannelByte = parseInt(this.type.toString(16) + this.channel.toString(16), 16);
-
-        byteArray.push.apply(byteArray, this.time);
-        byteArray.push(typeChannelByte);
-        byteArray.push(this.param1);
-
-        // Some events don't have a second parameter
-        if (this.param2 !== undefined && this.param2 !== null) {
-            byteArray.push(this.param2);
-        }
-        return byteArray;
-    }
-};
-
-///
-/// META EVENT
-///
-
-var MetaEvent = function MetaEvent(params) {
-    if (params) {
-        this.setType(params.type);
-        this.setData(params.data);
-    }
-};
-
-MetaEvent.prototype = {
-    setType: function setType(t) {
-        this.type = t;
-    },
-    setData: function setData(d) {
-        this.data = d;
-    },
-    toBytes: function toBytes() {
-        if (!this.type || !this.data) {
-            throw new Error("Type or data for meta-event not specified.");
-        }
-
-        var byteArray = [0xff, this.type];
-
-        // If data is an array, we assume that it contains several bytes. We
-        // apend them to byteArray.
-        if (isArray(this.data)) {
-            AP.push.apply(byteArray, this.data);
-        }
-
-        return byteArray;
-    }
-};
-
-///
-/// MIDI TRACK
-///
-
-var MidiTrack = function MidiTrack(cfg) {
-    this.events = [];
-    for (var p in cfg) {
-        if (cfg.hasOwnProperty(p)) {
-            // Get the setter for the property. The property is capitalized.
-            // Probably a try/catch should go here.
-            this["set" + p.charAt(0).toUpperCase() + p.substring(1)](cfg[p]);
-        }
-    }
-};
-
-//"MTrk" Marks the start of the track data
-MidiTrack.TRACK_START = [0x4d, 0x54, 0x72, 0x6b];
-MidiTrack.TRACK_END = [0x0, 0xFF, 0x2F, 0x0];
-
-MidiTrack.prototype = {
-    /*
-     * Adds an event to the track.
-     *
-     * @param event {MidiEvent} Event to add to the track
-     * @returns the track where the event has been added
-     */
-    addEvent: function addEvent(event) {
-        this.events.push(event);
-        return this;
-    },
-    setEvents: function setEvents(events) {
-        AP.push.apply(this.events, events);
-        return this;
-    },
-    /*
-     * Adds a text meta-event to the track.
-     *
-     * @param type {Number} type of the text meta-event
-     * @param text {String} Optional. Text of the meta-event.
-     * @returns the track where the event ahs been added
-     */
-    setText: function setText(type, text) {
-        // If the param text is not specified, it is assumed that a generic
-        // text is wanted and that the type parameter is the actual text to be
-        // used.
-        if (!text) {
-            type = META_TEXT;
-            text = type;
-        }
-        return this.addEvent(new MetaEvent({ type: type, data: text }));
-    },
-    // The following are setters for different kinds of text in MIDI, they all
-    // use the |setText| method as a proxy.
-    setCopyright: function setCopyright(text) {
-        return this.setText(META_COPYRIGHT, text);
-    },
-    setTrackName: function setTrackName(text) {
-        return this.setText(META_TRACK_NAME, text);
-    },
-    setInstrument: function setInstrument(text) {
-        return this.setText(META_INSTRUMENT, text);
-    },
-    setLyric: function setLyric(text) {
-        return this.setText(META_LYRIC, text);
-    },
-    setMarker: function setMarker(text) {
-        return this.setText(META_MARKER, text);
-    },
-    setCuePoint: function setCuePoint(text) {
-        return this.setText(META_CUE_POINT, text);
-    },
-
-    setTempo: function setTempo(tempo) {
-        this.addEvent(new MetaEvent({ type: META_TEMPO, data: tempo }));
-    },
-    setTimeSig: function setTimeSig() {
-        // TBD
-    },
-    setKeySig: function setKeySig() {
-        // TBD
-    },
-
-    toBytes: function toBytes() {
-        var trackLength = 0;
-        var eventBytes = [];
-        var startBytes = MidiTrack.TRACK_START;
-        var endBytes = MidiTrack.TRACK_END;
-
-        /*
-         * Adds the bytes of an event to the eventBytes array and add the
-         * amount of bytes to |trackLength|.
-         *
-         * @param event {MidiEvent} MIDI event we want the bytes from.
-         */
-        var addEventBytes = function addEventBytes(event) {
-            var bytes = event.toBytes();
-            trackLength += bytes.length;
-            AP.push.apply(eventBytes, bytes);
-        };
-
-        this.events.forEach(addEventBytes);
-
-        // Add the end-of-track bytes to the sum of bytes for the track, since
-        // they are counted (unlike the start-of-track ones).
-        trackLength += endBytes.length;
-
-        // Makes sure that track length will fill up 4 bytes with 0s in case
-        // the length is less than that (the usual case).
-        var lengthBytes = str2Bytes(trackLength.toString(16), 4);
-
-        return startBytes.concat(lengthBytes, eventBytes, endBytes);
-    }
-};
-
-module.exports = {
-    MidiWriter: MidiWriter,
-    MidiEvent: MidiEvent,
-    MetaEvent: MetaEvent,
-    MidiTrack: MidiTrack,
-    noteTable: noteTable
-};
-
-},{}],22:[function(require,module,exports){
-'use strict';
-
-var Base64 = require('base64-arraybuffer');
-var _ = require('lodash');
-var Timer = require('clockmaker').Timer;
-var siz = require('Sizzle');
-
-var note = {};
-var loadedNoteData = false;
-
-var notes = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
-
-var context = new AudioContext();
-
-var RhythmSample = {};
-
-RhythmSample.play = function (dispatcher) {
-
-  if (!loadedNoteData) {
-    fetch('/pat/acoustic_grand_piano-mp3.json').then(function (response) {
-      return response.json();
-    }).then(function (res) {
-
-      _.forOwn(res, function (val, key) {
-        var base64 = val.split(',')[1];
-        var buffer = Base64.decode(base64);
-        context.decodeAudioData(buffer, function (decodedData) {
-          note[key] = decodedData;
-        });
-      });
-
-      dispatcher.set('playbackReady', true);
-      loadedNoteData = true;
-    });
-  } else {
-    dispatcher.set('playbackReady', true);
-  }
-
-  var sources = [];
-
-  var timer = null;
-  var lastHighlightedNote = null;
-
-  var playTune = function playTune(tuneData) {
-    var tempo = arguments.length <= 1 || arguments[1] === undefined ? 120 : arguments[1];
-
-
-    function playSound(buffer, time, length) {
-      var source = context.createBufferSource();
-      var gainNode = context.createGain();
-      gainNode.gain.linearRampToValueAtTime(0.5, time + length);
-      gainNode.gain.linearRampToValueAtTime(0, time + length + 0.5);
-      source.buffer = buffer;
-      // Connect the source to the gain node.
-      source.connect(gainNode);
-      // Connect the gain node to the destination.
-      gainNode.connect(context.destination);
-      if (!source.start) source.start = source.noteOn;
-      source.start(time);
-
-      sources.push(source);
-    }
-
-    var kick = note.A4;
-    var snare = note.A5;
-    var hihat = note.C4;
-
-    // We'll start playing the rhythm 100 milliseconds from "now"
-    var startTime = context.currentTime + 0.100;
-
-    var offset = 0;
-
-    // Play 2 bars of the following:
-    for (var bar = 0; bar < tuneData.length; bar++) {
-
-      var octave = Math.floor((tuneData[bar][0] - 24) / 12);
-      var noteId = tuneData[bar][0] - 24 - octave * 12;
-
-      playSound(note[notes[noteId] + (octave + 1)], startTime + offset, tuneData[bar][1] / tempo);
-
-      offset += tuneData[bar][1] / tempo;
-    }
-
-    var currentPosition = 0;
-    var firstNote = siz('.tune-body .noteHead')[0];
-    firstNote.classList.add('selected-note');
-    lastHighlightedNote = firstNote;
-    timer = new Timer(function (timer) {
-
-      if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove('selected-note');
-
-      var thisNote = document.getElementById('note_' + tuneData[currentPosition][2]);
-
-      thisNote.classList.add('selected-note');
-      lastHighlightedNote = thisNote;
-
-      if (currentPosition >= tuneData.length - 1) {
-        timer.stop();
-        dispatcher.fire('play-tune-end');
-        window.setTimeout(function () {
-          if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove('selected-note');
-        }, tuneData[currentPosition][1] * 1000 / tempo);
-      }
-
-      timer.setDelay(tuneData[currentPosition][1] * 1000 / tempo);
-      currentPosition++;
-    }, tuneData[0], {
-      repeat: true
-    }).start();
-  };
-
-  var stopTune = function stopTune() {
-    timer.stop();
-    if (lastHighlightedNote !== null) lastHighlightedNote.classList.remove('selected-note');
-
-    sources.forEach(function (source) {
-      source.stop();
-    });
-  };
-
-  return {
-    playTune: playTune,
-    stopTune: stopTune
-  };
-};
-
-module.exports = RhythmSample.play;
-
-},{"Sizzle":42,"base64-arraybuffer":43,"clockmaker":47,"lodash":93}],23:[function(require,module,exports){
-"use strict";
-
-var data_tables = require('./data_tables.js');
-
-//transforms a tune into an array that can be played by the audio system
-var audioRender = function audioRender(tune) {
-	var outTune = [];
-
-	var keyModifier = data_tables.getKeyModifiers(tune.tuneSettings.key);
-
-	var allSymbols = tune.parsedLines.filter(function (line) {
-		return line.type === "drawable";
-	}).reduce(function (alreadyParsed, line) {
-		return alreadyParsed.concat(line.symbols);
-	}, []);
-
-	var i = 0,
-	    repeating = true,
-	    repeatLocation = 0,
-	    totalLength = 0;
-
-	while (i < allSymbols.length) {
-
-		var syb = allSymbols[i];
-
-		if (syb.type === "note") {
-			var pitch = syb.pitch + (syb.octave - 4) * 12;
-			switch (syb.accidental) {
-				case "^":
-					{
-						pitch += 1;
-						break;
-					}
-				case "^^":
-					{
-						pitch += 2;
-						break;
-					}
-				case "_":
-					{
-						pitch -= 1;
-						break;
-					}
-				case "__":
-					{
-						pitch -= 2;
-						break;
-					}
-			}
-			if (syb.accidental !== "=" && _.indexOf(keyModifier.notes, syb.note.toUpperCase()) !== -1) pitch += keyModifier.mod;
-			outTune.push([pitch, syb.noteLength * 16, syb.renderNoteId]);
-			totalLength += syb.noteLength * 16;
-		}
-
-		if (syb.type === "barline") {
-			if (syb.subType === "repeat_start") {
-				repeating = true;
-				repeatLocation = i;
-			}
-			if (syb.subType === "repeat_end") {
-				if (repeating) {
-					repeating = false;
-					i = repeatLocation;
-					repeatLocation = -1;
-				} else {
-					repeating = true;
-					repeatLocation = i;
-				}
-			}
-		}
-
-		i++;
-	}
-
-	return outTune;
-};
-
-module.exports = audioRender;
-
-},{"./data_tables.js":24}],24:[function(require,module,exports){
-'use strict';
-
-var data_tables = {},
-    zazate = require('zazate.js'),
-    _ = require('lodash');
-
-data_tables["notes"] = {
-    "C": {
-        octave: 4,
-        pitch: 60,
-        pos: 0
-    },
-    "D": {
-        octave: 4,
-        pitch: 62,
-        pos: 1
-    },
-    "E": {
-        octave: 4,
-        pitch: 64,
-        pos: 2
-    },
-    "F": {
-        octave: 4,
-        pitch: 65,
-        pos: 3
-    },
-    "G": {
-        octave: 4,
-        pitch: 67,
-        pos: 4
-    },
-    "A": {
-        octave: 4,
-        pitch: 69,
-        pos: 5
-    },
-    "B": {
-        octave: 4,
-        pitch: 71,
-        pos: 6
-    },
-    "c": {
-        octave: 5,
-        pitch: 60,
-        pos: 0
-    },
-    "d": {
-        octave: 5,
-        pitch: 62,
-        pos: 1
-    },
-    "e": {
-        octave: 5,
-        pitch: 64,
-        pos: 2
-    },
-    "f": {
-        octave: 5,
-        pitch: 65,
-        pos: 3
-    },
-    "g": {
-        octave: 5,
-        pitch: 67,
-        pos: 4
-    },
-    "a": {
-        octave: 5,
-        pitch: 69,
-        pos: 5
-    },
-    "b": {
-        octave: 5,
-        pitch: 71,
-        pos: 6
-    }
-};
-
-data_tables.symbol_width = {
-    "note": function note(_note) {
-        return Math.log(_note.noteLength + 1);
-        //return note.noteLength * 1;//* 1.618;
-    },
-    "rest": 1,
-    "beat_rest": 1,
-    "barline": 0.25,
-    "space": 0,
-    "chord_annotation": 0
-};
-
-data_tables.mode_map = {
-    "": "maj",
-    "ion": "maj",
-    "maj": "maj",
-
-    "m": "min",
-    "min": "min",
-    "aeo": "min",
-
-    "mix": "mix",
-    "dor": "dor",
-    "phr": "phr",
-    "lyd": "lyd",
-    "loc": "loc"
-};
-
-data_tables.keySig = {
-    "C": {
-        "maj": "0",
-        "min": "-3",
-        "mix": "-1",
-        "dor": "-2",
-        "phr": "-4",
-        "lyd": "1",
-        "loc": "-5"
-    },
-    "C#": {
-        "maj": "7",
-        "min": "4",
-        "mix": "6",
-        "dor": "5",
-        "phr": "3",
-        "lyd": "NOPE",
-        "loc": "2"
-    },
-    "Db": {
-        "maj": "-5",
-        "min": "NOPE",
-        "mix": "-6",
-        "dor": "-7",
-        "phr": "NOPE",
-        "lyd": "-4",
-        "loc": "NOPE"
-    },
-    "D": {
-        "maj": "2",
-        "min": "-1",
-        "mix": "1",
-        "dor": "0",
-        "phr": "-2",
-        "lyd": "3",
-        "loc": "-3"
-    },
-    "D#": {
-        "maj": "6",
-        "min": "NOPE",
-        "mix": "NOPE",
-        "dor": "7",
-        "phr": "5",
-        "lyd": "",
-        "loc": "4"
-    },
-    "Eb": {
-        "maj": "-3",
-        "min": "-6",
-        "mix": "-4",
-        "dor": "-5",
-        "phr": "-7",
-        "lyd": "-2",
-        "loc": "NOPE"
-    },
-    "E": {
-        "maj": "4",
-        "min": "1",
-        "mix": "3",
-        "dor": "2",
-        "phr": "0",
-        "lyd": "5",
-        "loc": "-1"
-    },
-    "E#": {
-        "maj": "NOPE",
-        "min": "NOPE",
-        "mix": "NOPE",
-        "dor": "NOPE",
-        "phr": "7",
-        "lyd": "NOPE",
-        "loc": "6"
-    },
-    "Fb": {
-        "maj": "NOPE",
-        "min": "NOPE",
-        "mix": "NOPE",
-        "dor": "NOPE",
-        "phr": "NOPE",
-        "lyd": "-7",
-        "loc": "NOPE"
-    },
-    "F": {
-        "maj": "-1",
-        "min": "-4",
-        "mix": "-2",
-        "dor": "-3",
-        "phr": "-5",
-        "lyd": "0",
-        "loc": "-6"
-    },
-    "F#": {
-        "maj": "6",
-        "min": "3",
-        "mix": "5",
-        "dor": "4",
-        "phr": "2",
-        "lyd": "7",
-        "loc": "1"
-    },
-    "Gb": {
-        "maj": "-6",
-        "min": "NOPE",
-        "mix": "-7",
-        "dor": "NOPE",
-        "phr": "NOPE",
-        "lyd": "-5",
-        "loc": "NOPE"
-    },
-    "G": {
-        "maj": "1",
-        "min": "-2",
-        "mix": "0",
-        "dor": "-1",
-        "phr": "-3",
-        "lyd": "2",
-        "loc": "-4"
-    },
-    "G#": {
-        "maj": "NOPE",
-        "min": "5",
-        "mix": "7",
-        "dor": "6",
-        "phr": "4",
-        "lyd": "NOPE",
-        "loc": "3"
-    },
-    "Ab": {
-        "maj": "-4",
-        "min": "-7",
-        "mix": "-5",
-        "dor": "-6",
-        "phr": "NOPE",
-        "lyd": "-3",
-        "loc": "NOPE"
-    },
-    "A": {
-        "maj": "3",
-        "min": "0",
-        "mix": "2",
-        "dor": "1",
-        "phr": "-1",
-        "lyd": "4",
-        "loc": "-2"
-    },
-    "A#": {
-        "maj": "NOPE",
-        "min": "7",
-        "mix": "NOPE",
-        "dor": "NOPE",
-        "phr": "6",
-        "lyd": "NOPE",
-        "loc": "5"
-    },
-    "Bb": {
-        "maj": "-2",
-        "min": "-5",
-        "mix": "-3",
-        "dor": "-4",
-        "phr": "-6",
-        "lyd": "-1",
-        "loc": "-7"
-    },
-    "B": {
-        "maj": "5",
-        "min": "2",
-        "mix": "4",
-        "dor": "3",
-        "phr": "1",
-        "lyd": "6",
-        "loc": "0"
-    },
-    "B#": {
-        "maj": "NOPE",
-        "min": "NOPE",
-        "mix": "NOPE",
-        "dor": "NOPE",
-        "phr": "NOPE",
-        "lyd": "NOPE",
-        "loc": "7"
-    },
-    "Cb": {
-        "maj": "-7",
-        "min": "NOPE",
-        "mix": "NOPE",
-        "dor": "NOPE",
-        "phr": "NOPE",
-        "lyd": "-6",
-        "loc": "NOPE"
-    }
-};
-
-var majorMode = {
-    "-7": "Cb",
-    "-6": "Gb",
-    "-5": "Db",
-    "-4": "Ab",
-    "-3": "Eb",
-    "-2": "Bb",
-    "-1": "F",
-    "0": "C",
-    "1": "G",
-    "2": "D",
-    "3": "A",
-    "4": "E",
-    "5": "B",
-    "6": "F#",
-    "7": "C#"
-};
-
-data_tables.normaliseMode = function (mode) {
-    return mode.toLowerCase().substr(0, 3);
-};
-
-data_tables.toMajorMode = function (note, mode) {
-    var norm = data_tables.normaliseMode(mode);
-    var middle = data_tables.mode_map[norm];
-    var key = majorMode[data_tables.keySig[note][middle]];
-
-    var chords = [];
-
-    chords.push(zazate.chords.I(key));
-    chords.push(zazate.chords.II(key));
-    chords.push(zazate.chords.III(key));
-    chords.push(zazate.chords.IV(key));
-    chords.push(zazate.chords.V(key));
-    chords.push(zazate.chords.VI(key));
-    chords.push(zazate.chords.VII(key));
-
-    var indexOfRootNote = _.findIndex(chords, function (c) {
-        return c[0] === note;
-    });
-
-    while (indexOfRootNote > 0) {
-        indexOfRootNote--;
-        chords.push(chords.shift());
-    }
-
-    return chords.map(function (c) {
-        return zazate.chords.determine(c, true)[0];
-    });
-};
-
-data_tables.gkm = data_tables.getKeyModifiers = function (key) {
-    var norm = data_tables.normaliseMode(key.mode);
-    var middle = data_tables.mode_map[norm];
-    var meh = parseInt(data_tables.keySig[key.note][middle]);
-
-    if (meh > 0) {
-        var range = _.range(-1, meh - 1);
-        return {
-            mod: 1,
-            notes: range.map(function (r) {
-                return majorMode[r];
-            })
-        };
-    }
-
-    if (meh < 0) {
-        var range = _.range(5, meh + 5, -1);
-        return {
-            mod: -1,
-            notes: range.map(function (r) {
-                return majorMode[r];
-            })
-        };
-    }
-
-    return {
-        mod: 0,
-        notes: []
-    };
-};
-
-data_tables.getKeySig = function (note, mode) {
-    var normalisedMode = data_tables.mode_map[data_tables.normaliseMode(mode)];
-
-    return parseInt(data_tables.keySig[note][normalisedMode]);
-};
-
-data_tables.flats = [6, 9, 5, 8, 4, 7, 3];
-data_tables.sharps = [10, 7, 11, 8, 5, 9, 6];
-
-//not all note lengths can be represented with a single note
-data_tables.allowed_note_lengths = [1, 2, 3, 4, 6, 7, 8, 12, 14, 16, 24, 28];
-
-module.exports = data_tables;
-
-},{"lodash":93,"zazate.js":133}],25:[function(require,module,exports){
-'use strict';
-
-var JsDiff = require('diff'),
-    LineCollection = require('./types/LineCollection').LineCollection;
-
-var Diff = function Diff(change) {
-
-         var diff = JsDiff.diffLines(change.oldValue, change.newValue);
-
-         //ensure deletions are before additions in changes
-         for (var i = 0; i < diff.length; i++) {
-
-                  if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
-                           var swap = diff[i];
-                           diff[i] = diff[i + 1];
-                           diff[i + 1] = swap;
-                  }
-         }
-
-         var lineCount = 0;
-         var output = [];
-
-         for (var i = 0; i < diff.length; i++) {
-                  var item = diff[i],
-                      newlines = 0,
-                      split = [];
-
-                  split = item.value.split(/\r\n|\r|\n/);
-
-                  if (split[split.length - 1] === '') {
-                           split = split.slice(0, split.length - 1);
-                  }
-
-                  newlines = split.length;
-
-                  item.lineno = lineCount;
-
-                  var newLineCollection = new LineCollection(item.lineno, item.value, item.added ? 'ADD' : item.removed ? 'DEL' : 'NONE');
-
-                  if (!item.removed) {
-                           lineCount += newlines;
-                  }
-
-                  if (newLineCollection.action != 'NONE') output.push(newLineCollection);
-         }
-
-         return output;
-};
-
-module.exports = Diff;
-
-},{"./types/LineCollection":39,"diff":82}],26:[function(require,module,exports){
-'use strict';
-
-var _ = require('lodash');
-
-var subscribers = new Map(),
-    afterSubscribers = new Map();
-
-var disconnectId = 0;
-
-function send(eventName, data) {
-
-    _(subscribers.get(eventName)).forEach(function (sub) {
-        sub.f(data);
-    });
-
-    _(afterSubscribers.get(eventName)).forEach(function (sub) {
-        sub.f(data);
-    });
-}
-
-function subscribeEvent(subList, eventName, func) {
-
-    var connection = {
-        id: disconnectId,
-        f: func
-    };
-
-    disconnectId++;
-
-    if (subList.has(eventName)) {
-        subList.get(eventName).push(connection);
-    } else {
-        subList.set(eventName, [connection]);
-    }
-
-    return disconnectId - 1;
-}
-
-function on(eventName, func) {
-    if (_.isObject(eventName) && func === undefined) {
-        for (var propt in eventName) {
-            subscribeEvent(subscribers, propt, eventName[propt]);
-        }
-    } else {
-        return subscribeEvent(subscribers, eventName, func);
-    }
-}
-
-function off(id) {
-
-    subscribers.forEach(function (value, key) {
-        var toRemove = _.findIndex(value, function (v) {
-            return v.id === id;
-        });
-        if (toRemove !== -1) {
-            value.splice(toRemove, 1);
-        }
-    });
-}
-
-function after(eventName, func) {
-    if (_.isObject(eventName) && func === undefined) {
-        for (var propt in eventName) {
-            subscribeEvent(afterSubscribers, propt, eventName[propt]);
-        }
-    } else {
-        subscribeEvent(afterSubscribers, eventName, func);
-    }
-}
-
-module.exports = {
-    on: on,
-    off: off,
-    send: send,
-    fire: send,
-    after: after
-};
-
-},{"lodash":93}],27:[function(require,module,exports){
-'use strict';
-
-module.exports = {
-	parser: require('./parser'),
-	diff: require('./diff'),
-	render: require('./render'),
-	layout: require('./layout')
-};
-
-},{"./diff":25,"./layout":28,"./parser":30,"./render":31}],28:[function(require,module,exports){
-'use strict';
-
-var data_tables = require('./data_tables'),
-    _ = require('lodash'),
-    dispatcher = require('./dispatcher'),
-    AbcBeam = require('./types/AbcBeam'),
-    springs = require('./springs');
-
-var ABCLayout = function ABCLayout(dispatcher) {
-
-    var parsedLines = [];
-    var tuneSettings = {
-        key: {
-            note: "C",
-            mode: "Major"
-        },
-        measure: {
-            top: 4,
-            bottom: 4
-        },
-        title: "Untitled Tune"
-    };
-
-    var forceFullRedraw = false;
-
-    var currentRenderNoteId = 0;
-
-    var layoutDrawableLine = function layoutDrawableLine(line) {
-
-        if (line.symbols.length === 0) return line;
-
-        var posMod = 1 / (line.weight + 1),
-            totalOffset = 0,
-            beamList = [],
-            beamDepth = 0,
-            lastNote = null;
-
-        var totalFixedWidth = 0,
-            totalSpringConstant = 0;
-
-        if (_.last(line.symbols).type === "barline") {
-            posMod = 1 / line.weight;
-        }
-
-        for (var i = 0; i < line.symbols.length; i++) {
-
-            if (line.symbols[i].type === "tie" || line.symbols[i].type === "varient-section" || line.symbols[i].type == "slur") continue;
-
-            var currentSymbol = line.symbols[i];
-
-            //////////////////////////NEW//////////////////////////
-
-            if (springs[currentSymbol.type] !== undefined) {
-                if (currentSymbol.subType !== undefined) {
-                    if (springs[currentSymbol.type][currentSymbol.subType] !== undefined) {
-                        totalFixedWidth += currentSymbol.fixedWidth = springs[currentSymbol.type][currentSymbol.subType];
-                    }
-                } else {
-                    totalFixedWidth += currentSymbol.fixedWidth = springs[currentSymbol.type];
-                }
-            }
-
-            if (!(i === line.symbols.length - 1 && line.symbols[i].type === "barline")) {
-                if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
-                    totalSpringConstant += currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type](currentSymbol);
-                } else {
-                    totalSpringConstant += currentSymbol.springConstant = data_tables.symbol_width[currentSymbol.type];
-                }
-            }
-
-            ///////////////////////////////////////////////////////
-
-            currentSymbol.xp = totalOffset;
-            if (i === line.symbols.length - 1 && currentSymbol.type === "barline") {
-                currentSymbol.xp = 1;
-                currentSymbol.align = 2;
-            }
-
-            if (_.isFunction(data_tables.symbol_width[currentSymbol.type])) {
-                totalOffset += data_tables.symbol_width[currentSymbol.type](currentSymbol) * posMod;
-            } else {
-                totalOffset += data_tables.symbol_width[currentSymbol.type] * posMod;
-            }
-
-            if (currentSymbol.type === "note") {
-
-                line.symbols[i].renderNoteId = currentRenderNoteId++;
-
-                currentSymbol.truepos = currentSymbol.pos + 7 * (currentSymbol.octave - 4);
-                currentSymbol.y = 40 - currentSymbol.truepos * 4;
-                currentSymbol.beams = [];
-            }
-
-            if (currentSymbol.beamDepth !== undefined && currentSymbol.beamDepth < 0) {
-                if (currentSymbol.type === "note") beamList.push(currentSymbol);
-                beamDepth = currentSymbol.beamDepth;
-            } else {
-                //draw beam
-                //if(currentSymbol.type === "note")beamList.push(currentSymbol);
-                if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
-                beamList = [];
-                beamDepth = 0;
-            }
-
-            if (currentSymbol.type === "note") lastNote = currentSymbol;
-        }
-
-        if (beamList.length > 0) {
-            //draw beam
-            if (beamList.length > 1) lastNote.beams.push(new AbcBeam(beamList));
-            beamList = [];
-            beamDepth = 0;
-        }
-
-        line.totalFixedWidth = totalFixedWidth;
-        line.totalSpringConstant = totalSpringConstant;
-
-        return line;
-    };
-
-    var handleDataLineSwitch = {
-        title: function title(data) {
-            tuneSettings.title = data;
-            dispatcher.fire("change_tune_title", data);
-        },
-
-        rhythm: function rhythm(data) {
-            tuneSettings.rhythm = data;
-            dispatcher.fire("change_rhythm", data);
-        },
-
-        key: function key(data) {
-            tuneSettings.key = data;
-            forceFullRedraw = true;
-            dispatcher.fire("change_key", data);
-        },
-
-        timesig: function timesig(data) {
-            tuneSettings.measure = data;
-            dispatcher.fire("change_timesig", data);
-        },
-
-        notelength: function notelength(data) {
-            tuneSettings.noteLength = data;
-            dispatcher.fire("change_notelength", data);
-        },
-
-        number: function number(data) {
-            tuneSettings.number = data;
-        },
-
-        transcriber: function transcriber(data) {
-            tuneSettings.transcriber = data;
-        },
-
-        source: function source(data) {
-            tuneSettings.source = data;
-        }
-    };
-
-    function handleDataLine(line) {
-        handleDataLineSwitch[line.symbols[0].type](line.symbols[0].data);
-        return line;
-    }
-
-    var handleAction = {
-        ADD: function ADD(lineCollection) {
-
-            var layoutedLines = lineCollection.lines.map(function (line) {
-                if (line.type === "drawable") return layoutDrawableLine(line);
-                if (line.type === "data") return handleDataLine(line);
-                return line;
-            });
-
-            if (layoutedLines.length > 0) {
-                var args = [layoutedLines[0].id, 0].concat(layoutedLines);
-                Array.prototype.splice.apply(parsedLines, args);
-            }
-        },
-
-        DEL: function DEL(lineCollection) {
-
-            if (lineCollection.lines.length > 0) {
-                var removed_lines = parsedLines.splice(lineCollection.lines[0].id, lineCollection.lines.length);
-
-                for (var i = lineCollection.lines[0].id; i < parsedLines.length; i++) {
-                    parsedLines[i].id -= lineCollection.lines.length;
-                }
-            }
-        }
-    };
-
-    return function (oldScoreLines, lineCollection) {
-
-        handleAction[lineCollection.action](lineCollection);
-
-        var changedLines = [];
-
-        for (var i = lineCollection.startId; i < lineCollection.startId + lineCollection.count; i++) {
-            changedLines.push(i);
-        }
-
-        if (oldScoreLines !== 0) {
-            changedLines = changedLines.concat(oldScoreLines.changedLines);
-        }
-
-        var returnData = {
-            tuneSettings: tuneSettings,
-            parsedLines: parsedLines,
-            changedLines: changedLines,
-            forceFullRedraw: forceFullRedraw || oldScoreLines.forceFullRedraw
-        };
-
-        if (forceFullRedraw) forceFullRedraw = false;
-
-        return returnData;
-    };
-};
-
-module.exports = ABCLayout;
-
-},{"./data_tables":24,"./dispatcher":26,"./springs":35,"./types/AbcBeam":36,"lodash":93}],29:[function(require,module,exports){
-'use strict';
-
-var _ = require('lodash'),
-    Lexer = require('lex'),
-    dispatcher = require('./dispatcher');
-
-//////////////////////
-// HELPER FUNCTIONS //
-//////////////////////
-var simpleType = function simpleType(name) {
-    return function () {
-        return {
-            type: name
-        };
-    };
-};
-
-var charCountInString = function charCountInString(string, character) {
-    return string.split(character).length - 1;
-};
-
-var addSimpleStringInformationField = function addSimpleStringInformationField(spec, key, type) {
-    spec.start[key + ": *([^\n]*)\n?"] = function (data) {
-        return {
-            type_class: "data",
-            type: type,
-            data: data
-        };
-    };
-};
-
-function LexerException(message, line, char) {
-    this.message = message;
-    this.line = line;
-    this.char = char;
-    this.name = "LexerException";
-}
-
-////////////////////////////////
-//            LEXER           //
-////////////////////////////////
-
-var lexer = new Lexer(function (char) {
-    throw new LexerException('Unexpected \'' + char + '\'', 0, this.index);
-});
-
-///////////
-// NOTES //
-///////////
-lexer.addRule(/([A-Ga-g])/, function (note) {
-    return {
-        type: "note",
-        subType: "letter",
-        data: note
-    };
-});
-
-///////////
-// RESTS //
-///////////
-lexer.addRule(/z/, function () {
-    return {
-        type: "rest",
-        subType: "visible",
-        data: "short"
-    };
-}).addRule(/x/, function () {
-    return {
-        type: "rest",
-        subType: "invisible",
-        data: "short"
-    };
-}).addRule(/Z/, function () {
-    return {
-        type: "rest",
-        subType: "visible",
-        data: "long"
-    };
-}).addRule(/X/, function () {
-    return {
-        type: "rest",
-        subType: "invisible",
-        data: "long"
-    };
-});
-
-///////////////////////////////
-// NOTE AND REST DECORATIONS //
-///////////////////////////////
-lexer.addRule(/([0-9]+)\/?([0-9]+)?/, function (all, notelength, notedenom) {
-    return {
-        type: "note",
-        subType: "length",
-        data: notedenom && notedenom.length > 0 ? parseFloat(notelength) / parseFloat(notedenom) : parseInt(notelength)
-    };
-}).addRule(/\/([0-9]+)/, function (all, notedenom) {
-    return {
-        type: "note",
-        subType: "length",
-        data: 1 / parseFloat(notedenom)
-    };
-}).addRule(/\/+/, function (all) {
-    return {
-        type: "note",
-        subType: "length",
-        data: 1 / all.length
-    };
-}).addRule(/([',]+)/, function (pitchModifier) {
-    return {
-        type: "note",
-        subType: "pitch",
-        data: charCountInString(pitchModifier, "'") - charCountInString(pitchModifier, ",")
-    };
-}).addRule(/(_|\^|=|__|\^\^)/, function (accidental) {
-    return {
-        type: "note",
-        subType: "accidental",
-        data: accidental
-    };
-}).addRule(/"([^"]+)"/, function (match, data) {
-    return {
-        type: "note",
-        subType: "chord_annotation",
-        data: data
-    };
-}).addRule(/!([^!]+)!/, function (data) {
-    return {
-        type: "note",
-        subType: "decoration",
-        data: data
-    };
-}).addRule(/~/, function (data) {
-    return {
-        type: "note",
-        subType: "decoration",
-        data: data
-    };
-}).addRule(/>{1,3}/, function (data) {
-    return {
-        type: "broken-rhythm",
-        subType: "right",
-        data: data.length
-    };
-}).addRule(/<{1,3}/, function (data) {
-    return {
-        type: "broken-rhythm",
-        subType: "left",
-        data: data.length
-    };
-});
-
-///////////////
-// BAR LINES //
-///////////////
-///
-/// v indicates how the type of barline effects varient endings
-/// #0 -> No effect
-/// #1 -> Ends a varient ending
-/// #2 -> Starts a varient ending
-///
-lexer.addRule(/\|/, function () {
-    return {
-        type: "barline",
-        subtype: "normal",
-        v: 0
-    };
-}).addRule(/\|\]/, function () {
-    return {
-        type: "barline",
-        subtype: "heavy_end",
-        v: 1
-    };
-}).addRule(/\|\|/, function () {
-    return {
-        type: "barline",
-        subtype: "double",
-        v: 1
-    };
-}).addRule(/\[\|/, function () {
-    return {
-        type: "barline",
-        subtype: "heavy_start",
-        v: 1
-    };
-}).addRule(/:\|/, function () {
-    return {
-        type: "barline",
-        subtype: "repeat_end",
-        v: 1
-    };
-}).addRule(/\|:/, function () {
-    return {
-        type: "barline",
-        subtype: "repeat_start",
-        v: 0
-    };
-}).addRule(/::/, function () {
-    return {
-        type: "barline",
-        subtype: "double_repeat",
-        v: 1
-    };
-}).addRule(/\[([0-9]+)/, function (all, sectionNumber) {
-    return {
-        type: "varient_section",
-        subtype: "start_section",
-        data: sectionNumber,
-        v: 2
-    };
-}).addRule(/\["([a-z A-Z0-9]+)"/, function (all, sectionName) {
-    return {
-        type: "varient_section",
-        subtype: "start_section",
-        data: sectionName,
-        v: 2
-    };
-}).addRule(/\|([0-9]+)/, function (all, sectionNumber) {
-    return {
-        type: "varient_section",
-        subtype: "start_section",
-        data: sectionNumber,
-        v: 2
-    };
-});
-
-/////////////////
-// NOTE GROUPS //
-/////////////////
-lexer.addRule(/\[/, function () {
-    return {
-        type: "chord_start"
-    };
-}).addRule(/\]/, function () {
-    return {
-        type: "chord_stop"
-    };
-}).addRule(/{/, function () {
-    return {
-        type: "grace_start"
-    };
-}).addRule(/}/, function () {
-    return {
-        type: "grace_stop"
-    };
-}).addRule(/\(([2-9])/, function (all, size) {
-    return {
-        type: "tuplet_start",
-        data: parseInt(size)
-    };
-}).addRule(/\(/, function () {
-    return {
-        type: "slur_start"
-    };
-}).addRule(/\)/, function () {
-    return {
-        type: "slur_stop"
-    };
-}).addRule(/-/, function () {
-    return {
-        type: "tie"
-    };
-});
-
-//////////////////
-// DATA FIELDS  //
-//////////////////
-
-lexer.addRule(/T: *([\w ',?]+)\s*$/, function (match, title) {
-    return {
-        type: "data",
-        subtype: "title",
-        data: title
-    };
-});
-
-lexer.addRule(/X: *([0-9]+)\s*$/, function (match, num) {
-    return {
-        type: "data",
-        subtype: "number",
-        data: num
-    };
-});
-
-lexer.addRule(/R: *([\w ]+)\s*$/, function (match, rhythm) {
-    return {
-        type: "data",
-        subtype: "rhythm",
-        data: rhythm
-    };
-});
-
-lexer.addRule(/S: *([\w \/:\.#]+)\s*$/, function (match, source) {
-    return {
-        type: "data",
-        subtype: "source",
-        data: source
-    };
-});
-
-lexer.addRule(/Z: *([\w \/:\.#]+)\s*$/, function (match, source) {
-    return {
-        type: "data",
-        subtype: "transcriber",
-        data: source
-    };
-});
-
-lexer.addRule(/M: *([0-9]+)\/([0-9]+)\s*$/, function (match, top, bottom) {
-    return {
-        type: "data",
-        subtype: "timesig",
-        data: {
-            top: top,
-            bottom: bottom
-        }
-    };
-});
-
-lexer.addRule(/L: *([0-9]+)\/([0-9])\s*$/, function (match, top, bottom) {
-    return {
-        type: "data",
-        subtype: "notelength",
-        data: parseInt(top) / parseInt(bottom)
-    };
-});
-
-lexer.addRule(/K: *([A-G][#|b]?) ?([\w]*)\s*$/, function (match, note, mode) {
-    return {
-        type: "data",
-        subtype: "key",
-        data: {
-            note: note,
-            mode: mode
-        }
-    };
-});
-
-///////////
-// OTHER //
-///////////
-lexer.addRule(/ /, function () {
-    return {
-        type: "space"
-    };
-}).addRule(/`/, function () {
-    return {
-        type: "beam"
-    };
-});
-
-module.exports = function (dispatcher, input, lineId) {
-    lexer.setInput(input);
-    var output = [];
-
-    do {
-        var data = undefined;
-        try {
-            data = lexer.lex();
-            if (data !== undefined) output.push(data);
-        } catch (e) {
-
-            var error = {
-                line: lineId,
-                message: e.message,
-                severity: 1,
-                char: e.char,
-                type: "LEXERERROR"
-            };
-
-            console.log(error);
-
-            dispatcher.fire("abc_error", error);
-
-            break;
-        }
-    } while (data != undefined);
-
-    return output;
-};
-
-},{"./dispatcher":26,"lex":92,"lodash":93}],30:[function(require,module,exports){
-'use strict';
-
-var lexer = require('./lexer.js'),
-    data_tables = require('./data_tables.js'),
-    _ = require('lodash'),
-    dispatcher = require('./dispatcher'),
-    AbcNote = require("./types/AbcSymbol").AbcNote,
-    AbcRest = require("./types/AbcSymbol").AbcRest,
-    AbcSymbol = require("./types/AbcSymbol").AbcSymbol,
-    AbcChord = require("./types/AbcChord").AbcChord;
-
-function ParserException(message) {
-    this.message = message;
-    this.name = "ParserException";
-}
-
-var ABCParser = function ABCParser(dispatcher, transposeAmount) {
-
-    //the typecache is to get the type of deleted rows without having to reparse
-    var typecache = [];
-    // var dicache = [];
-
-    var drawableIndex = 0;
-    var maxStartId = 0;
-
-    var noteLengthModifier = 0.125;
-
-    dispatcher.on("change_notelength", function (data) {
-        noteLengthModifier = data;
-    });
-
-    var transpose = transposeAmount || 0;
-
-    //parse a note
-    function parseNote(lexer, parsed) {
-
-        var newNote = new AbcNote();
-
-        while (lexer[0] && lexer[0].subType === "chord_annotation") {
-            newNote.chord = new AbcChord(lexer[0].data);
-            lexer.shift();
-        }
-
-        while (lexer[0] && lexer[0].subType === "decoration") {
-            newNote.decorations.push(lexer[0]);
-            lexer.shift();
-        }
-
-        if (lexer[0].subType == "accidental") {
-            newNote.accidental = lexer.shift().data;
-        }
-
-        if (!lexer[0] || lexer[0].subType !== "letter") {
-            lexer.shift();
-            return new ParserException("Missing note name");
-        }
-
-        if (lexer[0] && lexer[0].subType == "letter") {
-            newNote.note = lexer.shift().data;
-
-            newNote.pitch = data_tables.notes[newNote.note].pitch + transpose;
-            newNote.octave = data_tables.notes[newNote.note].octave;
-            newNote.pos = data_tables.notes[newNote.note].pos + transpose;
-        }
-
-        if (lexer[0] && lexer[0].subType == "pitch") {
-            newNote.octave += lexer.shift().data;
-        }
-
-        if (lexer[0] && lexer[0].subType == "length") {
-            newNote.noteLength = lexer.shift().data * (noteLengthModifier / 0.125);
-        }
-
-        newNote.beamDepth = Math.floor(Math.log2(newNote.noteLength)) - 1;
-        newNote.weight = data_tables.symbol_width.note(newNote);
-
-        if (parsed === undefined || newNote.weight === undefined) {
-            console.log("DAMN");
-        }
-
-        parsed.weight += newNote.weight;
-        parsed.symbols.push(newNote);
-
-        return newNote;
-    }
-
-    //parse a rest
-    function parseRest(lexer) {
-        var newRest = new AbcRest();
-
-        newRest.visible = lexer[0].subType === "visible";
-        newRest.subType = lexer[0].data === "short" ? "beat_rest" : "bar_rest";
-
-        lexer.shift();
-
-        if (lexer[0] && lexer[0].subType == "length") {
-            newRest.restLength = lexer.shift().data;
-        }
-
-        return newRest;
-    }
-
-    /**
-     * Parses a group of notes
-     * @param  {Array} The output array for the entire parse process
-     * @param  {Array} The input array of lexed tokens
-     * @param  {String} The name of the type of note group
-     * @param  {String} The type of token that starts the note group
-     * @param  {String} The type of token that ends the note group
-     * @return {Boolean} Returns TRUE if the specified note group was found
-     */
-    function noteGroup(parsed, lexed, name, start, stop) {
-        if (lexed[0].type === start) {
-            lexed.shift();
-
-            var groupNotes = [];
-
-            while (lexed.length > 0 && lexed[0].type != stop) {
-                if (lexed[0].type === "note") {
-                    groupNotes.push(parseNote(lexed));
-                    continue;
-                } else {
-                    /*throw new*/
-                    groupNotes.push(new ParserException("Only notes are allowed in " + name + "s"));
-                    lexed.shift();
-                    continue;
-                }
-            }
-
-            parsed.push({
-                type: name,
-                type_class: "drawable",
-                notes: groupNotes
-            });
-
-            lexed.shift();
-            return true;
-        }
-
-        if (lexed[0].type === stop) {
-            parsed.push(new ParserException("Closing " + name + " found before starting it"));
-            lexed.shift();
-            return true;
-        }
-
-        return false;
-    };
-
-    function parseSlur(parsed, lexed) {
-        if (lexed[0].type === "slur_start") {
-            lexed.shift();
-
-            var groupNotes = [];
-
-            while (lexed.length > 0 && lexed[0].type != "slur_stop") {
-                if (lexed[0].type === "note") {
-                    var parsedNote = parseNote(lexed, parsed);
-                    groupNotes.push(parsedNote);
-                    continue;
-                } else {
-                    /*throw new*/
-                    groupNotes.push(new ParserException("Only notes are allowed in slurs"));
-                    lexed.shift();
-                    continue;
-                }
-            }
-
-            parsed.symbols.push({
-                type: "slur",
-                type_class: "drawable",
-                notes: groupNotes
-            });
-
-            lexed.shift();
-            return true;
-        }
-
-        if (lexed[0].type === "slur_stop") {
-            parsed.push(new ParserException("Closing slur found before starting it"));
-            lexed.shift();
-            return true;
-        }
-
-        return false;
-    };
-
-    var parseBarline = function parseBarline(lexed, parsed) {
-
-        var symbol = lexed.shift();
-
-        var newBarline = new AbcSymbol('barline', 1);
-        newBarline.subType = symbol.subtype;
-
-        parsed.symbols.push(newBarline);
-        parsed.weight += data_tables.symbol_width["barline"];
-
-        return symbol.v;
-    };
-
-    /**
-     * A recursive decent parser that combines lexed tokens into a meaningful data structure
-     * @param  {Array} An array of lexed tokens
-     * @return {Array} An array of parsed symbols
-     */
-    function parse(lexed, line) {
-
-        var parsed = {
-            symbols: [],
-            weight: 0
-        };
-
-        var currentVarientEnding = null,
-            tupletBuffer = [],
-            tupletCount = 0,
-            tupletValue = 0;
-
-        while (lexed.length > 0) {
-
-            if (lexed[0].type === "data") {
-                var lexedToken = lexed.shift();
-                parsed.symbols.push({
-                    type_class: "data",
-                    type: lexedToken.subtype,
-                    data: lexedToken.data
-                });
-
-                continue;
-            }
-
-            if (lexed[0].type === "beam") {
-                lexed.shift();
-                continue;
-            }
-
-            // if (lexed[0].type === "chord_annotation") {
-            //     parsed.symbols.push({
-            //         type_class: "drawable",
-            //         type: "chord_annotation",
-            //         text: lexed[0].data
-            //     });
-            //     lexed.shift();
-            //     continue;
-            // }
-            if (lexed[0].type === "tuplet_start") {
-                tupletCount = lexed[0].data;
-                tupletValue = lexed[0].data;
-                lexed.shift();
-                continue;
-            }
-
-            if (lexed[0].type === "note") {
-                parseNote(lexed, parsed);
-
-                if (currentVarientEnding !== null && currentVarientEnding.start === null) {
-                    currentVarientEnding.start = _.last(parsed.symbols);
-                }
-
-                if (tupletCount > 0) {
-                    tupletBuffer.push(_.last(parsed.symbols));
-                    tupletCount--;
-
-                    if (tupletCount === 0) {
-
-                        tupletBuffer.forEach(function (note) {
-                            note.noteLength = note.noteLength / tupletValue * 2;
-                            //note.weight = data_tables.symbol_width.note(note);
-                        });
-
-                        line.tuplets.push({
-                            notes: tupletBuffer,
-                            value: tupletValue
-                        });
-                        tupletBuffer = [];
-                    }
-                }
-
-                continue;
-            }
-
-            if (lexed[0].type === "rest") {
-                parsed.symbols.push(parseRest(lexed));
-                parsed.weight += 1;
-                continue;
-            }
-
-            if (lexed[0].type === "space") {
-                parsed.symbols.push(new AbcSymbol("space", 0));
-                lexed.shift();
-                continue;
-            }
-
-            if (lexed[0].type === "varient_section") {
-                var symbol = lexed.shift();
-
-                currentVarientEnding = {
-                    start: null,
-                    name: symbol.data,
-                    end: null
-                };
-
-                continue;
-            }
-
-            if (noteGroup(parsed, lexed, "chord", "chord_start", "chord_stop")) continue;
-            if (parseSlur(parsed, lexed)) continue;
-            if (noteGroup(parsed, lexed, "grace", "grace_start", "grace_stop")) continue;
-
-            if (lexed[0].type === "barline") {
-
-                if (parseBarline(lexed, parsed) === 1) {
-
-                    if (line.firstEndingEnder === null) line.firstEndingEnder = _.last(parsed.symbols);
-
-                    if (currentVarientEnding !== null) {
-                        currentVarientEnding.end = _.last(parsed.symbols);
-                        line.endings.push(currentVarientEnding);
-                        currentVarientEnding = null;
-                    }
-                }
-
-                continue;
-            }
-
-            if (lexed[0].type === "tie") {
-
-                lexed.shift();
-
-                //the last parsed symbol must be a note
-                if (_.last(parsed.symbols).type === "note") {
-
-                    var tie = {
-                        type: "tie",
-                        start: _.last(parsed.symbols)
-                    };
-
-                    //eat the barline if required
-                    if (lexed[0].type === "barline") parseBarline(lexed, parsed);
-
-                    if (lexed[0].type === "note") {
-                        parseNote(lexed, parsed);
-                    } else {
-                        //THROW ERROR
-                        continue;
-                    }
-
-                    tie.end = _.last(parsed.symbols);
-
-                    parsed.symbols.push(tie);
-                } else {
-                    //THROW ERROR
-                    continue;
-                }
-
-                continue;
-            }
-
-            console.log('PARSER ERROR: UNKNOWN ' + lexed[0]);
-            lexed.shift();
-        }
-
-        if (currentVarientEnding !== null) {
-            line.endings.push(currentVarientEnding);
-            line.endWithEndingBar = true;
-        }
-
-        return parsed;
-    }
-
-    function processAddedLine(line) {
-
-        // try {
-
-        //TODO: are these defaults defined in an odd place??
-        if (line.raw.length === 0) {
-            line.type = "drawable";
-            // line.di = drawableIndex++;
-            line.symbols = [];
-            line.weight = 0;
-        }
-
-        var lexed = lexer(dispatcher, line.raw, line.id);
-
-        if (lexed.length > 0) {
-
-            var parseOutput = parse(lexed, line);
-
-            line.symbols = parseOutput.symbols;
-            line.weight = parseOutput.weight;
-
-            if (!(parseOutput.symbols.length === 1 && parseOutput.symbols[0].type_class === "data")) {
-                line.type = "drawable";
-                // line.di = drawableIndex++;
-            } else {
-                    line.type = "data";
-                }
-        } else {
-            line.type = typecache[line.id - 1] === "drawable" ? "drawable" : "blank";
-            line.symbols = [];
-        }
-
-        //typecache.set(line.id, line.type);
-        typecache.splice(line.id, 0, line.type);
-        //dicache.set(line.id, line.di);
-        // dicache.splice(line.id, 0, line.di);
-
-        // if(line.type === "drawable") {
-        //     line.di = line.id - (_.findIndex(typecache, function(val) { return val === "drawable"; }));
-        // }
-    }
-
-    var processDeletedLine = function processDeletedLine(line) {
-        line.type = typecache[line.id];
-        // if (line.type === "drawable") {
-        // line.di = dicache[line.id];
-        // }
-
-        typecache.splice(line.id, 1);
-        // dicache.splice(line.id, 1);
-    };
-
-    return function (lineCollection) {
-
-        if (lineCollection.startId < maxStartId) {
-            drawableIndex = 0;
-            for (var i = 0; i < lineCollection.startId; i++) {
-                if (typecache[i] === "drawable") drawableIndex++;
-            }
-        }
-
-        if (lineCollection.startId > maxStartId) {
-            for (var i = maxStartId; i < lineCollection.startId; i++) {
-                if (typecache[i] === "drawable") drawableIndex++;
-            }
-        }
-
-        maxStartId = lineCollection.startId + lineCollection.count;
-
-        if (lineCollection.action === "ADD") {
-            lineCollection.lines.forEach(processAddedLine);
-        }
-
-        if (lineCollection.action === "DEL") {
-            _.forEachRight(lineCollection.lines, processDeletedLine);
-        }
-
-        return lineCollection;
-    };
-};
-
-module.exports = ABCParser;
-
-},{"./data_tables.js":24,"./dispatcher":26,"./lexer.js":29,"./types/AbcChord":37,"./types/AbcSymbol":38,"lodash":93}],31:[function(require,module,exports){
-
-'use strict';
-
-var s = require('virtual-dom/virtual-hyperscript/svg'),
-    h = require('virtual-dom/h'),
-    draw = require('./rendering/stave_symbols.js');
-
-var ABCRenderer = function ABCRenderer(ractive) {
-
-    var previousNodeTree = null,
-        settings = null,
-        nextLineStartsWithEnding = false,
-        cachedLines = [];
-
-    var renderLine = function renderLine(line, drawnLineIndex, lineIndex) {
-
-        var lineGroup = s('g#line-' + lineIndex, {
-            transform: 'translate(100,' + (32 + drawnLineIndex * 96) + ')',
-            class: "svgTuneLine"
-        });
-
-        var leadInGroup = s("g");
-        lineGroup.children.push(draw.stave(), leadInGroup);
-
-        var clef = draw.treble_clef();
-        var keySig = draw.keysig(settings.key, clef.width, line.id, ractive.get('currentTranspositionValue'));
-
-        if (keySig === false) return;
-
-        leadInGroup.children.push(clef.node, keySig.node);
-
-        var leadInWidth = clef.width + keySig.width;
 
-        if (drawnLineIndex === 0) {
-            var timeSig = draw.timesig(settings.measure.top, settings.measure.bottom, clef.width + keySig.width);
-            leadInGroup.children.push(timeSig.node);
-            leadInWidth += timeSig.width;
-        }
-
-        var symbolsGroup = s("g", { transform: 'translate(' + leadInWidth + ',0)' });
-
-        var noteAreaWidth = 800 - leadInWidth;
-
-        var springLength = noteAreaWidth - line.totalFixedWidth;
-        var springMod = springLength / line.totalSpringConstant;
-
-        var xPos = 0;
-
-        for (var i = 0; i < line.symbols.length; i++) {
-            line.symbols[i].renderedXPos = xPos;
-            symbolsGroup.children.push(draw[line.symbols[i].type](line.symbols[i], xPos, noteAreaWidth));
-            xPos += line.symbols[i].fixedWidth + springMod * line.symbols[i].springConstant;
-        }
-
-        for (var _i = 0; _i < line.endings.length; _i++) {
-            symbolsGroup.children.push(draw.varientEndings(line.endings[_i], noteAreaWidth, false));
-        }
-
-        for (var _i2 = 0; _i2 < line.tuplets.length; _i2++) {
-            symbolsGroup.children.push(draw.tuplets(line.tuplets[_i2], noteAreaWidth));
-        }
-
-        if (nextLineStartsWithEnding) {
-            symbolsGroup.children.push(draw.varientEndings({
-                name: "",
-                start: {
-                    xp: 0
-                },
-                end: line.firstEndingEnder
-            }, noteAreaWidth, true));
-        }
-
-        nextLineStartsWithEnding = line.endWithEndingBar;
-
-        lineGroup.children.push(symbolsGroup);
-
-        return lineGroup;
-    };
-
-    return function (tuneData) {
-
-        settings = tuneData.tuneSettings;
-
-        var doc = s("svg#tuneSVGCanvas", {
-            viewBox: "0 0 1000 800",
-            width: "100%"
-        }),
-            //height: "100%"
-        nextLineStartsWithEnding = false;
-
-        var drawnLines = 0;
-        tuneData.parsedLines.forEach(function (line, i) {
-            if (line.type === "drawable") {
-                if (tuneData.forceFullRedraw !== true && tuneData.changedLines.indexOf(i) === -1 && cachedLines[i] !== undefined && !nextLineStartsWithEnding) {
-                    doc.children.push(cachedLines[i]);
-                } else {
-                    var vRenderedLine = renderLine(line, drawnLines, i);
-                    doc.children.push(vRenderedLine);
-                    cachedLines[i] = vRenderedLine;
-                }
-                drawnLines++;
-            }
-        });
-
-        var topDiv = h("div.render-div", [h("div.tune-header", [h("h2", [settings.title]), h("p.abc-tune-rhythm", [settings.rhythm])]), h("div.tune-body", [doc])]);
-
-        return topDiv;
-
-        /* if(!returnString) {
-               renderElement = createElement(topDiv);
-             document.getElementById("canvas").innerHTML = '';
-             document.getElementById("canvas").appendChild(renderElement);
-               var svgs = document.getElementById("tuneSVGCanvas");
-             var canvasElement = document.getElementById("canvas");
-               var scrollDist = canvasElement.scrollTop;
-             svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
-             canvasElement.scrollTop = scrollDist;
-                   previousNodeTree = topDiv;    
-         } else {
-             return stringify(topDiv);
-         }*/
-    };
-};
-
-module.exports = ABCRenderer;
-
-},{"./rendering/stave_symbols.js":34,"virtual-dom/h":103,"virtual-dom/virtual-hyperscript/svg":117}],32:[function(require,module,exports){
-'use strict';
-
-var s = require('virtual-dom/virtual-hyperscript/svg'),
-    h = require('virtual-dom/h'),
-    createElement = require('virtual-dom/create-element');
-
-module.exports = {
-    selectionBox: function selectionBox() {
-        var markerRect = s("rect", {
-            x: -20,
-            y: -4,
-            width: 6,
-            height: 40,
-            fill: 'orange',
-            class: 'lineIndicatorRect'
-        });
-
-        return createElement(markerRect);
-    }
-};
-
-},{"virtual-dom/create-element":101,"virtual-dom/h":103,"virtual-dom/virtual-hyperscript/svg":117}],33:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-    "0": {
-        "w": 10.78,
-        "h": 14.959,
-        "d": "M4.83,-14.97c0.33,-0.03,1.11,0,1.47,0.06c1.68,0.36,2.97,1.59,3.78,3.6c1.2,2.97,0.81,6.96,-0.9,9.27c-0.78,1.08,-1.71,1.71,-2.91,1.95c-0.45,0.09,-1.32,0.09,-1.77,0c-0.81,-0.18,-1.47,-0.51,-2.07,-1.02c-2.34,-2.07,-3.15,-6.72,-1.74,-10.2c0.87,-2.16,2.28,-3.42,4.14,-3.66zm1.11,0.87c-0.21,-0.06,-0.69,-0.09,-0.87,-0.06c-0.54,0.12,-0.87,0.42,-1.17,0.99c-0.36,0.66,-0.51,1.56,-0.6,3c-0.03,0.75,-0.03,4.59,0,5.31c0.09,1.5,0.27,2.4,0.6,3.06c0.24,0.48,0.57,0.78,0.96,0.9c0.27,0.09,0.78,0.09,1.05,0c0.39,-0.12,0.72,-0.42,0.96,-0.9c0.33,-0.66,0.51,-1.56,0.6,-3.06c0.03,-0.72,0.03,-4.56,0,-5.31c-0.09,-1.47,-0.27,-2.37,-0.6,-3.03c-0.24,-0.48,-0.54,-0.78,-0.93,-0.9z"
-    },
-    "1": {
-        "w": 8.94,
-        "h": 15.058,
-        "d": "M3.3,-15.06c0.06,-0.06,0.21,-0.03,0.66,0.15c0.81,0.39,1.08,0.39,1.83,0.03c0.21,-0.09,0.39,-0.15,0.42,-0.15c0.12,0,0.21,0.09,0.27,0.21c0.06,0.12,0.06,0.33,0.06,5.94c0,3.93,0,5.85,0.03,6.03c0.06,0.36,0.15,0.69,0.27,0.96c0.36,0.75,0.93,1.17,1.68,1.26c0.3,0.03,0.39,0.09,0.39,0.3c0,0.15,-0.03,0.18,-0.09,0.24c-0.06,0.06,-0.09,0.06,-0.48,0.06c-0.42,0,-0.69,-0.03,-2.1,-0.24c-0.9,-0.15,-1.77,-0.15,-2.67,0c-1.41,0.21,-1.68,0.24,-2.1,0.24c-0.39,0,-0.42,0,-0.48,-0.06c-0.06,-0.06,-0.06,-0.09,-0.06,-0.24c0,-0.21,0.06,-0.27,0.36,-0.3c0.75,-0.09,1.32,-0.51,1.68,-1.26c0.12,-0.27,0.21,-0.6,0.27,-0.96c0.03,-0.18,0.03,-1.59,0.03,-4.29c0,-3.87,0,-4.05,-0.06,-4.14c-0.09,-0.15,-0.18,-0.24,-0.39,-0.24c-0.12,0,-0.15,0.03,-0.21,0.06c-0.03,0.06,-0.45,0.99,-0.96,2.13c-0.48,1.14,-0.9,2.1,-0.93,2.16c-0.06,0.15,-0.21,0.24,-0.33,0.24c-0.24,0,-0.42,-0.18,-0.42,-0.39c0,-0.06,3.27,-7.62,3.33,-7.74z"
-    },
-    "2": {
-        "w": 10.764,
-        "h": 14.993,
-        "d": "M4.23,-14.97c0.57,-0.06,1.68,0,2.34,0.18c0.69,0.18,1.5,0.54,2.01,0.9c1.35,0.96,1.95,2.25,1.77,3.81c-0.15,1.35,-0.66,2.34,-1.68,3.15c-0.6,0.48,-1.44,0.93,-3.12,1.65c-1.32,0.57,-1.8,0.81,-2.37,1.14c-0.57,0.33,-0.57,0.33,-0.24,0.27c0.39,-0.09,1.26,-0.09,1.68,0c0.72,0.15,1.41,0.45,2.1,0.9c0.99,0.63,1.86,0.87,2.55,0.75c0.24,-0.06,0.42,-0.15,0.57,-0.3c0.12,-0.09,0.3,-0.42,0.3,-0.51c0,-0.09,0.12,-0.21,0.24,-0.24c0.18,-0.03,0.39,0.12,0.39,0.3c0,0.12,-0.15,0.57,-0.3,0.87c-0.54,1.02,-1.56,1.74,-2.79,2.01c-0.42,0.09,-1.23,0.09,-1.62,0.03c-0.81,-0.18,-1.32,-0.45,-2.01,-1.11c-0.45,-0.45,-0.63,-0.57,-0.96,-0.69c-0.84,-0.27,-1.89,0.12,-2.25,0.9c-0.12,0.21,-0.21,0.54,-0.21,0.72c0,0.12,-0.12,0.21,-0.27,0.24c-0.15,0,-0.27,-0.03,-0.33,-0.15c-0.09,-0.21,0.09,-1.08,0.33,-1.71c0.24,-0.66,0.66,-1.26,1.29,-1.89c0.45,-0.45,0.9,-0.81,1.92,-1.56c1.29,-0.93,1.89,-1.44,2.34,-1.98c0.87,-1.05,1.26,-2.19,1.2,-3.63c-0.06,-1.29,-0.39,-2.31,-0.96,-2.91c-0.36,-0.33,-0.72,-0.51,-1.17,-0.54c-0.84,-0.03,-1.53,0.42,-1.59,1.05c-0.03,0.33,0.12,0.6,0.57,1.14c0.45,0.54,0.54,0.87,0.42,1.41c-0.15,0.63,-0.54,1.11,-1.08,1.38c-0.63,0.33,-1.2,0.33,-1.83,0c-0.24,-0.12,-0.33,-0.18,-0.54,-0.39c-0.18,-0.18,-0.27,-0.3,-0.36,-0.51c-0.24,-0.45,-0.27,-0.84,-0.21,-1.38c0.12,-0.75,0.45,-1.41,1.02,-1.98c0.72,-0.72,1.74,-1.17,2.85,-1.32z"
-    },
-    "3": {
-        "w": 9.735,
-        "h": 14.967,
-        "d": "M3.78,-14.97c0.3,-0.03,1.41,0,1.83,0.06c2.22,0.3,3.51,1.32,3.72,2.91c0.03,0.33,0.03,1.26,-0.03,1.65c-0.12,0.84,-0.48,1.47,-1.05,1.77c-0.27,0.15,-0.36,0.24,-0.45,0.39c-0.09,0.21,-0.09,0.36,0,0.57c0.09,0.15,0.18,0.24,0.51,0.39c0.75,0.42,1.23,1.14,1.41,2.13c0.06,0.42,0.06,1.35,0,1.71c-0.18,0.81,-0.48,1.38,-1.02,1.95c-0.75,0.72,-1.8,1.2,-3.18,1.38c-0.42,0.06,-1.56,0.06,-1.95,0c-1.89,-0.33,-3.18,-1.29,-3.51,-2.64c-0.03,-0.12,-0.03,-0.33,-0.03,-0.6c0,-0.36,0,-0.42,0.06,-0.63c0.12,-0.3,0.27,-0.51,0.51,-0.75c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.36,0.33,0.57,0.75,0.6,1.2c0,0.21,0,0.27,-0.06,0.42c-0.09,0.18,-0.12,0.24,-0.54,0.54c-0.51,0.36,-0.63,0.54,-0.6,0.87c0.06,0.54,0.54,0.9,1.38,0.99c0.36,0.06,0.72,0.03,0.96,-0.06c0.81,-0.27,1.29,-1.23,1.44,-2.79c0.03,-0.45,0.03,-1.95,-0.03,-2.37c-0.09,-0.75,-0.33,-1.23,-0.75,-1.44c-0.33,-0.18,-0.45,-0.18,-1.98,-0.18c-1.35,0,-1.41,0,-1.5,-0.06c-0.18,-0.12,-0.24,-0.39,-0.12,-0.6c0.12,-0.15,0.15,-0.15,1.68,-0.15c1.5,0,1.62,0,1.89,-0.15c0.18,-0.09,0.42,-0.36,0.54,-0.57c0.18,-0.42,0.27,-0.9,0.3,-1.95c0.03,-1.2,-0.06,-1.8,-0.36,-2.37c-0.24,-0.48,-0.63,-0.81,-1.14,-0.96c-0.3,-0.06,-1.08,-0.06,-1.38,0.03c-0.6,0.15,-0.9,0.42,-0.96,0.84c-0.03,0.3,0.06,0.45,0.63,0.84c0.33,0.24,0.42,0.39,0.45,0.63c0.03,0.72,-0.57,1.5,-1.32,1.65c-1.05,0.27,-2.1,-0.57,-2.1,-1.65c0,-0.45,0.15,-0.96,0.39,-1.38c0.12,-0.21,0.54,-0.63,0.81,-0.81c0.57,-0.42,1.38,-0.69,2.25,-0.81z"
-    },
-    "4": {
-        "w": 11.795,
-        "h": 14.994,
-        "d": "M8.64,-14.94c0.27,-0.09,0.42,-0.12,0.54,-0.03c0.09,0.06,0.15,0.21,0.15,0.3c-0.03,0.06,-1.92,2.31,-4.23,5.04c-2.31,2.73,-4.23,4.98,-4.26,5.01c-0.03,0.06,0.12,0.06,2.55,0.06l2.61,0l0,-2.37c0,-2.19,0.03,-2.37,0.06,-2.46c0.03,-0.06,0.21,-0.18,0.57,-0.42c1.08,-0.72,1.38,-1.08,1.86,-2.16c0.12,-0.3,0.24,-0.54,0.27,-0.57c0.12,-0.12,0.39,-0.06,0.45,0.12c0.06,0.09,0.06,0.57,0.06,3.96l0,3.9l1.08,0c1.05,0,1.11,0,1.2,0.06c0.24,0.15,0.24,0.54,0,0.69c-0.09,0.06,-0.15,0.06,-1.2,0.06l-1.08,0l0,0.33c0,0.57,0.09,1.11,0.3,1.53c0.36,0.75,0.93,1.17,1.68,1.26c0.3,0.03,0.39,0.09,0.39,0.3c0,0.15,-0.03,0.18,-0.09,0.24c-0.06,0.06,-0.09,0.06,-0.48,0.06c-0.42,0,-0.69,-0.03,-2.1,-0.24c-0.9,-0.15,-1.77,-0.15,-2.67,0c-1.41,0.21,-1.68,0.24,-2.1,0.24c-0.39,0,-0.42,0,-0.48,-0.06c-0.06,-0.06,-0.06,-0.09,-0.06,-0.24c0,-0.21,0.06,-0.27,0.36,-0.3c0.75,-0.09,1.32,-0.51,1.68,-1.26c0.21,-0.42,0.3,-0.96,0.3,-1.53l0,-0.33l-2.7,0c-2.91,0,-2.85,0,-3.09,-0.15c-0.18,-0.12,-0.3,-0.39,-0.27,-0.54c0.03,-0.06,0.18,-0.24,0.33,-0.45c0.75,-0.9,1.59,-2.07,2.13,-3.03c0.33,-0.54,0.84,-1.62,1.05,-2.16c0.57,-1.41,0.84,-2.64,0.9,-4.05c0.03,-0.63,0.06,-0.72,0.24,-0.81l0.12,-0.06l0.45,0.12c0.66,0.18,1.02,0.24,1.47,0.27c0.6,0.03,1.23,-0.09,2.01,-0.33z"
-    },
-    "5": {
-        "w": 10.212,
-        "h": 14.997,
-        "d": "M1.02,-14.94c0.12,-0.09,0.03,-0.09,1.08,0.06c2.49,0.36,4.35,0.36,6.96,-0.06c0.57,-0.09,0.66,-0.06,0.81,0.06c0.15,0.18,0.12,0.24,-0.15,0.51c-1.29,1.26,-3.24,2.04,-5.58,2.31c-0.6,0.09,-1.2,0.12,-1.71,0.12c-0.39,0,-0.45,0,-0.57,0.06c-0.09,0.06,-0.15,0.12,-0.21,0.21l-0.06,0.12l0,1.65l0,1.65l0.21,-0.21c0.66,-0.57,1.41,-0.96,2.19,-1.14c0.33,-0.06,1.41,-0.06,1.95,0c2.61,0.36,4.02,1.74,4.26,4.14c0.03,0.45,0.03,1.08,-0.03,1.44c-0.18,1.02,-0.78,2.01,-1.59,2.7c-0.72,0.57,-1.62,1.02,-2.49,1.2c-1.38,0.27,-3.03,0.06,-4.2,-0.54c-1.08,-0.54,-1.71,-1.32,-1.86,-2.28c-0.09,-0.69,0.09,-1.29,0.57,-1.74c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.36,0.33,0.57,0.75,0.6,1.2c0,0.21,0,0.27,-0.06,0.42c-0.09,0.18,-0.12,0.24,-0.54,0.54c-0.18,0.12,-0.36,0.3,-0.42,0.33c-0.36,0.42,-0.18,0.99,0.36,1.26c0.51,0.27,1.47,0.36,2.01,0.27c0.93,-0.21,1.47,-1.17,1.65,-2.91c0.06,-0.45,0.06,-1.89,0,-2.31c-0.15,-1.2,-0.51,-2.1,-1.05,-2.55c-0.21,-0.18,-0.54,-0.36,-0.81,-0.39c-0.3,-0.06,-0.84,-0.03,-1.26,0.06c-0.93,0.18,-1.65,0.6,-2.16,1.2c-0.15,0.21,-0.27,0.3,-0.39,0.3c-0.15,0,-0.3,-0.09,-0.36,-0.18c-0.06,-0.09,-0.06,-0.15,-0.06,-3.66c0,-3.39,0,-3.57,0.06,-3.66c0.03,-0.06,0.09,-0.15,0.15,-0.18z"
-    },
-    "6": {
-        "w": 9.956,
-        "h": 14.982,
-        "d": "M4.98,-14.97c0.36,-0.03,1.2,0,1.59,0.06c0.9,0.15,1.68,0.51,2.25,1.05c0.57,0.51,0.87,1.23,0.84,1.98c-0.03,0.51,-0.21,0.9,-0.6,1.26c-0.24,0.24,-0.45,0.39,-0.75,0.51c-0.21,0.06,-0.27,0.06,-0.6,0.06c-0.33,0,-0.39,0,-0.6,-0.06c-0.3,-0.12,-0.51,-0.27,-0.75,-0.51c-0.39,-0.36,-0.57,-0.78,-0.57,-1.26c0,-0.27,0,-0.3,0.09,-0.42c0.03,-0.09,0.18,-0.21,0.3,-0.3c0.12,-0.09,0.3,-0.21,0.39,-0.27c0.09,-0.06,0.21,-0.18,0.27,-0.24c0.06,-0.12,0.09,-0.15,0.09,-0.33c0,-0.18,-0.03,-0.24,-0.09,-0.36c-0.24,-0.39,-0.75,-0.6,-1.38,-0.57c-0.54,0.03,-0.9,0.18,-1.23,0.48c-0.81,0.72,-1.08,2.16,-0.96,5.37l0,0.63l0.3,-0.12c0.78,-0.27,1.29,-0.33,2.1,-0.27c1.47,0.12,2.49,0.54,3.27,1.29c0.48,0.51,0.81,1.11,0.96,1.89c0.06,0.27,0.06,0.42,0.06,0.93c0,0.54,0,0.69,-0.06,0.96c-0.15,0.78,-0.48,1.38,-0.96,1.89c-0.54,0.51,-1.17,0.87,-1.98,1.08c-1.14,0.3,-2.4,0.33,-3.24,0.03c-1.5,-0.48,-2.64,-1.89,-3.27,-4.02c-0.36,-1.23,-0.51,-2.82,-0.42,-4.08c0.3,-3.66,2.28,-6.3,4.95,-6.66zm0.66,7.41c-0.27,-0.09,-0.81,-0.12,-1.08,-0.06c-0.72,0.18,-1.08,0.69,-1.23,1.71c-0.06,0.54,-0.06,3,0,3.54c0.18,1.26,0.72,1.77,1.8,1.74c0.39,-0.03,0.63,-0.09,0.9,-0.27c0.66,-0.42,0.9,-1.32,0.9,-3.24c0,-2.22,-0.36,-3.12,-1.29,-3.42z"
-    },
-    "7": {
-        "w": 10.561,
-        "h": 15.093,
-        "d": "M0.21,-14.97c0.21,-0.06,0.45,0,0.54,0.15c0.06,0.09,0.06,0.15,0.06,0.39c0,0.24,0,0.33,0.06,0.42c0.06,0.12,0.21,0.24,0.27,0.24c0.03,0,0.12,-0.12,0.24,-0.21c0.96,-1.2,2.58,-1.35,3.99,-0.42c0.15,0.12,0.42,0.3,0.54,0.45c0.48,0.39,0.81,0.57,1.29,0.6c0.69,0.03,1.5,-0.3,2.13,-0.87c0.09,-0.09,0.27,-0.3,0.39,-0.45c0.12,-0.15,0.24,-0.27,0.3,-0.3c0.18,-0.06,0.39,0.03,0.51,0.21c0.06,0.18,0.06,0.24,-0.27,0.72c-0.18,0.24,-0.54,0.78,-0.78,1.17c-2.37,3.54,-3.54,6.27,-3.87,9c-0.03,0.33,-0.03,0.66,-0.03,1.26c0,0.9,0,1.08,0.15,1.89c0.06,0.45,0.06,0.48,0.03,0.6c-0.06,0.09,-0.21,0.21,-0.3,0.21c-0.03,0,-0.27,-0.06,-0.54,-0.15c-0.84,-0.27,-1.11,-0.3,-1.65,-0.3c-0.57,0,-0.84,0.03,-1.56,0.27c-0.6,0.18,-0.69,0.21,-0.81,0.15c-0.12,-0.06,-0.21,-0.18,-0.21,-0.3c0,-0.15,0.6,-1.44,1.2,-2.61c1.14,-2.22,2.73,-4.68,5.1,-8.01c0.21,-0.27,0.36,-0.48,0.33,-0.48c0,0,-0.12,0.06,-0.27,0.12c-0.54,0.3,-0.99,0.39,-1.56,0.39c-0.75,0.03,-1.2,-0.18,-1.83,-0.75c-0.99,-0.9,-1.83,-1.17,-2.31,-0.72c-0.18,0.15,-0.36,0.51,-0.45,0.84c-0.06,0.24,-0.06,0.33,-0.09,1.98c0,1.62,-0.03,1.74,-0.06,1.8c-0.15,0.24,-0.54,0.24,-0.69,0c-0.06,-0.09,-0.06,-0.15,-0.06,-3.57c0,-3.42,0,-3.48,0.06,-3.57c0.03,-0.06,0.09,-0.12,0.15,-0.15z"
-    },
-    "8": {
-        "w": 10.926,
-        "h": 14.989,
-        "d": "M4.98,-14.97c0.33,-0.03,1.02,-0.03,1.32,0c1.32,0.12,2.49,0.6,3.21,1.32c0.39,0.39,0.66,0.81,0.78,1.29c0.09,0.36,0.09,1.08,0,1.44c-0.21,0.84,-0.66,1.59,-1.59,2.55l-0.3,0.3l0.27,0.18c1.47,0.93,2.31,2.31,2.25,3.75c-0.03,0.75,-0.24,1.35,-0.63,1.95c-0.45,0.66,-1.02,1.14,-1.83,1.53c-1.8,0.87,-4.2,0.87,-6,0.03c-1.62,-0.78,-2.52,-2.16,-2.46,-3.66c0.06,-0.99,0.54,-1.77,1.8,-2.97c0.54,-0.51,0.54,-0.54,0.48,-0.57c-0.39,-0.27,-0.96,-0.78,-1.2,-1.14c-0.75,-1.11,-0.87,-2.4,-0.3,-3.6c0.69,-1.35,2.25,-2.25,4.2,-2.4zm1.53,0.69c-0.42,-0.09,-1.11,-0.12,-1.38,-0.06c-0.3,0.06,-0.6,0.18,-0.81,0.3c-0.21,0.12,-0.6,0.51,-0.72,0.72c-0.51,0.87,-0.42,1.89,0.21,2.52c0.21,0.21,0.36,0.3,1.95,1.23c0.96,0.54,1.74,0.99,1.77,1.02c0.09,0,0.63,-0.6,0.99,-1.11c0.21,-0.36,0.48,-0.87,0.57,-1.23c0.06,-0.24,0.06,-0.36,0.06,-0.72c0,-0.45,-0.03,-0.66,-0.15,-0.99c-0.39,-0.81,-1.29,-1.44,-2.49,-1.68zm-1.44,8.07l-1.89,-1.08c-0.03,0,-0.18,0.15,-0.39,0.33c-1.2,1.08,-1.65,1.95,-1.59,3c0.09,1.59,1.35,2.85,3.21,3.24c0.33,0.06,0.45,0.06,0.93,0.06c0.63,0,0.81,-0.03,1.29,-0.27c0.9,-0.42,1.47,-1.41,1.41,-2.4c-0.06,-0.66,-0.39,-1.29,-0.9,-1.65c-0.12,-0.09,-1.05,-0.63,-2.07,-1.23z"
-    },
-    "9": {
-        "w": 9.959,
-        "h": 14.986,
-        "d": "M4.23,-14.97c0.42,-0.03,1.29,0,1.62,0.06c0.51,0.12,0.93,0.3,1.38,0.57c1.53,1.02,2.52,3.24,2.73,5.94c0.18,2.55,-0.48,4.98,-1.83,6.57c-1.05,1.26,-2.4,1.89,-3.93,1.83c-1.23,-0.06,-2.31,-0.45,-3.03,-1.14c-0.57,-0.51,-0.87,-1.23,-0.84,-1.98c0.03,-0.51,0.21,-0.9,0.6,-1.26c0.24,-0.24,0.45,-0.39,0.75,-0.51c0.21,-0.06,0.27,-0.06,0.6,-0.06c0.33,0,0.39,0,0.6,0.06c0.3,0.12,0.51,0.27,0.75,0.51c0.39,0.36,0.57,0.78,0.57,1.26c0,0.27,0,0.3,-0.09,0.42c-0.03,0.09,-0.18,0.21,-0.3,0.3c-0.12,0.09,-0.3,0.21,-0.39,0.27c-0.09,0.06,-0.21,0.18,-0.27,0.24c-0.06,0.12,-0.06,0.15,-0.06,0.33c0,0.18,0,0.24,0.06,0.36c0.24,0.39,0.75,0.6,1.38,0.57c0.54,-0.03,0.9,-0.18,1.23,-0.48c0.81,-0.72,1.08,-2.16,0.96,-5.37l0,-0.63l-0.3,0.12c-0.78,0.27,-1.29,0.33,-2.1,0.27c-1.47,-0.12,-2.49,-0.54,-3.27,-1.29c-0.48,-0.51,-0.81,-1.11,-0.96,-1.89c-0.06,-0.27,-0.06,-0.42,-0.06,-0.96c0,-0.51,0,-0.66,0.06,-0.93c0.15,-0.78,0.48,-1.38,0.96,-1.89c0.15,-0.12,0.33,-0.27,0.42,-0.36c0.69,-0.51,1.62,-0.81,2.76,-0.93zm1.17,0.66c-0.21,-0.06,-0.57,-0.06,-0.81,-0.03c-0.78,0.12,-1.26,0.69,-1.41,1.74c-0.12,0.63,-0.15,1.95,-0.09,2.79c0.12,1.71,0.63,2.4,1.77,2.46c1.08,0.03,1.62,-0.48,1.8,-1.74c0.06,-0.54,0.06,-3,0,-3.54c-0.15,-1.05,-0.51,-1.53,-1.26,-1.68z"
-    },
-    "rests.whole": {
-        "w": 11.25,
-        "h": 4.68,
-        "d": "M0.06,0.03l0.09,-0.06l5.46,0l5.49,0l0.09,0.06l0.06,0.09l0,2.19l0,2.19l-0.06,0.09l-0.09,0.06l-5.49,0l-5.46,0l-0.09,-0.06l-0.06,-0.09l0,-2.19l0,-2.19z"
-    },
-    "rests.half": {
-        "w": 11.25,
-        "h": 4.68,
-        "d": "M0.06,-4.62l0.09,-0.06l5.46,0l5.49,0l0.09,0.06l0.06,0.09l0,2.19l0,2.19l-0.06,0.09l-0.09,0.06l-5.49,0l-5.46,0l-0.09,-0.06l-0.06,-0.09l0,-2.19l0,-2.19z"
-    },
-    "rests.quarter": {
-        "w": 7.888,
-        "h": 21.435,
-        "d": "M1.89,-11.82c0.12,-0.06,0.24,-0.06,0.36,-0.03c0.09,0.06,4.74,5.58,4.86,5.82c0.21,0.39,0.15,0.78,-0.15,1.26c-0.24,0.33,-0.72,0.81,-1.62,1.56c-0.45,0.36,-0.87,0.75,-0.96,0.84c-0.93,0.99,-1.14,2.49,-0.6,3.63c0.18,0.39,0.27,0.48,1.32,1.68c1.92,2.25,1.83,2.16,1.83,2.34c0,0.18,-0.18,0.36,-0.36,0.39c-0.15,0,-0.27,-0.06,-0.48,-0.27c-0.75,-0.75,-2.46,-1.29,-3.39,-1.08c-0.45,0.09,-0.69,0.27,-0.9,0.69c-0.12,0.3,-0.21,0.66,-0.24,1.14c-0.03,0.66,0.09,1.35,0.3,2.01c0.15,0.42,0.24,0.66,0.45,0.96c0.18,0.24,0.18,0.33,0.03,0.42c-0.12,0.06,-0.18,0.03,-0.45,-0.3c-1.08,-1.38,-2.07,-3.36,-2.4,-4.83c-0.27,-1.05,-0.15,-1.77,0.27,-2.07c0.21,-0.12,0.42,-0.15,0.87,-0.15c0.87,0.06,2.1,0.39,3.3,0.9l0.39,0.18l-1.65,-1.95c-2.52,-2.97,-2.61,-3.09,-2.7,-3.27c-0.09,-0.24,-0.12,-0.48,-0.03,-0.75c0.15,-0.48,0.57,-0.96,1.83,-2.01c0.45,-0.36,0.84,-0.72,0.93,-0.78c0.69,-0.75,1.02,-1.8,0.9,-2.79c-0.06,-0.33,-0.21,-0.84,-0.39,-1.11c-0.09,-0.15,-0.45,-0.6,-0.81,-1.05c-0.36,-0.42,-0.69,-0.81,-0.72,-0.87c-0.09,-0.18,0,-0.42,0.21,-0.51z"
-    },
-    "rests.8th": {
-        "w": 7.534,
-        "h": 13.883,
-        "d": "M1.68,-6.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.12,0,0.18,0,0.33,-0.09c0.39,-0.18,1.32,-1.29,1.68,-1.98c0.09,-0.21,0.24,-0.3,0.39,-0.3c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.27,1.11,-1.86,6.42c-1.02,3.48,-1.89,6.39,-1.92,6.42c0,0.03,-0.12,0.12,-0.24,0.15c-0.18,0.09,-0.21,0.09,-0.45,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.15,-0.57,1.68,-4.92c0.96,-2.67,1.74,-4.89,1.71,-4.89l-0.51,0.15c-1.08,0.36,-1.74,0.48,-2.55,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
-    },
-    "rests.16th": {
-        "w": 9.724,
-        "h": 21.383,
-        "d": "M3.33,-6.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.15,0.39,0.57,0.57,0.87,0.42c0.39,-0.18,1.2,-1.23,1.62,-2.07c0.06,-0.15,0.24,-0.24,0.36,-0.24c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.45,1.86,-2.67,10.17c-1.5,5.55,-2.73,10.14,-2.76,10.17c-0.03,0.03,-0.12,0.12,-0.24,0.15c-0.18,0.09,-0.21,0.09,-0.45,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.12,-0.57,1.44,-4.92c0.81,-2.67,1.47,-4.86,1.47,-4.89c-0.03,0,-0.27,0.06,-0.54,0.15c-1.08,0.36,-1.77,0.48,-2.58,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.09,0.09,0.27,0.18,0.45,0.21c0.12,0,0.18,0,0.33,-0.09c0.33,-0.15,1.02,-0.93,1.41,-1.59c0.12,-0.21,0.18,-0.39,0.39,-1.08c0.66,-2.1,1.17,-3.84,1.17,-3.87c0,0,-0.21,0.06,-0.42,0.15c-0.51,0.15,-1.2,0.33,-1.68,0.42c-0.33,0.06,-0.51,0.06,-0.96,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
-    },
-    "rests.32nd": {
-        "w": 11.373,
-        "h": 28.883,
-        "d": "M4.23,-13.62c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.12,0,0.18,0,0.27,-0.06c0.33,-0.21,0.99,-1.11,1.44,-1.98c0.09,-0.24,0.21,-0.33,0.39,-0.33c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.57,2.67,-3.21,13.89c-1.8,7.62,-3.3,13.89,-3.3,13.92c-0.03,0.06,-0.12,0.12,-0.24,0.18c-0.21,0.09,-0.24,0.09,-0.48,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.09,-0.57,1.23,-4.92c0.69,-2.67,1.26,-4.86,1.29,-4.89c0,-0.03,-0.12,-0.03,-0.48,0.12c-1.17,0.39,-2.22,0.57,-3,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.12,0.09,0.3,0.18,0.48,0.21c0.12,0,0.18,0,0.3,-0.09c0.42,-0.21,1.29,-1.29,1.56,-1.89c0.03,-0.12,1.23,-4.59,1.23,-4.65c0,-0.03,-0.18,0.03,-0.39,0.12c-0.63,0.18,-1.2,0.36,-1.74,0.45c-0.39,0.06,-0.54,0.06,-1.02,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.18,0.18,0.51,0.27,0.72,0.15c0.3,-0.12,0.69,-0.57,1.08,-1.17c0.42,-0.6,0.39,-0.51,1.05,-3.03c0.33,-1.26,0.6,-2.31,0.6,-2.34c0,0,-0.21,0.03,-0.45,0.12c-0.57,0.18,-1.14,0.33,-1.62,0.42c-0.33,0.06,-0.51,0.06,-0.96,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
-    },
-    "rests.64th": {
-        "w": 12.453,
-        "h": 36.383,
-        "d": "M5.13,-13.62c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.21,0.54,0.3,0.75,0.18c0.24,-0.12,0.63,-0.66,1.08,-1.56c0.33,-0.66,0.39,-0.72,0.6,-0.72c0.12,0,0.27,0.09,0.33,0.18c0.03,0.06,-0.69,3.66,-3.54,17.64c-1.95,9.66,-3.57,17.61,-3.57,17.64c-0.03,0.06,-0.12,0.12,-0.24,0.18c-0.21,0.09,-0.24,0.09,-0.48,0.09c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.06,-0.57,1.05,-4.95c0.6,-2.7,1.08,-4.89,1.08,-4.92c0,0,-0.24,0.06,-0.51,0.15c-0.66,0.24,-1.2,0.36,-1.77,0.48c-0.42,0.06,-0.57,0.06,-1.05,0.06c-0.69,0,-0.87,-0.03,-1.35,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.72,-1.05,2.22,-1.23,3.06,-0.42c0.3,0.33,0.42,0.6,0.6,1.38c0.09,0.45,0.21,0.78,0.33,0.9c0.09,0.09,0.27,0.18,0.45,0.21c0.21,0.03,0.39,-0.09,0.72,-0.42c0.45,-0.45,1.02,-1.26,1.17,-1.65c0.03,-0.09,0.27,-1.14,0.54,-2.34c0.27,-1.2,0.48,-2.19,0.51,-2.22c0,-0.03,-0.09,-0.03,-0.48,0.12c-1.17,0.39,-2.22,0.57,-3,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.15,0.39,0.57,0.57,0.9,0.42c0.36,-0.18,1.2,-1.26,1.47,-1.89c0.03,-0.09,0.3,-1.2,0.57,-2.43l0.51,-2.28l-0.54,0.18c-1.11,0.36,-1.8,0.48,-2.61,0.48c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.21,0.21,0.54,0.3,0.75,0.18c0.36,-0.18,0.93,-0.93,1.29,-1.68c0.12,-0.24,0.18,-0.48,0.63,-2.55l0.51,-2.31c0,-0.03,-0.18,0.03,-0.39,0.12c-1.14,0.36,-2.1,0.54,-2.82,0.51c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
-    },
-    "rests.128th": {
-        "w": 12.992,
-        "h": 43.883,
-        "d": "M6.03,-21.12c0.66,-0.09,1.23,0.09,1.68,0.51c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.21,0,0.33,-0.06,0.54,-0.36c0.15,-0.21,0.54,-0.93,0.78,-1.47c0.15,-0.33,0.18,-0.39,0.3,-0.48c0.18,-0.09,0.45,0,0.51,0.15c0.03,0.09,-7.11,42.75,-7.17,42.84c-0.03,0.03,-0.15,0.09,-0.24,0.15c-0.18,0.06,-0.24,0.06,-0.45,0.06c-0.24,0,-0.3,0,-0.48,-0.06c-0.09,-0.06,-0.21,-0.12,-0.21,-0.15c-0.06,-0.03,0.03,-0.57,0.84,-4.98c0.51,-2.7,0.93,-4.92,0.9,-4.92c0,0,-0.15,0.06,-0.36,0.12c-0.78,0.27,-1.62,0.48,-2.31,0.57c-0.15,0.03,-0.54,0.03,-0.81,0.03c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.63,0.48c0.12,0,0.18,0,0.3,-0.09c0.42,-0.21,1.14,-1.11,1.5,-1.83c0.12,-0.27,0.12,-0.27,0.54,-2.52c0.24,-1.23,0.42,-2.25,0.39,-2.25c0,0,-0.24,0.06,-0.51,0.18c-1.26,0.39,-2.25,0.57,-3.06,0.54c-0.42,-0.03,-0.75,-0.12,-1.11,-0.3c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.21,0.51,0.3,0.75,0.18c0.36,-0.15,1.05,-0.99,1.41,-1.77l0.15,-0.3l0.42,-2.25c0.21,-1.26,0.42,-2.28,0.39,-2.28l-0.51,0.15c-1.11,0.39,-1.89,0.51,-2.7,0.51c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.15,0.63,0.21,0.81,0.33,0.96c0.18,0.18,0.48,0.27,0.72,0.21c0.33,-0.12,1.14,-1.26,1.41,-1.95c0,-0.09,0.21,-1.11,0.45,-2.34c0.21,-1.2,0.39,-2.22,0.39,-2.28c0.03,-0.03,0,-0.03,-0.45,0.12c-0.57,0.18,-1.2,0.33,-1.71,0.42c-0.3,0.06,-0.51,0.06,-0.93,0.06c-0.66,0,-0.84,-0.03,-1.32,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.36,-0.54,0.96,-0.87,1.65,-0.93c0.54,-0.03,1.02,0.15,1.41,0.54c0.27,0.3,0.39,0.54,0.57,1.26c0.09,0.33,0.18,0.66,0.21,0.72c0.12,0.27,0.33,0.45,0.6,0.48c0.18,0,0.36,-0.09,0.57,-0.33c0.33,-0.36,0.78,-1.14,0.93,-1.56c0.03,-0.12,0.24,-1.2,0.45,-2.4c0.24,-1.2,0.42,-2.22,0.42,-2.28c0.03,-0.03,0,-0.03,-0.39,0.09c-1.05,0.36,-1.8,0.48,-2.58,0.48c-0.63,0,-0.84,-0.03,-1.29,-0.27c-1.32,-0.63,-1.77,-2.16,-1.02,-3.3c0.33,-0.45,0.84,-0.81,1.38,-0.9z"
-    },
-    "accidentals.sharp": {
-        "w": 8.25,
-        "h": 22.462,
-        "d": "M5.73,-11.19c0.21,-0.12,0.54,-0.03,0.66,0.24c0.06,0.12,0.06,0.21,0.06,2.31c0,1.23,0,2.22,0.03,2.22c0,0,0.27,-0.12,0.6,-0.24c0.69,-0.27,0.78,-0.3,0.96,-0.15c0.21,0.15,0.21,0.18,0.21,1.38c0,1.02,0,1.11,-0.06,1.2c-0.03,0.06,-0.09,0.12,-0.12,0.15c-0.06,0.03,-0.42,0.21,-0.84,0.36l-0.75,0.33l-0.03,2.43c0,1.32,0,2.43,0.03,2.43c0,0,0.27,-0.12,0.6,-0.24c0.69,-0.27,0.78,-0.3,0.96,-0.15c0.21,0.15,0.21,0.18,0.21,1.38c0,1.02,0,1.11,-0.06,1.2c-0.03,0.06,-0.09,0.12,-0.12,0.15c-0.06,0.03,-0.42,0.21,-0.84,0.36l-0.75,0.33l-0.03,2.52c0,2.28,-0.03,2.55,-0.06,2.64c-0.21,0.36,-0.72,0.36,-0.93,0c-0.03,-0.09,-0.06,-0.33,-0.06,-2.43l0,-2.31l-1.29,0.51l-1.26,0.51l0,2.43c0,2.58,0,2.52,-0.15,2.67c-0.06,0.09,-0.27,0.18,-0.36,0.18c-0.12,0,-0.33,-0.09,-0.39,-0.18c-0.15,-0.15,-0.15,-0.09,-0.15,-2.43c0,-1.23,0,-2.22,-0.03,-2.22c0,0,-0.27,0.12,-0.6,0.24c-0.69,0.27,-0.78,0.3,-0.96,0.15c-0.21,-0.15,-0.21,-0.18,-0.21,-1.38c0,-1.02,0,-1.11,0.06,-1.2c0.03,-0.06,0.09,-0.12,0.12,-0.15c0.06,-0.03,0.42,-0.21,0.84,-0.36l0.78,-0.33l0,-2.43c0,-1.32,0,-2.43,-0.03,-2.43c0,0,-0.27,0.12,-0.6,0.24c-0.69,0.27,-0.78,0.3,-0.96,0.15c-0.21,-0.15,-0.21,-0.18,-0.21,-1.38c0,-1.02,0,-1.11,0.06,-1.2c0.03,-0.06,0.09,-0.12,0.12,-0.15c0.06,-0.03,0.42,-0.21,0.84,-0.36l0.78,-0.33l0,-2.52c0,-2.28,0.03,-2.55,0.06,-2.64c0.21,-0.36,0.72,-0.36,0.93,0c0.03,0.09,0.06,0.33,0.06,2.43l0.03,2.31l1.26,-0.51l1.26,-0.51l0,-2.43c0,-2.28,0,-2.43,0.06,-2.55c0.06,-0.12,0.12,-0.18,0.27,-0.24zm-0.33,10.65l0,-2.43l-1.29,0.51l-1.26,0.51l0,2.46l0,2.43l0.09,-0.03c0.06,-0.03,0.63,-0.27,1.29,-0.51l1.17,-0.48l0,-2.46z"
-    },
-    "accidentals.halfsharp": {
-        "w": 5.25,
-        "h": 20.174,
-        "d": "M2.43,-10.05c0.21,-0.12,0.54,-0.03,0.66,0.24c0.06,0.12,0.06,0.21,0.06,2.01c0,1.05,0,1.89,0.03,1.89l0.72,-0.48c0.69,-0.48,0.69,-0.51,0.87,-0.51c0.15,0,0.18,0.03,0.27,0.09c0.21,0.15,0.21,0.18,0.21,1.41c0,1.11,-0.03,1.14,-0.09,1.23c-0.03,0.03,-0.48,0.39,-1.02,0.75l-0.99,0.66l0,2.37c0,1.32,0,2.37,0.03,2.37l0.72,-0.48c0.69,-0.48,0.69,-0.51,0.87,-0.51c0.15,0,0.18,0.03,0.27,0.09c0.21,0.15,0.21,0.18,0.21,1.41c0,1.11,-0.03,1.14,-0.09,1.23c-0.03,0.03,-0.48,0.39,-1.02,0.75l-0.99,0.66l0,2.25c0,1.95,0,2.28,-0.06,2.37c-0.06,0.12,-0.12,0.21,-0.24,0.27c-0.27,0.12,-0.54,0.03,-0.69,-0.24c-0.06,-0.12,-0.06,-0.21,-0.06,-2.01c0,-1.05,0,-1.89,-0.03,-1.89l-0.72,0.48c-0.69,0.48,-0.69,0.48,-0.87,0.48c-0.15,0,-0.18,0,-0.27,-0.06c-0.21,-0.15,-0.21,-0.18,-0.21,-1.41c0,-1.11,0.03,-1.14,0.09,-1.23c0.03,-0.03,0.48,-0.39,1.02,-0.75l0.99,-0.66l0,-2.37c0,-1.32,0,-2.37,-0.03,-2.37l-0.72,0.48c-0.69,0.48,-0.69,0.48,-0.87,0.48c-0.15,0,-0.18,0,-0.27,-0.06c-0.21,-0.15,-0.21,-0.18,-0.21,-1.41c0,-1.11,0.03,-1.14,0.09,-1.23c0.03,-0.03,0.48,-0.39,1.02,-0.75l0.99,-0.66l0,-2.25c0,-2.13,0,-2.28,0.06,-2.4c0.06,-0.12,0.12,-0.18,0.27,-0.24z"
-    },
-    "accidentals.nat": {
-        "w": 5.411,
-        "h": 22.8,
-        "d": "M0.204,-11.4c0.24,-0.06,0.78,0,0.99,0.15c0.03,0.03,0.03,0.48,0,2.61c-0.03,1.44,-0.03,2.61,-0.03,2.61c0,0.03,0.75,-0.09,1.68,-0.24c0.96,-0.18,1.71,-0.27,1.74,-0.27c0.15,0.03,0.27,0.15,0.36,0.3l0.06,0.12l0.09,8.67c0.09,6.96,0.12,8.67,0.09,8.67c-0.03,0.03,-0.12,0.06,-0.21,0.09c-0.24,0.09,-0.72,0.09,-0.96,0c-0.09,-0.03,-0.18,-0.06,-0.21,-0.09c-0.03,-0.03,-0.03,-0.48,0,-2.61c0.03,-1.44,0.03,-2.61,0.03,-2.61c0,-0.03,-0.75,0.09,-1.68,0.24c-0.96,0.18,-1.71,0.27,-1.74,0.27c-0.15,-0.03,-0.27,-0.15,-0.36,-0.3l-0.06,-0.15l-0.09,-7.53c-0.06,-4.14,-0.09,-8.04,-0.12,-8.67l0,-1.11l0.15,-0.06c0.09,-0.03,0.21,-0.06,0.27,-0.09zm3.75,8.4c0,-0.33,0,-0.42,-0.03,-0.42c-0.12,0,-2.79,0.45,-2.79,0.48c-0.03,0,-0.09,6.3,-0.09,6.33c0.03,0,2.79,-0.45,2.82,-0.48c0,0,0.09,-4.53,0.09,-5.91z"
-    },
-    "accidentals.flat": {
-        "w": 6.75,
-        "h": 18.801,
-        "d": "M-0.36,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.36,-0.03,5.25c-0.06,2.85,-0.09,5.19,-0.09,5.19c0,0.03,0.12,-0.03,0.24,-0.12c0.63,-0.42,1.41,-0.66,2.19,-0.72c0.81,-0.03,1.47,0.21,2.04,0.78c0.57,0.54,0.87,1.26,0.93,2.04c0.03,0.57,-0.09,1.08,-0.36,1.62c-0.42,0.81,-1.02,1.38,-2.82,2.61c-1.14,0.78,-1.44,1.02,-1.8,1.44c-0.18,0.18,-0.39,0.39,-0.45,0.42c-0.27,0.18,-0.57,0.15,-0.81,-0.06c-0.06,-0.09,-0.12,-0.18,-0.15,-0.27c-0.03,-0.06,-0.09,-3.27,-0.18,-8.34c-0.09,-4.53,-0.15,-8.58,-0.18,-9.03l0,-0.78l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm3.18,11.01c-0.21,-0.12,-0.54,-0.15,-0.81,-0.06c-0.54,0.15,-0.99,0.63,-1.17,1.26c-0.06,0.3,-0.12,2.88,-0.06,3.87c0.03,0.42,0.03,0.81,0.06,0.9l0.03,0.12l0.45,-0.39c0.63,-0.54,1.26,-1.17,1.56,-1.59c0.3,-0.42,0.6,-0.99,0.72,-1.41c0.18,-0.69,0.09,-1.47,-0.18,-2.07c-0.15,-0.3,-0.33,-0.51,-0.6,-0.63z"
-    },
-    "accidentals.halfflat": {
-        "w": 6.728,
-        "h": 18.801,
-        "d": "M4.83,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.6,-0.12,9.06c-0.09,5.55,-0.15,9.06,-0.18,9.12c-0.03,0.09,-0.09,0.18,-0.15,0.27c-0.24,0.21,-0.54,0.24,-0.81,0.06c-0.06,-0.03,-0.27,-0.24,-0.45,-0.42c-0.36,-0.42,-0.66,-0.66,-1.8,-1.44c-1.23,-0.84,-1.83,-1.32,-2.25,-1.77c-0.66,-0.78,-0.96,-1.56,-0.93,-2.46c0.09,-1.41,1.11,-2.58,2.4,-2.79c0.3,-0.06,0.84,-0.03,1.23,0.06c0.54,0.12,1.08,0.33,1.53,0.63c0.12,0.09,0.24,0.15,0.24,0.12c0,0,-0.12,-8.37,-0.18,-9.75l0,-0.66l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm-1.65,10.95c-0.6,-0.18,-1.08,0.09,-1.38,0.69c-0.27,0.6,-0.36,1.38,-0.18,2.07c0.12,0.42,0.42,0.99,0.72,1.41c0.3,0.42,0.93,1.05,1.56,1.59l0.48,0.39l0,-0.12c0.03,-0.09,0.03,-0.48,0.06,-0.9c0.03,-0.57,0.03,-1.08,0,-2.22c-0.03,-1.62,-0.03,-1.62,-0.24,-2.07c-0.21,-0.42,-0.6,-0.75,-1.02,-0.84z"
-    },
-    "accidentals.dblflat": {
-        "w": 11.613,
-        "h": 18.804,
-        "d": "M-0.36,-14.07c0.33,-0.06,0.87,0,1.08,0.15c0.06,0.03,0.06,0.33,-0.03,4.89c-0.06,2.67,-0.09,5.01,-0.09,5.22l0,0.36l0.15,-0.15c0.36,-0.3,0.75,-0.51,1.2,-0.63c0.33,-0.09,0.96,-0.09,1.26,-0.03c0.27,0.09,0.63,0.27,0.87,0.45l0.21,0.15l0,-0.27c0,-0.15,-0.03,-2.43,-0.09,-5.1c-0.09,-4.56,-0.09,-4.86,-0.03,-4.89c0.15,-0.12,0.39,-0.15,0.72,-0.15c0.3,0,0.54,0.03,0.69,0.15c0.06,0.03,0.06,0.33,-0.03,4.95c-0.06,2.7,-0.09,5.04,-0.09,5.22l0.03,0.3l0.21,-0.15c0.69,-0.48,1.44,-0.69,2.28,-0.69c0.51,0,0.78,0.03,1.2,0.21c1.32,0.63,2.01,2.28,1.53,3.69c-0.21,0.57,-0.51,1.02,-1.05,1.56c-0.42,0.42,-0.81,0.72,-1.92,1.5c-1.26,0.87,-1.5,1.08,-1.86,1.5c-0.39,0.45,-0.54,0.54,-0.81,0.51c-0.18,0,-0.21,0,-0.33,-0.06l-0.21,-0.21l-0.06,-0.12l-0.03,-0.99c-0.03,-0.54,-0.03,-1.29,-0.06,-1.68l0,-0.69l-0.21,0.24c-0.36,0.42,-0.75,0.75,-1.8,1.62c-1.02,0.84,-1.2,0.99,-1.44,1.38c-0.36,0.51,-0.54,0.6,-0.9,0.51c-0.15,-0.03,-0.39,-0.27,-0.42,-0.42c-0.03,-0.06,-0.09,-3.27,-0.18,-8.34c-0.09,-4.53,-0.15,-8.58,-0.18,-9.03l0,-0.78l0.12,-0.06c0.06,-0.03,0.18,-0.09,0.27,-0.12zm2.52,10.98c-0.18,-0.09,-0.48,-0.12,-0.66,-0.06c-0.39,0.15,-0.69,0.54,-0.84,1.14c-0.06,0.24,-0.06,0.39,-0.09,1.74c-0.03,1.44,0,2.73,0.06,3.18l0.03,0.15l0.27,-0.27c0.93,-0.96,1.5,-1.95,1.74,-3.06c0.06,-0.27,0.06,-0.39,0.06,-0.96c0,-0.54,0,-0.69,-0.06,-0.93c-0.09,-0.51,-0.27,-0.81,-0.51,-0.93zm5.43,0c-0.18,-0.09,-0.51,-0.12,-0.72,-0.06c-0.54,0.12,-0.96,0.63,-1.17,1.26c-0.06,0.3,-0.12,2.88,-0.06,3.9c0.03,0.42,0.03,0.81,0.06,0.9l0.03,0.12l0.36,-0.3c0.42,-0.36,1.02,-0.96,1.29,-1.29c0.36,-0.45,0.66,-0.99,0.81,-1.41c0.42,-1.23,0.15,-2.76,-0.6,-3.12z"
-    },
-    "accidentals.dblsharp": {
-        "w": 7.961,
-        "h": 7.977,
-        "d": "M-0.186,-3.96c0.06,-0.03,0.12,-0.06,0.15,-0.06c0.09,0,2.76,0.27,2.79,0.3c0.12,0.03,0.15,0.12,0.15,0.51c0.06,0.96,0.24,1.59,0.57,2.1c0.06,0.09,0.15,0.21,0.18,0.24l0.09,0.06l0.09,-0.06c0.03,-0.03,0.12,-0.15,0.18,-0.24c0.33,-0.51,0.51,-1.14,0.57,-2.1c0,-0.39,0.03,-0.45,0.12,-0.51c0.03,0,0.66,-0.09,1.44,-0.15c1.47,-0.15,1.5,-0.15,1.56,-0.03c0.03,0.06,0,0.42,-0.09,1.44c-0.09,0.72,-0.15,1.35,-0.15,1.38c0,0.03,-0.03,0.09,-0.06,0.12c-0.06,0.06,-0.12,0.09,-0.51,0.09c-1.08,0.06,-1.8,0.3,-2.28,0.75l-0.12,0.09l0.09,0.09c0.12,0.15,0.39,0.33,0.63,0.45c0.42,0.18,0.96,0.27,1.68,0.33c0.39,0,0.45,0.03,0.51,0.09c0.03,0.03,0.06,0.09,0.06,0.12c0,0.03,0.06,0.66,0.15,1.38c0.09,1.02,0.12,1.38,0.09,1.44c-0.06,0.12,-0.09,0.12,-1.56,-0.03c-0.78,-0.06,-1.41,-0.15,-1.44,-0.15c-0.09,-0.06,-0.12,-0.12,-0.12,-0.54c-0.06,-0.93,-0.24,-1.56,-0.57,-2.07c-0.06,-0.09,-0.15,-0.21,-0.18,-0.24l-0.09,-0.06l-0.09,0.06c-0.03,0.03,-0.12,0.15,-0.18,0.24c-0.33,0.51,-0.51,1.14,-0.57,2.07c0,0.42,-0.03,0.48,-0.12,0.54c-0.03,0,-0.66,0.09,-1.44,0.15c-1.47,0.15,-1.5,0.15,-1.56,0.03c-0.03,-0.06,0,-0.42,0.09,-1.44c0.09,-0.72,0.15,-1.35,0.15,-1.38c0,-0.03,0.03,-0.09,0.06,-0.12c0.06,-0.06,0.12,-0.09,0.51,-0.09c0.72,-0.06,1.26,-0.15,1.68,-0.33c0.24,-0.12,0.51,-0.3,0.63,-0.45l0.09,-0.09l-0.12,-0.09c-0.48,-0.45,-1.2,-0.69,-2.28,-0.75c-0.39,0,-0.45,-0.03,-0.51,-0.09c-0.03,-0.03,-0.06,-0.09,-0.06,-0.12c0,-0.03,-0.06,-0.63,-0.12,-1.38c-0.09,-0.72,-0.15,-1.35,-0.15,-1.38z"
-    },
-    "dots.dot": {
-        "w": 3.45,
-        "h": 3.45,
-        "d": "M1.32,-1.68c0.09,-0.03,0.27,-0.06,0.39,-0.06c0.96,0,1.74,0.78,1.74,1.71c0,0.96,-0.78,1.74,-1.71,1.74c-0.96,0,-1.74,-0.78,-1.74,-1.71c0,-0.78,0.54,-1.5,1.32,-1.68z"
-    },
-    "noteheads.dbl": {
-        "w": 16.83,
-        "h": 8.145,
-        "d": "M-0.69,-4.02c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3c0.06,0.15,0.06,0.18,0.06,1.41l0,1.23l0.12,-0.18c0.72,-1.26,2.64,-2.31,4.86,-2.64c0.81,-0.15,1.11,-0.15,2.13,-0.15c0.99,0,1.29,0,2.1,0.15c0.75,0.12,1.38,0.27,2.04,0.54c1.35,0.51,2.34,1.26,2.82,2.1l0.12,0.18l0,-1.23c0,-1.2,0,-1.26,0.06,-1.38c0.09,-0.18,0.15,-0.24,0.33,-0.33c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,3.54l0,3.54l-0.06,0.15c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.06,-0.12,-0.06,-0.18,-0.06,-1.38l0,-1.23l-0.12,0.18c-0.48,0.84,-1.47,1.59,-2.82,2.1c-0.84,0.33,-1.71,0.54,-2.85,0.66c-0.45,0.06,-2.16,0.06,-2.61,0c-1.14,-0.12,-2.01,-0.33,-2.85,-0.66c-1.35,-0.51,-2.34,-1.26,-2.82,-2.1l-0.12,-0.18l0,1.23c0,1.23,0,1.26,-0.06,1.38c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33l-0.06,-0.15l0,-3.54c0,-3.48,0,-3.54,0.06,-3.66c0.09,-0.18,0.15,-0.24,0.33,-0.33zm7.71,0.63c-0.36,-0.06,-0.9,-0.06,-1.14,0c-0.3,0.03,-0.66,0.24,-0.87,0.42c-0.6,0.54,-0.9,1.62,-0.75,2.82c0.12,0.93,0.51,1.68,1.11,2.31c0.75,0.72,1.83,1.2,2.85,1.26c1.05,0.06,1.83,-0.54,2.1,-1.65c0.21,-0.9,0.12,-1.95,-0.24,-2.82c-0.36,-0.81,-1.08,-1.53,-1.95,-1.95c-0.3,-0.15,-0.78,-0.3,-1.11,-0.39z"
-    },
-    "noteheads.whole": {
-        "w": 14.985,
-        "h": 8.097,
-        "d": "M6.51,-4.05c0.51,-0.03,2.01,0,2.52,0.03c1.41,0.18,2.64,0.51,3.72,1.08c1.2,0.63,1.95,1.41,2.19,2.31c0.09,0.33,0.09,0.9,0,1.23c-0.24,0.9,-0.99,1.68,-2.19,2.31c-1.08,0.57,-2.28,0.9,-3.75,1.08c-0.66,0.06,-2.31,0.06,-2.97,0c-1.47,-0.18,-2.67,-0.51,-3.75,-1.08c-1.2,-0.63,-1.95,-1.41,-2.19,-2.31c-0.09,-0.33,-0.09,-0.9,0,-1.23c0.24,-0.9,0.99,-1.68,2.19,-2.31c1.2,-0.63,2.61,-0.99,4.23,-1.11zm0.57,0.66c-0.87,-0.15,-1.53,0,-2.04,0.51c-0.15,0.15,-0.24,0.27,-0.33,0.48c-0.24,0.51,-0.36,1.08,-0.33,1.77c0.03,0.69,0.18,1.26,0.42,1.77c0.6,1.17,1.74,1.98,3.18,2.22c1.11,0.21,1.95,-0.15,2.34,-0.99c0.24,-0.51,0.36,-1.08,0.33,-1.8c-0.06,-1.11,-0.45,-2.04,-1.17,-2.76c-0.63,-0.63,-1.47,-1.05,-2.4,-1.2z"
-    },
-    "noteheads.half": {
-        "w": 10.37,
-        "h": 8.132,
-        "d": "M7.44,-4.05c0.06,-0.03,0.27,-0.03,0.48,-0.03c1.05,0,1.71,0.24,2.1,0.81c0.42,0.6,0.45,1.35,0.18,2.4c-0.42,1.59,-1.14,2.73,-2.16,3.39c-1.41,0.93,-3.18,1.44,-5.4,1.53c-1.17,0.03,-1.89,-0.21,-2.28,-0.81c-0.42,-0.6,-0.45,-1.35,-0.18,-2.4c0.42,-1.59,1.14,-2.73,2.16,-3.39c0.63,-0.42,1.23,-0.72,1.98,-0.96c0.9,-0.3,1.65,-0.42,3.12,-0.54zm1.29,0.87c-0.27,-0.09,-0.63,-0.12,-0.9,-0.03c-0.72,0.24,-1.53,0.69,-3.27,1.8c-2.34,1.5,-3.3,2.25,-3.57,2.79c-0.36,0.72,-0.06,1.5,0.66,1.77c0.24,0.12,0.69,0.09,0.99,0c0.84,-0.3,1.92,-0.93,4.14,-2.37c1.62,-1.08,2.37,-1.71,2.61,-2.19c0.36,-0.72,0.06,-1.5,-0.66,-1.77z"
-    },
-    "noteheads.quarter": {
-        "w": 9.81,
-        "h": 8.094,
-        "d": "M6.09,-4.05c0.36,-0.03,1.2,0,1.53,0.06c1.17,0.24,1.89,0.84,2.16,1.83c0.06,0.18,0.06,0.3,0.06,0.66c0,0.45,0,0.63,-0.15,1.08c-0.66,2.04,-3.06,3.93,-5.52,4.38c-0.54,0.09,-1.44,0.09,-1.83,0.03c-1.23,-0.27,-1.98,-0.87,-2.25,-1.86c-0.06,-0.18,-0.06,-0.3,-0.06,-0.66c0,-0.45,0,-0.63,0.15,-1.08c0.24,-0.78,0.75,-1.53,1.44,-2.22c1.2,-1.2,2.85,-2.01,4.47,-2.22z"
-    },
-    "scripts.ufermata": {
-        "w": 19.748,
-        "h": 11.289,
-        "d": "M-0.75,-10.77c0.12,0,0.45,-0.03,0.69,-0.03c2.91,-0.03,5.55,1.53,7.41,4.35c1.17,1.71,1.95,3.72,2.43,6.03c0.12,0.51,0.12,0.57,0.03,0.69c-0.12,0.21,-0.48,0.27,-0.69,0.12c-0.12,-0.09,-0.18,-0.24,-0.27,-0.69c-0.78,-3.63,-3.42,-6.54,-6.78,-7.38c-0.78,-0.21,-1.2,-0.24,-2.07,-0.24c-0.63,0,-0.84,0,-1.2,0.06c-1.83,0.27,-3.42,1.08,-4.8,2.37c-1.41,1.35,-2.4,3.21,-2.85,5.19c-0.09,0.45,-0.15,0.6,-0.27,0.69c-0.21,0.15,-0.57,0.09,-0.69,-0.12c-0.09,-0.12,-0.09,-0.18,0.03,-0.69c0.33,-1.62,0.78,-3,1.47,-4.38c1.77,-3.54,4.44,-5.67,7.56,-5.97zm0.33,7.47c1.38,-0.3,2.58,0.9,2.31,2.25c-0.15,0.72,-0.78,1.35,-1.47,1.5c-1.38,0.27,-2.58,-0.93,-2.31,-2.31c0.15,-0.69,0.78,-1.29,1.47,-1.44z"
-    },
-    "scripts.dfermata": {
-        "w": 19.744,
-        "h": 11.274,
-        "d": "M-9.63,-0.42c0.15,-0.09,0.36,-0.06,0.51,0.03c0.12,0.09,0.18,0.24,0.27,0.66c0.78,3.66,3.42,6.57,6.78,7.41c0.78,0.21,1.2,0.24,2.07,0.24c0.63,0,0.84,0,1.2,-0.06c1.83,-0.27,3.42,-1.08,4.8,-2.37c1.41,-1.35,2.4,-3.21,2.85,-5.22c0.09,-0.42,0.15,-0.57,0.27,-0.66c0.21,-0.15,0.57,-0.09,0.69,0.12c0.09,0.12,0.09,0.18,-0.03,0.69c-0.33,1.62,-0.78,3,-1.47,4.38c-1.92,3.84,-4.89,6,-8.31,6c-3.42,0,-6.39,-2.16,-8.31,-6c-0.48,-0.96,-0.84,-1.92,-1.14,-2.97c-0.18,-0.69,-0.42,-1.74,-0.42,-1.92c0,-0.12,0.09,-0.27,0.24,-0.33zm9.21,0c1.2,-0.27,2.34,0.63,2.34,1.86c0,0.9,-0.66,1.68,-1.5,1.89c-1.38,0.27,-2.58,-0.93,-2.31,-2.31c0.15,-0.69,0.78,-1.29,1.47,-1.44z"
-    },
-    "scripts.sforzato": {
-        "w": 13.5,
-        "h": 7.5,
-        "d": "M-6.45,-3.69c0.06,-0.03,0.15,-0.06,0.18,-0.06c0.06,0,2.85,0.72,6.24,1.59l6.33,1.65c0.33,0.06,0.45,0.21,0.45,0.51c0,0.3,-0.12,0.45,-0.45,0.51l-6.33,1.65c-3.39,0.87,-6.18,1.59,-6.21,1.59c-0.21,0,-0.48,-0.24,-0.51,-0.45c0,-0.15,0.06,-0.36,0.18,-0.45c0.09,-0.06,0.87,-0.27,3.84,-1.05c2.04,-0.54,3.84,-0.99,4.02,-1.02c0.15,-0.06,1.14,-0.24,2.22,-0.42c1.05,-0.18,1.92,-0.36,1.92,-0.36c0,0,-0.87,-0.18,-1.92,-0.36c-1.08,-0.18,-2.07,-0.36,-2.22,-0.42c-0.18,-0.03,-1.98,-0.48,-4.02,-1.02c-2.97,-0.78,-3.75,-0.99,-3.84,-1.05c-0.12,-0.09,-0.18,-0.3,-0.18,-0.45c0.03,-0.15,0.15,-0.3,0.3,-0.39z"
-    },
-    "scripts.staccato": {
-        "w": 2.989,
-        "h": 3.004,
-        "d": "M-0.36,-1.47c0.93,-0.21,1.86,0.51,1.86,1.47c0,0.93,-0.87,1.65,-1.8,1.47c-0.54,-0.12,-1.02,-0.57,-1.14,-1.08c-0.21,-0.81,0.27,-1.65,1.08,-1.86z"
-    },
-    "scripts.tenuto": {
-        "w": 8.985,
-        "h": 1.08,
-        "d": "M-4.2,-0.48l0.12,-0.06l4.08,0l4.08,0l0.12,0.06c0.39,0.21,0.39,0.75,0,0.96l-0.12,0.06l-4.08,0l-4.08,0l-0.12,-0.06c-0.39,-0.21,-0.39,-0.75,0,-0.96z"
-    },
-    "scripts.umarcato": {
-        "w": 7.5,
-        "h": 8.245,
-        "d": "M-0.15,-8.19c0.15,-0.12,0.36,-0.03,0.45,0.15c0.21,0.42,3.45,7.65,3.45,7.71c0,0.12,-0.12,0.27,-0.21,0.3c-0.03,0.03,-0.51,0.03,-1.14,0.03c-1.05,0,-1.08,0,-1.17,-0.06c-0.09,-0.06,-0.24,-0.36,-1.17,-2.4c-0.57,-1.29,-1.05,-2.34,-1.08,-2.34c0,-0.03,-0.51,1.02,-1.08,2.34c-0.93,2.07,-1.08,2.34,-1.14,2.4c-0.06,0.03,-0.15,0.06,-0.18,0.06c-0.15,0,-0.33,-0.18,-0.33,-0.33c0,-0.06,3.24,-7.32,3.45,-7.71c0.03,-0.06,0.09,-0.15,0.15,-0.15z"
-    },
-    "scripts.dmarcato": {
-        "w": 7.5,
-        "h": 8.25,
-        "d": "M-3.57,0.03c0.03,0,0.57,-0.03,1.17,-0.03c1.05,0,1.08,0,1.17,0.06c0.09,0.06,0.24,0.36,1.17,2.4c0.57,1.29,1.05,2.34,1.08,2.34c0,0.03,0.51,-1.02,1.08,-2.34c0.93,-2.07,1.08,-2.34,1.14,-2.4c0.06,-0.03,0.15,-0.06,0.18,-0.06c0.15,0,0.33,0.18,0.33,0.33c0,0.09,-3.45,7.74,-3.54,7.83c-0.12,0.12,-0.3,0.12,-0.42,0c-0.09,-0.09,-3.54,-7.74,-3.54,-7.83c0,-0.09,0.12,-0.27,0.18,-0.3z"
-    },
-    "scripts.stopped": {
-        "w": 8.295,
-        "h": 8.295,
-        "d": "M-0.27,-4.08c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,1.5l0,1.47l1.47,0l1.5,0l0.15,0.06c0.15,0.09,0.21,0.15,0.3,0.33c0.09,0.18,0.09,0.36,0,0.54c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.12,0.06,-0.18,0.06,-1.62,0.06l-1.47,0l0,1.47l0,1.47l-0.06,0.15c-0.09,0.18,-0.15,0.24,-0.33,0.33c-0.18,0.09,-0.36,0.09,-0.54,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33l-0.06,-0.15l0,-1.47l0,-1.47l-1.47,0c-1.44,0,-1.5,0,-1.62,-0.06c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.09,-0.36,0,-0.54c0.09,-0.18,0.15,-0.24,0.33,-0.33l0.15,-0.06l1.47,0l1.47,0l0,-1.47c0,-1.44,0,-1.5,0.06,-1.62c0.09,-0.18,0.15,-0.24,0.33,-0.33z"
-    },
-    "scripts.upbow": {
-        "w": 9.73,
-        "h": 15.608,
-        "d": "M-4.65,-15.54c0.12,-0.09,0.36,-0.06,0.48,0.03c0.03,0.03,0.09,0.09,0.12,0.15c0.03,0.06,0.66,2.13,1.41,4.62c1.35,4.41,1.38,4.56,2.01,6.96l0.63,2.46l0.63,-2.46c0.63,-2.4,0.66,-2.55,2.01,-6.96c0.75,-2.49,1.38,-4.56,1.41,-4.62c0.06,-0.15,0.18,-0.21,0.36,-0.24c0.15,0,0.3,0.06,0.39,0.18c0.15,0.21,0.24,-0.18,-2.1,7.56c-1.2,3.96,-2.22,7.32,-2.25,7.41c0,0.12,-0.06,0.27,-0.09,0.3c-0.12,0.21,-0.6,0.21,-0.72,0c-0.03,-0.03,-0.09,-0.18,-0.09,-0.3c-0.03,-0.09,-1.05,-3.45,-2.25,-7.41c-2.34,-7.74,-2.25,-7.35,-2.1,-7.56c0.03,-0.03,0.09,-0.09,0.15,-0.12z"
-    },
-    "scripts.downbow": {
-        "w": 11.22,
-        "h": 9.992,
-        "d": "M-5.55,-9.93l0.09,-0.06l5.46,0l5.46,0l0.09,0.06l0.06,0.09l0,4.77c0,5.28,0,4.89,-0.18,5.01c-0.18,0.12,-0.42,0.06,-0.54,-0.12c-0.06,-0.09,-0.06,-0.18,-0.06,-2.97l0,-2.85l-4.83,0l-4.83,0l0,2.85c0,2.79,0,2.88,-0.06,2.97c-0.15,0.24,-0.51,0.24,-0.66,0c-0.06,-0.09,-0.06,-0.21,-0.06,-4.89l0,-4.77z"
-    },
-    "scripts.turn": {
-        "w": 16.366,
-        "h": 7.893,
-        "d": "M-4.77,-3.9c0.36,-0.06,1.05,-0.06,1.44,0.03c0.78,0.15,1.5,0.51,2.34,1.14c0.6,0.45,1.05,0.87,2.22,2.01c1.11,1.08,1.62,1.5,2.22,1.86c0.6,0.36,1.32,0.57,1.92,0.57c0.9,0,1.71,-0.57,1.89,-1.35c0.24,-0.93,-0.39,-1.89,-1.35,-2.1l-0.15,-0.06l-0.09,0.15c-0.03,0.09,-0.15,0.24,-0.24,0.33c-0.72,0.72,-2.04,0.54,-2.49,-0.36c-0.48,-0.93,0.03,-1.86,1.17,-2.19c0.3,-0.09,1.02,-0.09,1.35,0c0.99,0.27,1.74,0.87,2.25,1.83c0.69,1.41,0.63,3,-0.21,4.26c-0.21,0.3,-0.69,0.81,-0.99,1.02c-0.3,0.21,-0.84,0.45,-1.17,0.54c-1.23,0.36,-2.49,0.15,-3.72,-0.6c-0.75,-0.48,-1.41,-1.02,-2.85,-2.46c-1.11,-1.08,-1.62,-1.5,-2.22,-1.86c-0.6,-0.36,-1.32,-0.57,-1.92,-0.57c-0.9,0,-1.71,0.57,-1.89,1.35c-0.24,0.93,0.39,1.89,1.35,2.1l0.15,0.06l0.09,-0.15c0.03,-0.09,0.15,-0.24,0.24,-0.33c0.72,-0.72,2.04,-0.54,2.49,0.36c0.48,0.93,-0.03,1.86,-1.17,2.19c-0.3,0.09,-1.02,0.09,-1.35,0c-0.99,-0.27,-1.74,-0.87,-2.25,-1.83c-0.69,-1.41,-0.63,-3,0.21,-4.26c0.21,-0.3,0.69,-0.81,0.99,-1.02c0.48,-0.33,1.11,-0.57,1.74,-0.66z"
-    },
-    "scripts.trill": {
-        "w": 17.963,
-        "h": 16.49,
-        "d": "M-0.51,-16.02c0.12,-0.09,0.21,-0.18,0.21,-0.18l-0.81,4.02l-0.81,4.02c0.03,0,0.51,-0.27,1.08,-0.6c0.6,-0.3,1.14,-0.63,1.26,-0.66c1.14,-0.54,2.31,-0.6,3.09,-0.18c0.27,0.15,0.54,0.36,0.6,0.51l0.06,0.12l0.21,-0.21c0.9,-0.81,2.22,-0.99,3.12,-0.42c0.6,0.42,0.9,1.14,0.78,2.07c-0.15,1.29,-1.05,2.31,-1.95,2.25c-0.48,-0.03,-0.78,-0.3,-0.96,-0.81c-0.09,-0.27,-0.09,-0.9,-0.03,-1.2c0.21,-0.75,0.81,-1.23,1.59,-1.32l0.24,-0.03l-0.09,-0.12c-0.51,-0.66,-1.62,-0.63,-2.31,0.03c-0.39,0.42,-0.3,0.09,-1.23,4.77l-0.81,4.14c-0.03,0,-0.12,-0.03,-0.21,-0.09c-0.33,-0.15,-0.54,-0.18,-0.99,-0.18c-0.42,0,-0.66,0.03,-1.05,0.18c-0.12,0.06,-0.21,0.09,-0.21,0.09c0,-0.03,0.36,-1.86,0.81,-4.11c0.9,-4.47,0.87,-4.26,0.69,-4.53c-0.21,-0.36,-0.66,-0.51,-1.17,-0.36c-0.15,0.06,-2.22,1.14,-2.58,1.38c-0.12,0.09,-0.12,0.09,-0.21,0.6l-0.09,0.51l0.21,0.24c0.63,0.75,1.02,1.47,1.2,2.19c0.06,0.27,0.06,0.36,0.06,0.81c0,0.42,0,0.54,-0.06,0.78c-0.15,0.54,-0.33,0.93,-0.63,1.35c-0.18,0.24,-0.57,0.63,-0.81,0.78c-0.24,0.15,-0.63,0.36,-0.84,0.42c-0.27,0.06,-0.66,0.06,-0.87,0.03c-0.81,-0.18,-1.32,-1.05,-1.38,-2.46c-0.03,-0.6,0.03,-0.99,0.33,-2.46c0.21,-1.08,0.24,-1.32,0.21,-1.29c-1.2,0.48,-2.4,0.75,-3.21,0.72c-0.69,-0.06,-1.17,-0.3,-1.41,-0.72c-0.39,-0.75,-0.12,-1.8,0.66,-2.46c0.24,-0.18,0.69,-0.42,1.02,-0.51c0.69,-0.18,1.53,-0.15,2.31,0.09c0.3,0.09,0.75,0.3,0.99,0.45c0.12,0.09,0.15,0.09,0.15,0.03c0.03,-0.03,0.33,-1.59,0.72,-3.45c0.36,-1.86,0.66,-3.42,0.69,-3.45c0,-0.03,0.03,-0.03,0.21,0.03c0.21,0.06,0.27,0.06,0.48,0.06c0.42,-0.03,0.78,-0.18,1.26,-0.48c0.15,-0.12,0.36,-0.27,0.48,-0.39zm-5.73,7.68c-0.27,-0.03,-0.96,-0.06,-1.2,-0.03c-0.81,0.12,-1.35,0.57,-1.5,1.2c-0.18,0.66,0.12,1.14,0.75,1.29c0.66,0.12,1.92,-0.12,3.18,-0.66l0.33,-0.15l0.09,-0.39c0.06,-0.21,0.09,-0.42,0.09,-0.45c0,-0.03,-0.45,-0.3,-0.75,-0.45c-0.27,-0.15,-0.66,-0.27,-0.99,-0.36zm4.29,3.63c-0.24,-0.39,-0.51,-0.75,-0.51,-0.69c-0.06,0.12,-0.39,1.92,-0.45,2.28c-0.09,0.54,-0.12,1.14,-0.06,1.38c0.06,0.42,0.21,0.6,0.51,0.57c0.39,-0.06,0.75,-0.48,0.93,-1.14c0.09,-0.33,0.09,-1.05,0,-1.38c-0.09,-0.39,-0.24,-0.69,-0.42,-1.02z"
-    },
-    "scripts.segno": {
-        "w": 15,
-        "h": 22.504,
-        "d": "M-3.72,-11.22c0.78,-0.09,1.59,0.03,2.31,0.42c1.2,0.6,2.01,1.71,2.31,3.09c0.09,0.42,0.09,1.2,0.03,1.5c-0.15,0.45,-0.39,0.81,-0.66,0.93c-0.33,0.18,-0.84,0.21,-1.23,0.15c-0.81,-0.18,-1.32,-0.93,-1.26,-1.89c0.03,-0.36,0.09,-0.57,0.24,-0.9c0.15,-0.33,0.45,-0.6,0.72,-0.75c0.12,-0.06,0.18,-0.09,0.18,-0.12c0,-0.03,-0.03,-0.15,-0.09,-0.24c-0.18,-0.45,-0.54,-0.87,-0.96,-1.08c-1.11,-0.57,-2.34,-0.18,-2.88,0.9c-0.24,0.51,-0.33,1.11,-0.24,1.83c0.27,1.92,1.5,3.54,3.93,5.13c0.48,0.33,1.26,0.78,1.29,0.78c0.03,0,1.35,-2.19,2.94,-4.89l2.88,-4.89l0.84,0l0.87,0l-0.03,0.06c-0.15,0.21,-6.15,10.41,-6.15,10.44c0,0,0.21,0.15,0.48,0.27c2.61,1.47,4.35,3.03,5.13,4.65c1.14,2.34,0.51,5.07,-1.44,6.39c-0.66,0.42,-1.32,0.63,-2.13,0.69c-2.01,0.09,-3.81,-1.41,-4.26,-3.54c-0.09,-0.42,-0.09,-1.2,-0.03,-1.5c0.15,-0.45,0.39,-0.81,0.66,-0.93c0.33,-0.18,0.84,-0.21,1.23,-0.15c0.81,0.18,1.32,0.93,1.26,1.89c-0.03,0.36,-0.09,0.57,-0.24,0.9c-0.15,0.33,-0.45,0.6,-0.72,0.75c-0.12,0.06,-0.18,0.09,-0.18,0.12c0,0.03,0.03,0.15,0.09,0.24c0.18,0.45,0.54,0.87,0.96,1.08c1.11,0.57,2.34,0.18,2.88,-0.9c0.24,-0.51,0.33,-1.11,0.24,-1.83c-0.27,-1.92,-1.5,-3.54,-3.93,-5.13c-0.48,-0.33,-1.26,-0.78,-1.29,-0.78c-0.03,0,-1.35,2.19,-2.91,4.89l-2.88,4.89l-0.87,0l-0.87,0l0.03,-0.06c0.15,-0.21,6.15,-10.41,6.15,-10.44c0,0,-0.21,-0.15,-0.48,-0.3c-2.61,-1.44,-4.35,-3,-5.13,-4.62c-0.9,-1.89,-0.72,-4.02,0.48,-5.52c0.69,-0.84,1.68,-1.41,2.73,-1.53zm8.76,9.09c0.03,-0.03,0.15,-0.03,0.27,-0.03c0.33,0.03,0.57,0.18,0.72,0.48c0.09,0.18,0.09,0.57,0,0.75c-0.09,0.18,-0.21,0.3,-0.36,0.39c-0.15,0.06,-0.21,0.06,-0.39,0.06c-0.21,0,-0.27,0,-0.39,-0.06c-0.3,-0.15,-0.48,-0.45,-0.48,-0.75c0,-0.39,0.24,-0.72,0.63,-0.84zm-10.53,2.61c0.03,-0.03,0.15,-0.03,0.27,-0.03c0.33,0.03,0.57,0.18,0.72,0.48c0.09,0.18,0.09,0.57,0,0.75c-0.09,0.18,-0.21,0.3,-0.36,0.39c-0.15,0.06,-0.21,0.06,-0.39,0.06c-0.21,0,-0.27,0,-0.39,-0.06c-0.3,-0.15,-0.48,-0.45,-0.48,-0.75c0,-0.39,0.24,-0.72,0.63,-0.84z"
-    },
-    "scripts.coda": {
-        "w": 16.035,
-        "h": 21.062,
-        "d": "M-0.21,-10.47c0.18,-0.12,0.42,-0.06,0.54,0.12c0.06,0.09,0.06,0.18,0.06,1.5l0,1.38l0.18,0c0.39,0.06,0.96,0.24,1.38,0.48c1.68,0.93,2.82,3.24,3.03,6.12c0.03,0.24,0.03,0.45,0.03,0.45c0,0.03,0.6,0.03,1.35,0.03c1.5,0,1.47,0,1.59,0.18c0.09,0.12,0.09,0.3,0,0.42c-0.12,0.18,-0.09,0.18,-1.59,0.18c-0.75,0,-1.35,0,-1.35,0.03c0,0,0,0.21,-0.03,0.42c-0.24,3.15,-1.53,5.58,-3.45,6.36c-0.27,0.12,-0.72,0.24,-0.96,0.27l-0.18,0l0,1.38c0,1.32,0,1.41,-0.06,1.5c-0.15,0.24,-0.51,0.24,-0.66,0c-0.06,-0.09,-0.06,-0.18,-0.06,-1.5l0,-1.38l-0.18,0c-0.39,-0.06,-0.96,-0.24,-1.38,-0.48c-1.68,-0.93,-2.82,-3.24,-3.03,-6.15c-0.03,-0.21,-0.03,-0.42,-0.03,-0.42c0,-0.03,-0.6,-0.03,-1.35,-0.03c-1.5,0,-1.47,0,-1.59,-0.18c-0.09,-0.12,-0.09,-0.3,0,-0.42c0.12,-0.18,0.09,-0.18,1.59,-0.18c0.75,0,1.35,0,1.35,-0.03c0,0,0,-0.21,0.03,-0.45c0.24,-3.12,1.53,-5.55,3.45,-6.33c0.27,-0.12,0.72,-0.24,0.96,-0.27l0.18,0l0,-1.38c0,-1.53,0,-1.5,0.18,-1.62zm-0.18,6.93c0,-2.97,0,-3.15,-0.06,-3.15c-0.09,0,-0.51,0.15,-0.66,0.21c-0.87,0.51,-1.38,1.62,-1.56,3.51c-0.06,0.54,-0.12,1.59,-0.12,2.16l0,0.42l1.2,0l1.2,0l0,-3.15zm1.17,-3.06c-0.09,-0.03,-0.21,-0.06,-0.27,-0.09l-0.12,0l0,3.15l0,3.15l1.2,0l1.2,0l0,-0.81c-0.06,-2.4,-0.33,-3.69,-0.93,-4.59c-0.27,-0.39,-0.66,-0.69,-1.08,-0.81zm-1.17,10.14l0,-3.15l-1.2,0l-1.2,0l0,0.81c0.03,0.96,0.06,1.47,0.15,2.13c0.24,2.04,0.96,3.12,2.13,3.36l0.12,0l0,-3.15zm3.18,-2.34l0,-0.81l-1.2,0l-1.2,0l0,3.15l0,3.15l0.12,0c1.17,-0.24,1.89,-1.32,2.13,-3.36c0.09,-0.66,0.12,-1.17,0.15,-2.13z"
-    },
-    "scripts.comma": {
-        "w": 3.042,
-        "h": 9.237,
-        "d": "M1.14,-4.62c0.3,-0.12,0.69,-0.03,0.93,0.15c0.12,0.12,0.36,0.45,0.51,0.78c0.9,1.77,0.54,4.05,-1.08,6.75c-0.36,0.63,-0.87,1.38,-0.96,1.44c-0.18,0.12,-0.42,0.06,-0.54,-0.12c-0.09,-0.18,-0.09,-0.3,0.12,-0.6c0.96,-1.44,1.44,-2.97,1.38,-4.35c-0.06,-0.93,-0.3,-1.68,-0.78,-2.46c-0.27,-0.39,-0.33,-0.63,-0.24,-0.96c0.09,-0.27,0.36,-0.54,0.66,-0.63z"
-    },
-    "scripts.roll": {
-        "w": 10.817,
-        "h": 6.125,
-        "d": "M1.95,-6c0.21,-0.09,0.36,-0.09,0.57,0c0.39,0.15,0.63,0.39,1.47,1.35c0.66,0.75,0.78,0.87,1.08,1.05c0.75,0.45,1.65,0.42,2.4,-0.06c0.12,-0.09,0.27,-0.27,0.54,-0.6c0.42,-0.54,0.51,-0.63,0.69,-0.63c0.09,0,0.3,0.12,0.36,0.21c0.09,0.12,0.12,0.3,0.03,0.42c-0.06,0.12,-3.15,3.9,-3.3,4.08c-0.06,0.06,-0.18,0.12,-0.27,0.18c-0.27,0.12,-0.6,0.06,-0.99,-0.27c-0.27,-0.21,-0.42,-0.39,-1.08,-1.14c-0.63,-0.72,-0.81,-0.9,-1.17,-1.08c-0.36,-0.18,-0.57,-0.21,-0.99,-0.21c-0.39,0,-0.63,0.03,-0.93,0.18c-0.36,0.15,-0.51,0.27,-0.9,0.81c-0.24,0.27,-0.45,0.51,-0.48,0.54c-0.12,0.09,-0.27,0.06,-0.39,0c-0.24,-0.15,-0.33,-0.39,-0.21,-0.6c0.09,-0.12,3.18,-3.87,3.33,-4.02c0.06,-0.06,0.18,-0.15,0.24,-0.21z"
-    },
-    "scripts.prall": {
-        "w": 15.011,
-        "h": 7.5,
-        "d": "M-4.38,-3.69c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83c0.03,0,0.57,-0.84,1.23,-1.83c1.14,-1.68,1.23,-1.83,1.35,-1.89c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83l0.48,-0.69c0.51,-0.78,0.54,-0.84,0.69,-0.9c0.42,-0.18,0.87,0.15,0.81,0.6c-0.03,0.12,-0.3,0.51,-1.5,2.37c-1.38,2.07,-1.5,2.22,-1.62,2.28c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83c-0.03,0,-0.57,0.84,-1.23,1.83c-1.14,1.68,-1.23,1.83,-1.35,1.89c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83l-0.48,0.69c-0.51,0.78,-0.54,0.84,-0.69,0.9c-0.42,0.18,-0.87,-0.15,-0.81,-0.6c0.03,-0.12,0.3,-0.51,1.5,-2.37c1.38,-2.07,1.5,-2.22,1.62,-2.28z"
-    },
-    "scripts.mordent": {
-        "w": 15.011,
-        "h": 10.012,
-        "d": "M-0.21,-4.95c0.27,-0.15,0.63,0,0.75,0.27c0.06,0.12,0.06,0.24,0.06,1.44l0,1.29l0.57,-0.84c0.51,-0.75,0.57,-0.84,0.69,-0.9c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83l0.48,-0.69c0.51,-0.78,0.54,-0.84,0.69,-0.9c0.42,-0.18,0.87,0.15,0.81,0.6c-0.03,0.12,-0.3,0.51,-1.5,2.37c-1.38,2.07,-1.5,2.22,-1.62,2.28c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.83,-1.89c-0.81,-0.99,-1.5,-1.8,-1.53,-1.86c-0.06,-0.03,-0.06,-0.03,-0.12,0.03c-0.06,0.06,-0.06,0.15,-0.06,2.28c0,1.95,0,2.25,-0.06,2.34c-0.18,0.45,-0.81,0.48,-1.05,0.03c-0.03,-0.06,-0.06,-0.24,-0.06,-1.41l0,-1.35l-0.57,0.84c-0.54,0.78,-0.6,0.87,-0.72,0.93c-0.06,0.03,-0.18,0.06,-0.24,0.06c-0.3,0,-0.27,0.03,-1.89,-1.95l-1.53,-1.83l-0.48,0.69c-0.51,0.78,-0.54,0.84,-0.69,0.9c-0.42,0.18,-0.87,-0.15,-0.81,-0.6c0.03,-0.12,0.3,-0.51,1.5,-2.37c1.38,-2.07,1.5,-2.22,1.62,-2.28c0.06,-0.03,0.18,-0.06,0.24,-0.06c0.3,0,0.27,-0.03,1.89,1.95l1.53,1.83c0.03,0,0.06,-0.06,0.09,-0.09c0.06,-0.12,0.06,-0.15,0.06,-2.28c0,-1.92,0,-2.22,0.06,-2.31c0.06,-0.15,0.15,-0.24,0.3,-0.3z"
-    },
-    "flags.u8th": {
-        "w": 6.692,
-        "h": 22.59,
-        "d": "M-0.42,3.75l0,-3.75l0.21,0l0.21,0l0,0.18c0,0.3,0.06,0.84,0.12,1.23c0.24,1.53,0.9,3.12,2.13,5.16l0.99,1.59c0.87,1.44,1.38,2.34,1.77,3.09c0.81,1.68,1.2,3.06,1.26,4.53c0.03,1.53,-0.21,3.27,-0.75,5.01c-0.21,0.69,-0.51,1.5,-0.6,1.59c-0.09,0.12,-0.27,0.21,-0.42,0.21c-0.15,0,-0.42,-0.12,-0.51,-0.21c-0.15,-0.18,-0.18,-0.42,-0.09,-0.66c0.15,-0.33,0.45,-1.2,0.57,-1.62c0.42,-1.38,0.6,-2.58,0.6,-3.9c0,-0.66,0,-0.81,-0.06,-1.11c-0.39,-2.07,-1.8,-4.26,-4.59,-7.14l-0.42,-0.45l-0.21,0l-0.21,0l0,-3.75z"
-    },
-    "flags.u16th": {
-        "w": 6.693,
-        "h": 26.337,
-        "d": "M-0.42,7.5l0,-7.5l0.21,0l0.21,0l0,0.39c0.06,1.08,0.39,2.19,0.99,3.39c0.45,0.9,0.87,1.59,1.95,3.12c1.29,1.86,1.77,2.64,2.22,3.57c0.45,0.93,0.72,1.8,0.87,2.64c0.06,0.51,0.06,1.5,0,1.92c-0.12,0.6,-0.3,1.2,-0.54,1.71l-0.09,0.24l0.18,0.45c0.51,1.2,0.72,2.22,0.69,3.42c-0.06,1.53,-0.39,3.03,-0.99,4.53c-0.3,0.75,-0.36,0.81,-0.57,0.9c-0.15,0.09,-0.33,0.06,-0.48,0c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.12,-0.75c0.66,-1.41,1.02,-2.88,1.08,-4.32c0,-0.6,-0.03,-1.05,-0.18,-1.59c-0.3,-1.2,-0.99,-2.4,-2.25,-3.87c-0.42,-0.48,-1.53,-1.62,-2.19,-2.22l-0.45,-0.42l-0.03,1.11l0,1.11l-0.21,0l-0.21,0l0,-7.5zm1.65,0.09c-0.3,-0.3,-0.69,-0.72,-0.9,-0.87l-0.33,-0.33l0,0.15c0,0.3,0.06,0.81,0.15,1.26c0.27,1.29,0.87,2.61,2.04,4.29c0.15,0.24,0.6,0.87,0.96,1.38l1.08,1.53l0.42,0.63c0.03,0,0.12,-0.36,0.21,-0.72c0.06,-0.33,0.06,-1.2,0,-1.62c-0.33,-1.71,-1.44,-3.48,-3.63,-5.7z"
-    },
-    "flags.u32nd": {
-        "w": 6.697,
-        "h": 32.145,
-        "d": "M-0.42,11.247l0,-11.25l0.21,0l0.21,0l0,0.36c0.09,1.68,0.69,3.27,2.07,5.46l0.87,1.35c1.02,1.62,1.47,2.37,1.86,3.18c0.48,1.02,0.78,1.92,0.93,2.88c0.06,0.48,0.06,1.5,0,1.89c-0.09,0.42,-0.21,0.87,-0.36,1.26l-0.12,0.3l0.15,0.39c0.69,1.56,0.84,2.88,0.54,4.38c-0.09,0.45,-0.27,1.08,-0.45,1.47l-0.12,0.24l0.18,0.36c0.33,0.72,0.57,1.56,0.69,2.34c0.12,1.02,-0.06,2.52,-0.42,3.84c-0.27,0.93,-0.75,2.13,-0.93,2.31c-0.18,0.15,-0.45,0.18,-0.66,0.09c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.06,-0.6c0.21,-0.36,0.42,-0.9,0.57,-1.38c0.51,-1.41,0.69,-3.06,0.48,-4.08c-0.15,-0.81,-0.57,-1.68,-1.2,-2.55c-0.72,-0.99,-1.83,-2.13,-3.3,-3.33l-0.48,-0.42l-0.03,1.53l0,1.56l-0.21,0l-0.21,0l0,-11.25zm1.26,-3.96c-0.27,-0.3,-0.54,-0.6,-0.66,-0.72l-0.18,-0.21l0,0.42c0.06,0.87,0.24,1.74,0.66,2.67c0.36,0.87,0.96,1.86,1.92,3.18c0.21,0.33,0.63,0.87,0.87,1.23c0.27,0.39,0.6,0.84,0.75,1.08l0.27,0.39l0.03,-0.12c0.12,-0.45,0.15,-1.05,0.09,-1.59c-0.27,-1.86,-1.38,-3.78,-3.75,-6.33zm-0.27,6.09c-0.27,-0.21,-0.48,-0.42,-0.51,-0.45c-0.06,-0.03,-0.06,-0.03,-0.06,0.21c0,0.9,0.3,2.04,0.81,3.09c0.48,1.02,0.96,1.77,2.37,3.63c0.6,0.78,1.05,1.44,1.29,1.77c0.06,0.12,0.15,0.21,0.15,0.18c0.03,-0.03,0.18,-0.57,0.24,-0.87c0.06,-0.45,0.06,-1.32,-0.03,-1.74c-0.09,-0.48,-0.24,-0.9,-0.51,-1.44c-0.66,-1.35,-1.83,-2.7,-3.75,-4.38z"
-    },
-    "flags.u64th": {
-        "w": 6.682,
-        "h": 39.694,
-        "d": "M-0.42,15l0,-15l0.21,0l0.21,0l0,0.36c0.06,1.2,0.39,2.37,1.02,3.66c0.39,0.81,0.84,1.56,1.8,3.09c0.81,1.26,1.05,1.68,1.35,2.22c0.87,1.5,1.35,2.79,1.56,4.08c0.06,0.54,0.06,1.56,-0.03,2.04c-0.09,0.48,-0.21,0.99,-0.36,1.35l-0.12,0.27l0.12,0.27c0.09,0.15,0.21,0.45,0.27,0.66c0.69,1.89,0.63,3.66,-0.18,5.46l-0.18,0.39l0.15,0.33c0.3,0.66,0.51,1.44,0.63,2.1c0.06,0.48,0.06,1.35,0,1.71c-0.15,0.57,-0.42,1.2,-0.78,1.68l-0.21,0.27l0.18,0.33c0.57,1.05,0.93,2.13,1.02,3.18c0.06,0.72,0,1.83,-0.21,2.79c-0.18,1.02,-0.63,2.34,-1.02,3.09c-0.15,0.33,-0.48,0.45,-0.78,0.3c-0.18,-0.09,-0.27,-0.18,-0.33,-0.33c-0.09,-0.18,-0.06,-0.3,0.03,-0.54c0.75,-1.5,1.23,-3.45,1.17,-4.89c-0.06,-1.02,-0.42,-2.01,-1.17,-3.15c-0.48,-0.72,-1.02,-1.35,-1.89,-2.22c-0.57,-0.57,-1.56,-1.5,-1.92,-1.77l-0.12,-0.09l0,1.68l0,1.68l-0.21,0l-0.21,0l0,-15zm0.93,-8.07c-0.27,-0.3,-0.48,-0.54,-0.51,-0.54c0,0,0,0.69,0.03,1.02c0.15,1.47,0.75,2.94,2.04,4.83l1.08,1.53c0.39,0.57,0.84,1.2,0.99,1.44c0.15,0.24,0.3,0.45,0.3,0.45c0,0,0.03,-0.09,0.06,-0.21c0.36,-1.59,-0.15,-3.33,-1.47,-5.4c-0.63,-0.93,-1.35,-1.83,-2.52,-3.12zm0.06,6.72c-0.24,-0.21,-0.48,-0.42,-0.51,-0.45l-0.06,-0.06l0,0.33c0,1.2,0.3,2.34,0.93,3.6c0.45,0.9,0.96,1.68,2.25,3.51c0.39,0.54,0.84,1.17,1.02,1.44c0.21,0.33,0.33,0.51,0.33,0.48c0.06,-0.09,0.21,-0.63,0.3,-0.99c0.06,-0.33,0.06,-0.45,0.06,-0.96c0,-0.6,-0.03,-0.84,-0.18,-1.35c-0.3,-1.08,-1.02,-2.28,-2.13,-3.57c-0.39,-0.45,-1.44,-1.47,-2.01,-1.98zm0,6.72c-0.24,-0.21,-0.48,-0.39,-0.51,-0.42l-0.06,-0.06l0,0.33c0,1.41,0.45,2.82,1.38,4.35c0.42,0.72,0.72,1.14,1.86,2.73c0.36,0.45,0.75,0.99,0.87,1.2c0.15,0.21,0.3,0.36,0.3,0.36c0.06,0,0.3,-0.48,0.39,-0.75c0.09,-0.36,0.12,-0.63,0.12,-1.05c-0.06,-1.05,-0.45,-2.04,-1.2,-3.18c-0.57,-0.87,-1.11,-1.53,-2.07,-2.49c-0.36,-0.33,-0.84,-0.78,-1.08,-1.02z"
-    },
-    "flags.d8th": {
-        "w": 8.492,
-        "h": 21.691,
-        "d": "M5.67,-21.63c0.24,-0.12,0.54,-0.06,0.69,0.15c0.06,0.06,0.21,0.36,0.39,0.66c0.84,1.77,1.26,3.36,1.32,5.1c0.03,1.29,-0.21,2.37,-0.81,3.63c-0.6,1.23,-1.26,2.13,-3.21,4.38c-1.35,1.53,-1.86,2.19,-2.4,2.97c-0.63,0.93,-1.11,1.92,-1.38,2.79c-0.15,0.54,-0.27,1.35,-0.27,1.8l0,0.15l-0.21,0l-0.21,0l0,-3.75l0,-3.75l0.21,0l0.21,0l0.48,-0.3c1.83,-1.11,3.12,-2.1,4.17,-3.12c0.78,-0.81,1.32,-1.53,1.71,-2.31c0.45,-0.93,0.6,-1.74,0.51,-2.88c-0.12,-1.56,-0.63,-3.18,-1.47,-4.68c-0.12,-0.21,-0.15,-0.33,-0.06,-0.51c0.06,-0.15,0.15,-0.24,0.33,-0.33z"
-    },
-    "flags.ugrace": {
-        "w": 12.019,
-        "h": 9.954,
-        "d": "M6.03,6.93c0.15,-0.09,0.33,-0.06,0.51,0c0.15,0.09,0.21,0.15,0.3,0.33c0.09,0.18,0.06,0.39,-0.03,0.54c-0.06,0.15,-10.89,8.88,-11.07,8.97c-0.15,0.09,-0.33,0.06,-0.48,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.06,-0.39,0.03,-0.54c0.06,-0.15,10.89,-8.88,11.07,-8.97z"
-    },
-    "flags.dgrace": {
-        "w": 15.12,
-        "h": 9.212,
-        "d": "M-6.06,-15.93c0.18,-0.09,0.33,-0.12,0.48,-0.06c0.18,0.09,14.01,8.04,14.1,8.1c0.12,0.12,0.18,0.33,0.18,0.51c-0.03,0.21,-0.15,0.39,-0.36,0.48c-0.18,0.09,-0.33,0.12,-0.48,0.06c-0.18,-0.09,-14.01,-8.04,-14.1,-8.1c-0.12,-0.12,-0.18,-0.33,-0.18,-0.51c0.03,-0.21,0.15,-0.39,0.36,-0.48z"
-    },
-    "flags.d16th": {
-        "w": 8.475,
-        "h": 22.591,
-        "d": "M6.84,-22.53c0.27,-0.12,0.57,-0.06,0.72,0.15c0.15,0.15,0.33,0.87,0.45,1.56c0.06,0.33,0.06,1.35,0,1.65c-0.06,0.33,-0.15,0.78,-0.27,1.11c-0.12,0.33,-0.45,0.96,-0.66,1.32l-0.18,0.27l0.09,0.18c0.48,1.02,0.72,2.25,0.69,3.3c-0.06,1.23,-0.42,2.28,-1.26,3.45c-0.57,0.87,-0.99,1.32,-3,3.39c-1.56,1.56,-2.22,2.4,-2.76,3.45c-0.42,0.84,-0.66,1.8,-0.66,2.55l0,0.15l-0.21,0l-0.21,0l0,-7.5l0,-7.5l0.21,0l0.21,0l0,1.14l0,1.11l0.27,-0.15c1.11,-0.57,1.77,-0.99,2.52,-1.47c2.37,-1.56,3.69,-3.15,4.05,-4.83c0.03,-0.18,0.03,-0.39,0.03,-0.78c0,-0.6,-0.03,-0.93,-0.24,-1.5c-0.06,-0.18,-0.12,-0.39,-0.15,-0.45c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.63,7.5c-0.06,-0.18,-0.15,-0.36,-0.15,-0.36c-0.03,0,-0.03,0.03,-0.06,0.06c-0.06,0.12,-0.96,1.02,-1.95,1.98c-0.63,0.57,-1.26,1.17,-1.44,1.35c-1.53,1.62,-2.28,2.85,-2.55,4.32c-0.03,0.18,-0.03,0.54,-0.06,0.99l0,0.69l0.18,-0.09c0.93,-0.54,2.1,-1.29,2.82,-1.83c0.69,-0.51,1.02,-0.81,1.53,-1.29c1.86,-1.89,2.37,-3.66,1.68,-5.82z"
-    },
-    "flags.d32nd": {
-        "w": 8.475,
-        "h": 29.191,
-        "d": "M6.794,-29.13c0.27,-0.12,0.57,-0.06,0.72,0.15c0.12,0.12,0.27,0.63,0.36,1.11c0.33,1.59,0.06,3.06,-0.81,4.47l-0.18,0.27l0.09,0.15c0.12,0.24,0.33,0.69,0.45,1.05c0.63,1.83,0.45,3.57,-0.57,5.22l-0.18,0.3l0.15,0.27c0.42,0.87,0.6,1.71,0.57,2.61c-0.06,1.29,-0.48,2.46,-1.35,3.78c-0.54,0.81,-0.93,1.29,-2.46,3c-0.51,0.54,-1.05,1.17,-1.26,1.41c-1.56,1.86,-2.25,3.36,-2.37,5.01l0,0.33l-0.21,0l-0.21,0l0,-11.25l0,-11.25l0.21,0l0.21,0l0,1.35l0.03,1.35l0.78,-0.39c1.38,-0.69,2.34,-1.26,3.24,-1.92c1.38,-1.02,2.28,-2.13,2.64,-3.21c0.15,-0.48,0.18,-0.72,0.18,-1.29c0,-0.57,-0.06,-0.9,-0.24,-1.47c-0.06,-0.18,-0.12,-0.39,-0.15,-0.45c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.63,7.2c-0.09,-0.18,-0.12,-0.21,-0.12,-0.15c-0.03,0.09,-1.02,1.08,-2.04,2.04c-1.17,1.08,-1.65,1.56,-2.07,2.04c-0.84,0.96,-1.38,1.86,-1.68,2.76c-0.21,0.57,-0.27,0.99,-0.3,1.65l0,0.54l0.66,-0.33c3.57,-1.86,5.49,-3.69,5.94,-5.7c0.06,-0.39,0.06,-1.2,-0.03,-1.65c-0.06,-0.39,-0.24,-0.9,-0.36,-1.2zm-0.06,7.2c-0.06,-0.15,-0.12,-0.33,-0.15,-0.45l-0.06,-0.18l-0.18,0.21l-1.83,1.83c-0.87,0.9,-1.77,1.8,-1.95,2.01c-1.08,1.29,-1.62,2.31,-1.89,3.51c-0.06,0.3,-0.06,0.51,-0.09,0.93l0,0.57l0.09,-0.06c0.75,-0.45,1.89,-1.26,2.52,-1.74c0.81,-0.66,1.74,-1.53,2.22,-2.16c1.26,-1.53,1.68,-3.06,1.32,-4.47z"
-    },
-    "flags.d64th": {
-        "w": 8.485,
-        "h": 32.932,
-        "d": "M7.08,-32.88c0.3,-0.12,0.66,-0.03,0.78,0.24c0.18,0.33,0.27,2.1,0.15,2.64c-0.09,0.39,-0.21,0.78,-0.39,1.08l-0.15,0.3l0.09,0.27c0.03,0.12,0.09,0.45,0.12,0.69c0.27,1.44,0.18,2.55,-0.3,3.6l-0.12,0.33l0.06,0.42c0.27,1.35,0.33,2.82,0.21,3.63c-0.12,0.6,-0.3,1.23,-0.57,1.8l-0.15,0.27l0.03,0.42c0.06,1.02,0.06,2.7,0.03,3.06c-0.15,1.47,-0.66,2.76,-1.74,4.41c-0.45,0.69,-0.75,1.11,-1.74,2.37c-1.05,1.38,-1.5,1.98,-1.95,2.73c-0.93,1.5,-1.38,2.82,-1.44,4.2l0,0.42l-0.21,0l-0.21,0l0,-15l0,-15l0.21,0l0.21,0l0,1.86l0,1.89c0,0,0.21,-0.03,0.45,-0.09c2.22,-0.39,4.08,-1.11,5.19,-2.01c0.63,-0.54,1.02,-1.14,1.2,-1.8c0.06,-0.3,0.06,-1.14,-0.03,-1.65c-0.03,-0.18,-0.06,-0.39,-0.09,-0.48c-0.03,-0.24,0.12,-0.48,0.36,-0.6zm-0.45,6.15c-0.03,-0.18,-0.06,-0.42,-0.06,-0.54l-0.03,-0.18l-0.33,0.3c-0.42,0.36,-0.87,0.72,-1.68,1.29c-1.98,1.38,-2.25,1.59,-2.85,2.16c-0.75,0.69,-1.23,1.44,-1.47,2.19c-0.15,0.45,-0.18,0.63,-0.21,1.35l0,0.66l0.39,-0.18c1.83,-0.9,3.45,-1.95,4.47,-2.91c0.93,-0.9,1.53,-1.83,1.74,-2.82c0.06,-0.33,0.06,-0.87,0.03,-1.32zm-0.27,4.86c-0.03,-0.21,-0.06,-0.36,-0.06,-0.36c0,-0.03,-0.12,0.09,-0.24,0.24c-0.39,0.48,-0.99,1.08,-2.16,2.19c-1.47,1.38,-1.92,1.83,-2.46,2.49c-0.66,0.87,-1.08,1.74,-1.29,2.58c-0.09,0.42,-0.15,0.87,-0.15,1.44l0,0.54l0.48,-0.33c1.5,-1.02,2.58,-1.89,3.51,-2.82c1.47,-1.47,2.25,-2.85,2.4,-4.26c0.03,-0.39,0.03,-1.17,-0.03,-1.71zm-0.66,7.68c0.03,-0.15,0.03,-0.6,0.03,-0.99l0,-0.72l-0.27,0.33l-1.74,1.98c-1.77,1.92,-2.43,2.76,-2.97,3.9c-0.51,1.02,-0.72,1.77,-0.75,2.91c0,0.63,0,0.63,0.06,0.6c0.03,-0.03,0.3,-0.27,0.63,-0.54c0.66,-0.6,1.86,-1.8,2.31,-2.31c1.65,-1.89,2.52,-3.54,2.7,-5.16z"
-    },
-    "clefs.C": {
-        "w": 20.31,
-        "h": 29.97,
-        "d": "M0.06,-14.94l0.09,-0.06l1.92,0l1.92,0l0.09,0.06l0.06,0.09l0,14.85l0,14.82l-0.06,0.09l-0.09,0.06l-1.92,0l-1.92,0l-0.09,-0.06l-0.06,-0.09l0,-14.82l0,-14.85zm5.37,0c0.09,-0.06,0.09,-0.06,0.57,-0.06c0.45,0,0.45,0,0.54,0.06l0.06,0.09l0,7.14l0,7.11l0.09,-0.06c0.18,-0.18,0.72,-0.84,0.96,-1.2c0.3,-0.45,0.66,-1.17,0.84,-1.65c0.36,-0.9,0.57,-1.83,0.6,-2.79c0.03,-0.48,0.03,-0.54,0.09,-0.63c0.12,-0.18,0.36,-0.21,0.54,-0.12c0.18,0.09,0.21,0.15,0.24,0.66c0.06,0.87,0.21,1.56,0.57,2.22c0.51,1.02,1.26,1.68,2.22,1.92c0.21,0.06,0.33,0.06,0.78,0.06c0.45,0,0.57,0,0.84,-0.06c0.45,-0.12,0.81,-0.33,1.08,-0.6c0.57,-0.57,0.87,-1.41,0.99,-2.88c0.06,-0.54,0.06,-3,0,-3.57c-0.21,-2.58,-0.84,-3.87,-2.16,-4.5c-0.48,-0.21,-1.17,-0.36,-1.77,-0.36c-0.69,0,-1.29,0.27,-1.5,0.72c-0.06,0.15,-0.06,0.21,-0.06,0.42c0,0.24,0,0.3,0.06,0.45c0.12,0.24,0.24,0.39,0.63,0.66c0.42,0.3,0.57,0.48,0.69,0.72c0.06,0.15,0.06,0.21,0.06,0.48c0,0.39,-0.03,0.63,-0.21,0.96c-0.3,0.6,-0.87,1.08,-1.5,1.26c-0.27,0.06,-0.87,0.06,-1.14,0c-0.78,-0.24,-1.44,-0.87,-1.65,-1.68c-0.12,-0.42,-0.09,-1.17,0.09,-1.71c0.51,-1.65,1.98,-2.82,3.81,-3.09c0.84,-0.09,2.46,0.03,3.51,0.27c2.22,0.57,3.69,1.8,4.44,3.75c0.36,0.93,0.57,2.13,0.57,3.36c0,1.44,-0.48,2.73,-1.38,3.81c-1.26,1.5,-3.27,2.43,-5.28,2.43c-0.48,0,-0.51,0,-0.75,-0.09c-0.15,-0.03,-0.48,-0.21,-0.78,-0.36c-0.69,-0.36,-0.87,-0.42,-1.26,-0.42c-0.27,0,-0.3,0,-0.51,0.09c-0.57,0.3,-0.81,0.9,-0.81,2.1c0,1.23,0.24,1.83,0.81,2.13c0.21,0.09,0.24,0.09,0.51,0.09c0.39,0,0.57,-0.06,1.26,-0.42c0.3,-0.15,0.63,-0.33,0.78,-0.36c0.24,-0.09,0.27,-0.09,0.75,-0.09c2.01,0,4.02,0.93,5.28,2.4c0.9,1.11,1.38,2.4,1.38,3.84c0,1.5,-0.3,2.88,-0.84,3.96c-0.78,1.59,-2.19,2.64,-4.17,3.15c-1.05,0.24,-2.67,0.36,-3.51,0.27c-1.83,-0.27,-3.3,-1.44,-3.81,-3.09c-0.18,-0.54,-0.21,-1.29,-0.09,-1.74c0.15,-0.6,0.63,-1.2,1.23,-1.47c0.36,-0.18,0.57,-0.21,0.99,-0.21c0.42,0,0.63,0.03,1.02,0.21c0.42,0.21,0.84,0.63,1.05,1.05c0.18,0.36,0.21,0.6,0.21,0.96c0,0.3,0,0.36,-0.06,0.51c-0.12,0.24,-0.27,0.42,-0.69,0.72c-0.57,0.42,-0.69,0.63,-0.69,1.08c0,0.24,0,0.3,0.06,0.45c0.12,0.21,0.3,0.39,0.57,0.54c0.42,0.18,0.87,0.21,1.53,0.15c1.08,-0.15,1.8,-0.57,2.34,-1.32c0.54,-0.75,0.84,-1.83,0.99,-3.51c0.06,-0.57,0.06,-3.03,0,-3.57c-0.12,-1.47,-0.42,-2.31,-0.99,-2.88c-0.27,-0.27,-0.63,-0.48,-1.08,-0.6c-0.27,-0.06,-0.39,-0.06,-0.84,-0.06c-0.45,0,-0.57,0,-0.78,0.06c-1.14,0.27,-2.01,1.17,-2.46,2.49c-0.21,0.57,-0.3,0.99,-0.33,1.65c-0.03,0.51,-0.06,0.57,-0.24,0.66c-0.12,0.06,-0.27,0.06,-0.39,0c-0.21,-0.09,-0.21,-0.15,-0.24,-0.75c-0.09,-1.92,-0.78,-3.72,-2.01,-5.19c-0.18,-0.21,-0.36,-0.42,-0.39,-0.45l-0.09,-0.06l0,7.11l0,7.14l-0.06,0.09c-0.09,0.06,-0.09,0.06,-0.54,0.06c-0.48,0,-0.48,0,-0.57,-0.06l-0.06,-0.09l0,-14.82l0,-14.85z"
-    },
-    "clefs.F": {
-        "w": 20.153,
-        "h": 23.142,
-        "d": "M6.3,-7.8c0.36,-0.03,1.65,0,2.13,0.03c3.6,0.42,6.03,2.1,6.93,4.86c0.27,0.84,0.36,1.5,0.36,2.58c0,0.9,-0.03,1.35,-0.18,2.16c-0.78,3.78,-3.54,7.08,-8.37,9.96c-1.74,1.05,-3.87,2.13,-6.18,3.12c-0.39,0.18,-0.75,0.33,-0.81,0.36c-0.06,0.03,-0.15,0.06,-0.18,0.06c-0.15,0,-0.33,-0.18,-0.33,-0.33c0,-0.15,0.06,-0.21,0.51,-0.48c3,-1.77,5.13,-3.21,6.84,-4.74c0.51,-0.45,1.59,-1.5,1.95,-1.95c1.89,-2.19,2.88,-4.32,3.15,-6.78c0.06,-0.42,0.06,-1.77,0,-2.19c-0.24,-2.01,-0.93,-3.63,-2.04,-4.71c-0.63,-0.63,-1.29,-1.02,-2.07,-1.2c-1.62,-0.39,-3.36,0.15,-4.56,1.44c-0.54,0.6,-1.05,1.47,-1.32,2.22l-0.09,0.21l0.24,-0.12c0.39,-0.21,0.63,-0.24,1.11,-0.24c0.3,0,0.45,0,0.66,0.06c1.92,0.48,2.85,2.55,1.95,4.38c-0.45,0.99,-1.41,1.62,-2.46,1.71c-1.47,0.09,-2.91,-0.87,-3.39,-2.25c-0.18,-0.57,-0.21,-1.32,-0.03,-2.28c0.39,-2.25,1.83,-4.2,3.81,-5.19c0.69,-0.36,1.59,-0.6,2.37,-0.69zm11.58,2.52c0.84,-0.21,1.71,0.3,1.89,1.14c0.3,1.17,-0.72,2.19,-1.89,1.89c-0.99,-0.21,-1.5,-1.32,-1.02,-2.25c0.18,-0.39,0.6,-0.69,1.02,-0.78zm0,7.5c0.84,-0.21,1.71,0.3,1.89,1.14c0.21,0.87,-0.3,1.71,-1.14,1.89c-0.87,0.21,-1.71,-0.3,-1.89,-1.14c-0.21,-0.84,0.3,-1.71,1.14,-1.89z"
-    },
-    "clefs.G": {
-        "w": 19.051,
-        "h": 57.057,
-        "d": "M9.69,-37.41c0.09,-0.09,0.24,-0.06,0.36,0c0.12,0.09,0.57,0.6,0.96,1.11c1.77,2.34,3.21,5.85,3.57,8.73c0.21,1.56,0.03,3.27,-0.45,4.86c-0.69,2.31,-1.92,4.47,-4.23,7.44c-0.3,0.39,-0.57,0.72,-0.6,0.75c-0.03,0.06,0,0.15,0.18,0.78c0.54,1.68,1.38,4.44,1.68,5.49l0.09,0.42l0.39,0c1.47,0.09,2.76,0.51,3.96,1.29c1.83,1.23,3.06,3.21,3.39,5.52c0.09,0.45,0.12,1.29,0.06,1.74c-0.09,1.02,-0.33,1.83,-0.75,2.73c-0.84,1.71,-2.28,3.06,-4.02,3.72l-0.33,0.12l0.03,1.26c0,1.74,-0.06,3.63,-0.21,4.62c-0.45,3.06,-2.19,5.49,-4.47,6.21c-0.57,0.18,-0.9,0.21,-1.59,0.21c-0.69,0,-1.02,-0.03,-1.65,-0.21c-1.14,-0.27,-2.13,-0.84,-2.94,-1.65c-0.99,-0.99,-1.56,-2.16,-1.71,-3.54c-0.09,-0.81,0.06,-1.53,0.45,-2.13c0.63,-0.99,1.83,-1.56,3,-1.53c1.5,0.09,2.64,1.32,2.73,2.94c0.06,1.47,-0.93,2.7,-2.37,2.97c-0.45,0.06,-0.84,0.03,-1.29,-0.09l-0.21,-0.09l0.09,0.12c0.39,0.54,0.78,0.93,1.32,1.26c1.35,0.87,3.06,1.02,4.35,0.36c1.44,-0.72,2.52,-2.28,2.97,-4.35c0.15,-0.66,0.24,-1.5,0.3,-3.03c0.03,-0.84,0.03,-2.94,0,-3c-0.03,0,-0.18,0,-0.36,0.03c-0.66,0.12,-0.99,0.12,-1.83,0.12c-1.05,0,-1.71,-0.06,-2.61,-0.3c-4.02,-0.99,-7.11,-4.35,-7.8,-8.46c-0.12,-0.66,-0.12,-0.99,-0.12,-1.83c0,-0.84,0,-1.14,0.15,-1.92c0.36,-2.28,1.41,-4.62,3.3,-7.29l2.79,-3.6c0.54,-0.66,0.96,-1.2,0.96,-1.23c0,-0.03,-0.09,-0.33,-0.18,-0.69c-0.96,-3.21,-1.41,-5.28,-1.59,-7.68c-0.12,-1.38,-0.15,-3.09,-0.06,-3.96c0.33,-2.67,1.38,-5.07,3.12,-7.08c0.36,-0.42,0.99,-1.05,1.17,-1.14zm2.01,4.71c-0.15,-0.3,-0.3,-0.54,-0.3,-0.54c-0.03,0,-0.18,0.09,-0.3,0.21c-2.4,1.74,-3.87,4.2,-4.26,7.11c-0.06,0.54,-0.06,1.41,-0.03,1.89c0.09,1.29,0.48,3.12,1.08,5.22c0.15,0.42,0.24,0.78,0.24,0.81c0,0.03,0.84,-1.11,1.23,-1.68c1.89,-2.73,2.88,-5.07,3.15,-7.53c0.09,-0.57,0.12,-1.74,0.06,-2.37c-0.09,-1.23,-0.27,-1.92,-0.87,-3.12zm-2.94,20.7c-0.21,-0.72,-0.39,-1.32,-0.42,-1.32c0,0,-1.2,1.47,-1.86,2.37c-2.79,3.63,-4.02,6.3,-4.35,9.3c-0.03,0.21,-0.03,0.69,-0.03,1.08c0,0.69,0,0.75,0.06,1.11c0.12,0.54,0.27,0.99,0.51,1.47c0.69,1.38,1.83,2.55,3.42,3.42c0.96,0.54,2.07,0.9,3.21,1.08c0.78,0.12,2.04,0.12,2.94,-0.03c0.51,-0.06,0.45,-0.03,0.42,-0.3c-0.24,-3.33,-0.72,-6.33,-1.62,-10.08c-0.09,-0.39,-0.18,-0.75,-0.18,-0.78c-0.03,-0.03,-0.42,0,-0.81,0.09c-0.9,0.18,-1.65,0.57,-2.22,1.14c-0.72,0.72,-1.08,1.65,-1.05,2.64c0.06,0.96,0.48,1.83,1.23,2.58c0.36,0.36,0.72,0.63,1.17,0.9c0.33,0.18,0.36,0.21,0.42,0.33c0.18,0.42,-0.18,0.9,-0.6,0.87c-0.18,-0.03,-0.84,-0.36,-1.26,-0.63c-0.78,-0.51,-1.38,-1.11,-1.86,-1.83c-1.77,-2.7,-0.99,-6.42,1.71,-8.19c0.3,-0.21,0.81,-0.48,1.17,-0.63c0.3,-0.09,1.02,-0.3,1.14,-0.3c0.06,0,0.09,0,0.09,-0.03c0.03,-0.03,-0.51,-1.92,-1.23,-4.26zm3.78,7.41c-0.18,-0.03,-0.36,-0.06,-0.39,-0.06c-0.03,0,0,0.21,0.18,1.02c0.75,3.18,1.26,6.3,1.5,9.09c0.06,0.72,0,0.69,0.51,0.42c0.78,-0.36,1.44,-0.96,1.98,-1.77c1.08,-1.62,1.2,-3.69,0.3,-5.55c-0.81,-1.62,-2.31,-2.79,-4.08,-3.15z"
-    },
-    "clefs.perc": {
-        "w": 9.99,
-        "h": 14.97,
-        "d": "M5.07,-7.44l0.09,-0.06l1.53,0l1.53,0l0.09,0.06l0.06,0.09l0,7.35l0,7.32l-0.06,0.09l-0.09,0.06l-1.53,0l-1.53,0l-0.09,-0.06l-0.06,-0.09l0,-7.32l0,-7.35zm6.63,0l0.09,-0.06l1.53,0l1.53,0l0.09,0.06l0.06,0.09l0,7.35l0,7.32l-0.06,0.09l-0.09,0.06l-1.53,0l-1.53,0l-0.09,-0.06l-0.06,-0.09l0,-7.32l0,-7.35z"
-    },
-    "timesig.common": {
-        "w": 13.038,
-        "h": 15.697,
-        "d": "M6.66,-7.826c0.72,-0.06,1.41,-0.03,1.98,0.09c1.2,0.27,2.34,0.96,3.09,1.92c0.63,0.81,1.08,1.86,1.14,2.73c0.06,1.02,-0.51,1.92,-1.44,2.22c-0.24,0.09,-0.3,0.09,-0.63,0.09c-0.33,0,-0.42,0,-0.63,-0.06c-0.66,-0.24,-1.14,-0.63,-1.41,-1.2c-0.15,-0.3,-0.21,-0.51,-0.24,-0.9c-0.06,-1.08,0.57,-2.04,1.56,-2.37c0.18,-0.06,0.27,-0.06,0.63,-0.06l0.45,0c0.06,0.03,0.09,0.03,0.09,0c0,0,-0.09,-0.12,-0.24,-0.27c-1.02,-1.11,-2.55,-1.68,-4.08,-1.5c-1.29,0.15,-2.04,0.69,-2.4,1.74c-0.36,0.93,-0.42,1.89,-0.42,5.37c0,2.97,0.06,3.96,0.24,4.77c0.24,1.08,0.63,1.68,1.41,2.07c0.81,0.39,2.16,0.45,3.18,0.09c1.29,-0.45,2.37,-1.53,3.03,-2.97c0.15,-0.33,0.33,-0.87,0.39,-1.17c0.09,-0.24,0.15,-0.36,0.3,-0.39c0.21,-0.03,0.42,0.15,0.39,0.36c-0.06,0.39,-0.42,1.38,-0.69,1.89c-0.96,1.8,-2.49,2.94,-4.23,3.18c-0.99,0.12,-2.58,-0.06,-3.63,-0.45c-0.96,-0.36,-1.71,-0.84,-2.4,-1.5c-1.11,-1.11,-1.8,-2.61,-2.04,-4.56c-0.06,-0.6,-0.06,-2.01,0,-2.61c0.24,-1.95,0.9,-3.45,2.01,-4.56c0.69,-0.66,1.44,-1.11,2.37,-1.47c0.63,-0.24,1.47,-0.42,2.22,-0.48z"
-    },
-    "timesig.cut": {
-        "w": 13.038,
-        "h": 20.97,
-        "d": "M6.24,-10.44c0.09,-0.06,0.09,-0.06,0.48,-0.06c0.36,0,0.36,0,0.45,0.06l0.06,0.09l0,1.23l0,1.26l0.27,0c1.26,0,2.49,0.45,3.48,1.29c1.05,0.87,1.8,2.28,1.89,3.48c0.06,1.02,-0.51,1.92,-1.44,2.22c-0.24,0.09,-0.3,0.09,-0.63,0.09c-0.33,0,-0.42,0,-0.63,-0.06c-0.66,-0.24,-1.14,-0.63,-1.41,-1.2c-0.15,-0.3,-0.21,-0.51,-0.24,-0.9c-0.06,-1.08,0.57,-2.04,1.56,-2.37c0.18,-0.06,0.27,-0.06,0.63,-0.06l0.45,0c0.06,0.03,0.09,0.03,0.09,0c0,-0.03,-0.45,-0.51,-0.66,-0.69c-0.87,-0.69,-1.83,-1.05,-2.94,-1.11l-0.42,0l0,7.17l0,7.14l0.42,0c0.69,-0.03,1.23,-0.18,1.86,-0.51c1.05,-0.51,1.89,-1.47,2.46,-2.7c0.15,-0.33,0.33,-0.87,0.39,-1.17c0.09,-0.24,0.15,-0.36,0.3,-0.39c0.21,-0.03,0.42,0.15,0.39,0.36c-0.03,0.24,-0.21,0.78,-0.39,1.2c-0.96,2.37,-2.94,3.9,-5.13,3.9l-0.3,0l0,1.26l0,1.23l-0.06,0.09c-0.09,0.06,-0.09,0.06,-0.45,0.06c-0.39,0,-0.39,0,-0.48,-0.06l-0.06,-0.09l0,-1.29l0,-1.29l-0.21,-0.03c-1.23,-0.21,-2.31,-0.63,-3.21,-1.29c-0.15,-0.09,-0.45,-0.36,-0.66,-0.57c-1.11,-1.11,-1.8,-2.61,-2.04,-4.56c-0.06,-0.6,-0.06,-2.01,0,-2.61c0.24,-1.95,0.93,-3.45,2.04,-4.59c0.42,-0.39,0.78,-0.66,1.26,-0.93c0.75,-0.45,1.65,-0.75,2.61,-0.9l0.21,-0.03l0,-1.29l0,-1.29zm-0.06,10.44c0,-5.58,0,-6.99,-0.03,-6.99c-0.15,0,-0.63,0.27,-0.87,0.45c-0.45,0.36,-0.75,0.93,-0.93,1.77c-0.18,0.81,-0.24,1.8,-0.24,4.74c0,2.97,0.06,3.96,0.24,4.77c0.24,1.08,0.66,1.68,1.41,2.07c0.12,0.06,0.3,0.12,0.33,0.15l0.09,0l0,-6.96z"
-    },
-    "f": {
-        "w": 16.155,
-        "h": 19.445,
-        "d": "M9.93,-14.28c1.53,-0.18,2.88,0.45,3.12,1.5c0.12,0.51,0,1.32,-0.27,1.86c-0.15,0.3,-0.42,0.57,-0.63,0.69c-0.69,0.36,-1.56,0.03,-1.83,-0.69c-0.09,-0.24,-0.09,-0.69,0,-0.87c0.06,-0.12,0.21,-0.24,0.45,-0.42c0.42,-0.24,0.57,-0.45,0.6,-0.72c0.03,-0.33,-0.09,-0.39,-0.63,-0.42c-0.3,0,-0.45,0,-0.6,0.03c-0.81,0.21,-1.35,0.93,-1.74,2.46c-0.06,0.27,-0.48,2.25,-0.48,2.31c0,0.03,0.39,0.03,0.9,0.03c0.72,0,0.9,0,0.99,0.06c0.42,0.15,0.45,0.72,0.03,0.9c-0.12,0.06,-0.24,0.06,-1.17,0.06l-1.05,0l-0.78,2.55c-0.45,1.41,-0.87,2.79,-0.96,3.06c-0.87,2.37,-2.37,4.74,-3.78,5.91c-1.05,0.9,-2.04,1.23,-3.09,1.08c-1.11,-0.18,-1.89,-0.78,-2.04,-1.59c-0.12,-0.66,0.15,-1.71,0.54,-2.19c0.69,-0.75,1.86,-0.54,2.22,0.39c0.06,0.15,0.09,0.27,0.09,0.48c0,0.24,-0.03,0.27,-0.12,0.42c-0.03,0.09,-0.15,0.18,-0.27,0.27c-0.09,0.06,-0.27,0.21,-0.36,0.27c-0.24,0.18,-0.36,0.36,-0.39,0.6c-0.03,0.33,0.09,0.39,0.63,0.42c0.42,0,0.63,-0.03,0.9,-0.15c0.6,-0.3,0.96,-0.96,1.38,-2.64c0.09,-0.42,0.63,-2.55,1.17,-4.77l1.02,-4.08c0,-0.03,-0.36,-0.03,-0.81,-0.03c-0.72,0,-0.81,0,-0.93,-0.06c-0.42,-0.18,-0.39,-0.75,0.03,-0.9c0.09,-0.06,0.27,-0.06,1.05,-0.06l0.96,0l0,-0.09c0.06,-0.18,0.3,-0.72,0.51,-1.17c1.2,-2.46,3.3,-4.23,5.34,-4.5z"
-    },
-    "m": {
-        "w": 14.687,
-        "h": 9.126,
-        "d": "M2.79,-8.91c0.09,0,0.3,-0.03,0.45,-0.03c0.24,0.03,0.3,0.03,0.45,0.12c0.36,0.15,0.63,0.54,0.75,1.02l0.03,0.21l0.33,-0.3c0.69,-0.69,1.38,-1.02,2.07,-1.02c0.27,0,0.33,0,0.48,0.06c0.21,0.09,0.48,0.36,0.63,0.6c0.03,0.09,0.12,0.27,0.18,0.42c0.03,0.15,0.09,0.27,0.12,0.27c0,0,0.09,-0.09,0.18,-0.21c0.33,-0.39,0.87,-0.81,1.29,-0.99c0.78,-0.33,1.47,-0.21,2.01,0.33c0.3,0.33,0.48,0.69,0.6,1.14c0.09,0.42,0.06,0.54,-0.54,3.06c-0.33,1.29,-0.57,2.4,-0.57,2.43c0,0.12,0.09,0.21,0.21,0.21c0.24,0,0.75,-0.3,1.2,-0.72c0.45,-0.39,0.6,-0.45,0.78,-0.27c0.18,0.18,0.09,0.36,-0.45,0.87c-1.05,0.96,-1.83,1.47,-2.58,1.71c-0.93,0.33,-1.53,0.21,-1.8,-0.33c-0.06,-0.15,-0.06,-0.21,-0.06,-0.45c0,-0.24,0.03,-0.48,0.6,-2.82c0.42,-1.71,0.6,-2.64,0.63,-2.79c0.03,-0.57,-0.3,-0.75,-0.84,-0.48c-0.24,0.12,-0.54,0.39,-0.66,0.63c-0.03,0.09,-0.42,1.38,-0.9,3c-0.9,3.15,-0.84,3,-1.14,3.15l-0.15,0.09l-0.78,0c-0.6,0,-0.78,0,-0.84,-0.06c-0.09,-0.03,-0.18,-0.18,-0.18,-0.27c0,-0.03,0.36,-1.38,0.84,-2.97c0.57,-2.04,0.81,-2.97,0.84,-3.12c0.03,-0.54,-0.3,-0.72,-0.84,-0.45c-0.24,0.12,-0.57,0.42,-0.66,0.63c-0.06,0.09,-0.51,1.44,-1.05,2.97c-0.51,1.56,-0.99,2.85,-0.99,2.91c-0.06,0.12,-0.21,0.24,-0.36,0.3c-0.12,0.06,-0.21,0.06,-0.9,0.06c-0.6,0,-0.78,0,-0.84,-0.06c-0.09,-0.03,-0.18,-0.18,-0.18,-0.27c0,-0.03,0.45,-1.38,0.99,-2.97c1.05,-3.18,1.05,-3.18,0.93,-3.45c-0.12,-0.27,-0.39,-0.3,-0.72,-0.15c-0.54,0.27,-1.14,1.17,-1.56,2.4c-0.06,0.15,-0.15,0.3,-0.18,0.36c-0.21,0.21,-0.57,0.27,-0.72,0.09c-0.09,-0.09,-0.06,-0.21,0.06,-0.63c0.48,-1.26,1.26,-2.46,2.01,-3.21c0.57,-0.54,1.2,-0.87,1.83,-1.02z"
-    },
-    "p": {
-        "w": 14.689,
-        "h": 13.127,
-        "d": "M1.92,-8.7c0.27,-0.09,0.81,-0.06,1.11,0.03c0.54,0.18,0.93,0.51,1.17,0.99c0.09,0.15,0.15,0.33,0.18,0.36l0,0.12l0.3,-0.27c0.66,-0.6,1.35,-1.02,2.13,-1.2c0.21,-0.06,0.33,-0.06,0.78,-0.06c0.45,0,0.51,0,0.84,0.09c1.29,0.33,2.07,1.32,2.25,2.79c0.09,0.81,-0.09,2.01,-0.45,2.79c-0.54,1.26,-1.86,2.55,-3.18,3.03c-0.45,0.18,-0.81,0.24,-1.29,0.24c-0.69,-0.03,-1.35,-0.18,-1.86,-0.45c-0.3,-0.15,-0.51,-0.18,-0.69,-0.09c-0.09,0.03,-0.18,0.09,-0.18,0.12c-0.09,0.12,-1.05,2.94,-1.05,3.06c0,0.24,0.18,0.48,0.51,0.63c0.18,0.06,0.54,0.15,0.75,0.15c0.21,0,0.36,0.06,0.42,0.18c0.12,0.18,0.06,0.42,-0.12,0.54c-0.09,0.03,-0.15,0.03,-0.78,0c-1.98,-0.15,-3.81,-0.15,-5.79,0c-0.63,0.03,-0.69,0.03,-0.78,0c-0.24,-0.15,-0.24,-0.57,0.03,-0.66c0.06,-0.03,0.48,-0.09,0.99,-0.12c0.87,-0.06,1.11,-0.09,1.35,-0.21c0.18,-0.06,0.33,-0.18,0.39,-0.3c0.06,-0.12,3.24,-9.42,3.27,-9.6c0.06,-0.33,0.03,-0.57,-0.15,-0.69c-0.09,-0.06,-0.12,-0.06,-0.3,-0.06c-0.69,0.06,-1.53,1.02,-2.28,2.61c-0.09,0.21,-0.21,0.45,-0.27,0.51c-0.09,0.12,-0.33,0.24,-0.48,0.24c-0.18,0,-0.36,-0.15,-0.36,-0.3c0,-0.24,0.78,-1.83,1.26,-2.55c0.72,-1.11,1.47,-1.74,2.28,-1.92zm5.37,1.47c-0.27,-0.12,-0.75,-0.03,-1.14,0.21c-0.75,0.48,-1.47,1.68,-1.89,3.15c-0.45,1.47,-0.42,2.34,0,2.7c0.45,0.39,1.26,0.21,1.83,-0.36c0.51,-0.51,0.99,-1.68,1.38,-3.27c0.3,-1.17,0.33,-1.74,0.15,-2.13c-0.09,-0.15,-0.15,-0.21,-0.33,-0.3z"
-    },
-    "r": {
-        "w": 9.41,
-        "h": 9.132,
-        "d": "M6.33,-9.12c0.27,-0.03,0.93,0,1.2,0.06c0.84,0.21,1.23,0.81,1.02,1.53c-0.24,0.75,-0.9,1.17,-1.56,0.96c-0.33,-0.09,-0.51,-0.3,-0.66,-0.75c-0.03,-0.12,-0.09,-0.24,-0.12,-0.3c-0.09,-0.15,-0.3,-0.24,-0.48,-0.24c-0.57,0,-1.38,0.54,-1.65,1.08c-0.06,0.15,-0.33,1.17,-0.9,3.27c-0.57,2.31,-0.81,3.12,-0.87,3.21c-0.03,0.06,-0.12,0.15,-0.18,0.21l-0.12,0.06l-0.81,0.03c-0.69,0,-0.81,0,-0.9,-0.03c-0.09,-0.06,-0.18,-0.21,-0.18,-0.3c0,-0.06,0.39,-1.62,0.9,-3.51c0.84,-3.24,0.87,-3.45,0.87,-3.72c0,-0.21,0,-0.27,-0.03,-0.36c-0.12,-0.15,-0.21,-0.24,-0.42,-0.24c-0.24,0,-0.45,0.15,-0.78,0.42c-0.33,0.36,-0.45,0.54,-0.72,1.14c-0.03,0.12,-0.21,0.24,-0.36,0.27c-0.12,0,-0.15,0,-0.24,-0.06c-0.18,-0.12,-0.18,-0.21,-0.06,-0.54c0.21,-0.57,0.42,-0.93,0.78,-1.32c0.54,-0.51,1.2,-0.81,1.95,-0.87c0.81,-0.03,1.53,0.3,1.92,0.87l0.12,0.18l0.09,-0.09c0.57,-0.45,1.41,-0.84,2.19,-0.96z"
-    },
-    "s": {
-        "w": 6.632,
-        "h": 8.758,
-        "d": "M4.47,-8.73c0.09,0,0.36,-0.03,0.57,-0.03c0.75,0.03,1.29,0.24,1.71,0.63c0.51,0.54,0.66,1.26,0.36,1.83c-0.24,0.42,-0.63,0.57,-1.11,0.42c-0.33,-0.09,-0.6,-0.36,-0.6,-0.57c0,-0.03,0.06,-0.21,0.15,-0.39c0.12,-0.21,0.15,-0.33,0.18,-0.48c0,-0.24,-0.06,-0.48,-0.15,-0.6c-0.15,-0.21,-0.42,-0.24,-0.75,-0.15c-0.27,0.06,-0.48,0.18,-0.69,0.36c-0.39,0.39,-0.51,0.96,-0.33,1.38c0.09,0.21,0.42,0.51,0.78,0.72c1.11,0.69,1.59,1.11,1.89,1.68c0.21,0.39,0.24,0.78,0.15,1.29c-0.18,1.2,-1.17,2.16,-2.52,2.52c-1.02,0.24,-1.95,0.12,-2.7,-0.42c-0.72,-0.51,-0.99,-1.47,-0.6,-2.19c0.24,-0.48,0.72,-0.63,1.17,-0.42c0.33,0.18,0.54,0.45,0.57,0.81c0,0.21,-0.03,0.3,-0.33,0.51c-0.33,0.24,-0.39,0.42,-0.27,0.69c0.06,0.15,0.21,0.27,0.45,0.33c0.3,0.09,0.87,0.09,1.2,0c0.75,-0.21,1.23,-0.72,1.29,-1.35c0.03,-0.42,-0.15,-0.81,-0.54,-1.2c-0.24,-0.24,-0.48,-0.42,-1.41,-1.02c-0.69,-0.42,-1.05,-0.93,-1.05,-1.47c0,-0.39,0.12,-0.87,0.3,-1.23c0.27,-0.57,0.78,-1.05,1.38,-1.35c0.24,-0.12,0.63,-0.27,0.9,-0.3z"
-    },
-    "z": {
-        "w": 8.573,
-        "h": 8.743,
-        "d": "M2.64,-7.95c0.36,-0.09,0.81,-0.03,1.71,0.27c0.78,0.21,0.96,0.27,1.74,0.3c0.87,0.06,1.02,0.03,1.38,-0.21c0.21,-0.15,0.33,-0.15,0.48,-0.06c0.15,0.09,0.21,0.3,0.15,0.45c-0.03,0.06,-1.26,1.26,-2.76,2.67l-2.73,2.55l0.54,0.03c0.54,0.03,0.72,0.03,2.01,0.15c0.36,0.03,0.9,0.06,1.2,0.09c0.66,0,0.81,-0.03,1.02,-0.24c0.3,-0.3,0.39,-0.72,0.27,-1.23c-0.06,-0.27,-0.06,-0.27,-0.03,-0.39c0.15,-0.3,0.54,-0.27,0.69,0.03c0.15,0.33,0.27,1.02,0.27,1.5c0,1.47,-1.11,2.7,-2.52,2.79c-0.57,0.03,-1.02,-0.09,-2.01,-0.51c-1.02,-0.42,-1.23,-0.48,-2.13,-0.54c-0.81,-0.06,-0.96,-0.03,-1.26,0.18c-0.12,0.06,-0.24,0.12,-0.27,0.12c-0.27,0,-0.45,-0.3,-0.36,-0.51c0.03,-0.06,1.32,-1.32,2.91,-2.79l2.88,-2.73c-0.03,0,-0.21,0.03,-0.42,0.06c-0.21,0.03,-0.78,0.09,-1.23,0.12c-1.11,0.12,-1.23,0.15,-1.95,0.27c-0.72,0.15,-1.17,0.18,-1.29,0.09c-0.27,-0.18,-0.21,-0.75,0.12,-1.26c0.39,-0.6,0.93,-1.02,1.59,-1.2z"
-    },
-    "+": {
-        "w": 7.507,
-        "h": 7.515,
-        "d": "M3.48,-11.19c0.18,-0.09,0.36,-0.09,0.54,0c0.18,0.09,0.24,0.15,0.33,0.3l0.06,0.15l0,1.29l0,1.29l1.29,0c1.23,0,1.29,0,1.41,0.06c0.06,0.03,0.15,0.09,0.18,0.12c0.12,0.09,0.21,0.33,0.21,0.48c0,0.15,-0.09,0.39,-0.21,0.48c-0.03,0.03,-0.12,0.09,-0.18,0.12c-0.12,0.06,-0.18,0.06,-1.41,0.06l-1.29,0l0,1.29c0,1.23,0,1.29,-0.06,1.41c-0.09,0.18,-0.15,0.24,-0.3,0.33c-0.21,0.09,-0.39,0.09,-0.57,0c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.06,-0.12,-0.06,-0.18,-0.06,-1.41l0,-1.29l-1.29,0c-1.23,0,-1.29,0,-1.41,-0.06c-0.18,-0.09,-0.24,-0.15,-0.33,-0.33c-0.09,-0.18,-0.09,-0.36,0,-0.54c0.09,-0.18,0.15,-0.24,0.33,-0.33l0.15,-0.06l1.26,0l1.29,0l0,-1.29c0,-1.23,0,-1.29,0.06,-1.41c0.09,-0.18,0.15,-0.24,0.33,-0.33z"
-    },
-    ",": {
-        "w": 3.452,
-        "h": 8.143,
-        "d": "M1.32,-3.36c0.57,-0.15,1.17,0.03,1.59,0.45c0.45,0.45,0.6,0.96,0.51,1.89c-0.09,1.23,-0.42,2.46,-0.99,3.93c-0.3,0.72,-0.72,1.62,-0.78,1.68c-0.18,0.21,-0.51,0.18,-0.66,-0.06c-0.03,-0.06,-0.06,-0.15,-0.06,-0.18c0,-0.06,0.12,-0.33,0.24,-0.63c0.84,-1.8,1.02,-2.61,0.69,-3.24c-0.12,-0.24,-0.27,-0.36,-0.75,-0.6c-0.36,-0.15,-0.42,-0.21,-0.6,-0.39c-0.69,-0.69,-0.69,-1.71,0,-2.4c0.21,-0.21,0.51,-0.39,0.81,-0.45z"
-    },
-    "-": {
-        "w": 5.001,
-        "h": 0.81,
-        "d": "M0.18,-5.34c0.09,-0.06,0.15,-0.06,2.31,-0.06c2.46,0,2.37,0,2.46,0.21c0.12,0.21,0.03,0.42,-0.15,0.54c-0.09,0.06,-0.15,0.06,-2.28,0.06c-2.16,0,-2.22,0,-2.31,-0.06c-0.27,-0.15,-0.27,-0.54,-0.03,-0.69z"
-    },
-    ".": {
-        "w": 3.413,
-        "h": 3.402,
-        "d": "M1.32,-3.36c1.05,-0.27,2.1,0.57,2.1,1.65c0,1.08,-1.05,1.92,-2.1,1.65c-0.9,-0.21,-1.5,-1.14,-1.26,-2.04c0.12,-0.63,0.63,-1.11,1.26,-1.26z"
-    },
-    "stave": {
-        "d": "M0,0L800,0M0,8L800,8M0,16L800,16M0,24L800,24M0,32L800,32z"
-    }
-};
-
-},{}],34:[function(require,module,exports){
-'use strict';
-
-var s = require('virtual-dom/virtual-hyperscript/svg');
-
-var drawing_functions = {},
-    randomColor = require('randomcolor'),
-    glyphs = require('./glyphs'),
-    _ = require('lodash'),
-    data_tables = require("../data_tables"),
-    dispatcher = require("../dispatcher");
-
-var POS_SWITCH = 6,
-    MAX_GRAD = 0.05,
-    STEM_LENGTH = 28;
-
-var transpose = 0;
-dispatcher.on("transpose_change", function (data) {
-    transpose = data;
-});
-
-/**
- * Draws a stave of width 'width'
- * @param  {SVG.Group} line  [line group to draw the stave in]
- * @param  {Number} width [width of line]
- * @return {Undefined}
- */
-
-var staveObject = s("path", {
-    stroke: "black",
-    d: glyphs.stave.d
-});
-
-drawing_functions.stave = function () {
-    return staveObject;
-};
-
-function ledgerLineCount(a) {
-    return (Math.abs(a) / 2 >> 0) + 1;
-}
-
-function drawLedgerLines(currentNote, offset, colGroup) {
-    if (currentNote.truepos < 1) {
-        for (var i = 0, tar = ledgerLineCount(currentNote.truepos); i < tar; i++) {
-            colGroup.children.push(s("path", {
-                stroke: 'black',
-                d: "M0 0L14 0",
-                transform: 'translate(-2, ' + (32 + 8 * (i + 1)) + ')'
-            }));
-        }
-    }
-
-    if (currentNote.truepos > 11) {
-        for (var i = 0, tar = ledgerLineCount(currentNote.truepos - 12); i < tar; i++) {
-            colGroup.children.push(s("path", {
-                stroke: 'black',
-                d: "M0 0L14 0",
-                //transform: `translate(6, ${0 - (8 * (i + 1))})`
-                transform: 'translate(-2, ' + (0 - 8 * (i + 1)) + ')'
-            }));
-        }
-    }
-}
-
-drawing_functions.note = function (currentNote, offset, noteAreaWidth) {
-
-    //return;  
-
-    var colGroup = s("g", {
-        transform: 'translate(' + offset + ',0)'
-    });
-
-    /*
-    var color = '#000',
-        stem_end = {
-            x: 0,
-            y: 0
-        },
-        stem_tail = null,
-        stem = null;
-      //invalid note length?
-    if (data_tables.allowed_note_lengths.indexOf(currentNote.notelength) === -1) {
-        console.log("INVALID NOTE LENGTH");
-        for (var i = 0; i < data_tables.allowed_note_lengths.length; i++) {
-            if (currentNote.notelength > data_tables.allowed_note_lengths[i]) {
-                currentNote.notelength = data_tables.allowed_note_lengths[i - 1];
-                break;
-            }
-        }
-    }*/
-
-    if (currentNote.chord !== "") {
-        colGroup.children.push(s("text", {
-            x: 0,
-            y: -20,
-            fill: "black",
-            transform: "scale(0.8, 0.8)"
-        }, [currentNote.chord.getText(transpose)]));
-    }
-
-    //ledger line
-    drawLedgerLines(currentNote, offset, colGroup);
-
-    var downstem = (currentNote.truepos >= POS_SWITCH || currentNote.forceStem === 1) && !(currentNote.forceStem === -1);
-
-    //DECORATIONS
-    if (currentNote.decorations.length > 0) {
-        for (var i = 0; i < currentNote.decorations.length; i++) {
-            switch (currentNote.decorations[i].data) {
-                case "~":
-                    {
-                        var transform = "";
-
-                        var relativePositioning = downstem ? currentNote.y > 4 : currentNote.y > 16;
-
-                        if (relativePositioning) {
-                            transform = "translate(0, -6)";
-                        } else {
-                            transform = 'translate(0, ' + (currentNote.y - 10) + ')';
-                        }
-                        colGroup.children.push(s("path", {
-                            d: glyphs["scripts.roll"].d,
-                            fill: "black",
-                            transform: transform
-                        }));
-                        break;
-                    }
-            }
-        }
-    }
-
-    var noteDot, stem, accidental;
-
-    //noteDot = downstem ? s("g", { class: "noteHead", transform: "translate(10,0)"}) : s("g", { class: "noteHead"});
-    var elementName = 'g#note_' + currentNote.renderNoteId;
-    noteDot = downstem ? s(elementName, { class: "noteHead", transform: "translate(0,0)" }) : s(elementName, { class: "noteHead" });
-
-    //dotted note?
-    if (2 * currentNote.noteLength % 3 === 0) {
-        noteDot.children.push(s("ellipse", {
-            rx: 2,
-            ry: 2,
-            cx: 14,
-            cy: currentNote.truepos % 2 === 0 ? -4 : 0,
-            fill: 'black'
-        }));
-    }
-
-    //double dotted note?
-    if (4 * currentNote.noteLength % 7 === 0) {
-        noteDot.children.push(s("ellipse", {
-            rx: 2,
-            ry: 2,
-            cx: 14,
-            cy: 0,
-            fill: 'black'
-        }));
-        noteDot.children.push(s("ellipse", {
-            rx: 2,
-            ry: 2,
-            cx: 18,
-            cy: 0,
-            fill: 'black'
-        }));
-    }
-
-    var dotType;
-    //dot type
-    if (currentNote.noteLength < 4) {
-        dotType = glyphs["noteheads.quarter"].d;
-    } else {
-        if (currentNote.noteLength < 8) {
-            dotType = glyphs["noteheads.half"].d;
-        } else {
-            dotType = glyphs["noteheads.whole"].d;
-        }
-    }
-
-    noteDot.children.push(s("path", {
-        d: dotType
-    }));
-
-    if (currentNote.noteLength < 8) {
-        if (downstem) {
-
-            //basic stem
-            stem = s("g", {
-                transform: "translate(0, 0)"
-            });
-
-            if (!currentNote.beamed) {
-                stem.children.push(s("path", {
-                    stroke: 'black',
-                    d: 'M0 ' + (currentNote.y + 2) + 'L0 ' + (currentNote.y + 28)
-                }));
-
-                if (currentNote.noteLength === 1) {
-                    stem.children.push(s("path", {
-                        d: glyphs["flags.d8th"].d,
-                        fill: 'black',
-                        transform: 'translate(0,' + (currentNote.y + 28) + ')'
-                    }));
-                }
-            } else {
-                stem.children.push(s("path", {
-                    stroke: 'black',
-                    d: 'M0 ' + currentNote.y + 'L0 ' + currentNote.beamOffsetFactor
-                }));
-            }
-        } else {
-
-            stem = s("g", {
-                transform: "translate(10, 0)"
-            });
-
-            if (!currentNote.beamed) {
-                stem.children.push(s("path", {
-                    stroke: 'black',
-                    d: 'M0 ' + (currentNote.y - 3) + 'L0 ' + (currentNote.y - 32)
-                }));
-
-                if (currentNote.noteLength === 1) {
-                    stem.children.push(s("path", {
-                        d: glyphs["flags.u8th"].d,
-                        fill: 'black',
-                        transform: 'translate(0,' + (currentNote.y - 34) + ')'
-                    }));
-                }
-            } else {
-                stem.children.push(s("path", {
-                    stroke: 'black',
-                    d: 'M0 ' + (currentNote.y - 3) + 'L0 ' + currentNote.beamOffsetFactor
-                }));
-            }
-
-            /*
-            //curly bit for quavers            
-            if (currentNote.notelength == 1) {
-                stem_tail = noteGroup.path(glyphs["flags.u8th"].d).attr({
-                    fill: 'black'
-                }).move(0, -24).scale(1);
-            }
-              //store point
-            stem_end.y = -24;*/
-        }
-    }
-
-    //accidentals
-
-    switch (currentNote.accidental) {
-        case "_":
-            accidental = s("path", {
-                d: glyphs["accidentals.flat"].d,
-                fill: "black",
-                transform: "translate(-8, 0)"
-            });
-            break;
-        case "^":
-            accidental = s("path", {
-                d: glyphs["accidentals.sharp"].d,
-                fill: "black",
-                transform: "translate(-10, 0)"
-            });
-            break;
-        case "=":
-            accidental = s("path", {
-                d: glyphs["accidentals.nat"].d,
-                fill: "black",
-                transform: "translate(-7, 0)"
-            });
-            break;
-        case "__":
-            accidental = s("path", {
-                d: glyphs["accidentals.dblflat"].d,
-                fill: "black",
-                transform: "translate(-6,-12)"
-            });
-            break;
-        case "^^":
-            accidental = s("path", {
-                d: glyphs["accidentals.dblsharp"].d,
-                fill: "black",
-                transform: "translate(-6,-12)"
-            });
-            break;
-        default:
-    } /*
-       currentNote.stem_end = stem_end;
-       noteGroup.stem_tail = stem_tail;
-      noteGroup.stem = stem;
-      noteGroup.dot = noteDot;
-      currentNote.truepos = truepos;
-         currentNote.x = totalOffset;
-      currentNote.y = 28 - (truepos * 4);
-       noteGroup.move(currentNote.x, currentNote.y);*/
-
-    var noteGroup = s("g", {
-        transform: 'translate(0,' + currentNote.y + ')'
-    }, [noteDot, accidental]);
-
-    colGroup.children.push(noteGroup, stem);
-
-    if (currentNote.beams.length > 0) {
-        for (var i = 0; i < currentNote.beams.length; i++) {
-            drawing_functions.beam(currentNote.beams[i], colGroup, noteAreaWidth);
-        }
-    }
-
-    return colGroup;
-};
-
-drawing_functions.barline = function (currentSymbol, offset) {
-    var barlineGroup = s("g");
-
-    var rightAligned = currentSymbol.align === 2;
-
-    switch (currentSymbol.subType) {
-        case "normal":
-            barlineGroup.children.push(s("rect", {
-                x: offset + 4 + (rightAligned ? 4 : 0),
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            break;
-        case "double":
-            var alignment = currentSymbol.align === 2 ? -2 : 0;
-            barlineGroup.children.push(s("rect", {
-                x: offset - 2 + alignment,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            barlineGroup.children.push(s("rect", {
-                x: offset + 2 + alignment,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            break;
-
-        case "repeat_start":
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset + 12,
-                cy: 12,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset + 12,
-                cy: 20,
-                fill: 'black'
-            }));
-
-        case "heavy_start":
-
-            barlineGroup.children.push(s("rect", {
-                x: offset - 2,
-                width: 4,
-                height: 32,
-                fill: 'black'
-            }));
-            barlineGroup.children.push(s("rect", {
-                x: offset + 6,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            break;
-
-        case "repeat_end":
-
-            var alignment = currentSymbol.align === 2 ? -6 : 0;
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset - 12 + 20,
-                cy: 12,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset - 12 + 20,
-                cy: 20,
-                fill: 'black'
-            }));
-
-        case "heavy_end":
-
-            var alignment = currentSymbol.align === 2 ? -6 : 0;
-
-            barlineGroup.children.push(s("rect", {
-                x: offset + 2 + 20 + alignment,
-                width: 4,
-                height: 32,
-                fill: 'black'
-            }));
-            barlineGroup.children.push(s("rect", {
-                x: offset - 2 + 20 + alignment,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            break;
-
-        case "double_repeat":
-            barlineGroup.children.push(s("rect", {
-                x: offset - 2,
-                width: 4,
-                height: 32,
-                fill: 'black'
-            }));
-            barlineGroup.children.push(s("rect", {
-                x: offset + 5,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-            barlineGroup.children.push(s("rect", {
-                x: offset - 6,
-                width: 1,
-                height: 32,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset + 12,
-                cy: 12,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset + 12,
-                cy: 20,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset - 12,
-                cy: 12,
-                fill: 'black'
-            }));
-
-            barlineGroup.children.push(s("ellipse", {
-                rx: 2,
-                ry: 2,
-                cx: offset - 12,
-                cy: 20,
-                fill: 'black'
-            }));
-            break;
-
-        default:
-    }
-
-    return barlineGroup;
-};
-
-drawing_functions.chord_annotation = function (line, currentSymbol, totalOffset) {
-    /* return line.text(currentSymbol.text).font({
-         family: 'Helvetica',
-         size: 16,
-         anchor: 'middle',
-         leading: '1.5em'
-     }).move(totalOffset, -30).attr({
-         fill: 'black'
-     });*/
-};
-
-drawing_functions.tie = function (currentSymbol, ignore, noteAreaWidth) {
-
-    var startX = currentSymbol.start.xp * noteAreaWidth + 4,
-        startY = currentSymbol.start.y + 8,
-        endX = currentSymbol.end.xp * noteAreaWidth + 4,
-        endY = currentSymbol.end.y + 8;
-
-    var path = 'M' + startX + ' ' + startY + 'C' + (startX + 4) + ' ' + (startY + 14) + ', ' + (endX - 4) + ' ' + (endY + 14) + ', ' + endX + ' ' + endY + 'C' + (endX + 4) + ' ' + (endY + 12) + ', ' + (startX - 4) + ' ' + (startY + 12) + ', ' + startX + ' ' + startY;
-
-    return s("path", {
-        d: path,
-        stroke: 'black'
-    });
-};
-
-drawing_functions.space = function () {
-    return s("g");
-};
-
-/**
- * [beat_rest description]
- * @param  {[type]} line          [description]
- * @param  {[type]} currentSymbol [description]
- * @param  {[type]} totalOffset   [description]
- * @return {[type]}               [description]
- */
-drawing_functions.beat_rest = function (line, currentSymbol, totalOffset) {
-    return line.path(glyphs["rests.quarter"].d).attr({
-        fill: 'black'
-    }).move(totalOffset, 6);
-};
-
-/**
- * [treble_clef description]
- * @param  {[type]} line [description]
- * @return {[type]}      [description]
- */
-
-var trebleClefObject = s("path", {
-    fill: "black",
-    d: glyphs["clefs.G"].d,
-    transform: "translate(8, 24)"
-});
-
-drawing_functions.treble_clef = function (line) {
-    return {
-        node: trebleClefObject,
-        width: 40
-    };
-};
-
-/**
- * [timesig description]
- * @param  {[type]} line   [description]
- * @param  {[type]} top    [description]
- * @param  {[type]} bottom [description]
- * @return {[type]}        [description]
- */
-drawing_functions.timesig = function (top, bottom, xoffset) {
-
-    var top_group = s("g"),
-        bottom_group = s("g"),
-        timeSig = s("g", [top_group, bottom_group]);
-    //top
-
-    top.toString().split('').forEach(function (num, i) {
-        top_group.children.push(s("path", {
-            fill: "black",
-            d: glyphs[num].d,
-            transform: ["translate(", xoffset + i * 10, ",16)"].join('')
-        }));
-    });
-
-    bottom.toString().split('').forEach(function (num, i) {
-        bottom_group.children.push(s("path", {
-            fill: "black",
-            d: glyphs[num].d,
-            transform: ["translate(", xoffset + i * 10, ",32)"].join('')
-        }));
-    });
-    /*
-    var top_width = top_group.bbox().width,
-        bottom_width = bottom_group.bbox().width;
-      if (top_width > bottom_width) {
-        bottom_group.move((top_width - bottom_width) / 2, 0);
-    } else {
-        top_group.move((bottom_width - top_width) / 2, 0);
-    }
-    */
-    return {
-        node: timeSig,
-        width: 24
-    };
-};
-
-function sigmoid(a) {
-    return 1 / (Math.exp(0.05 * (14 - a)) + 1) * 96 - 32;
-}
-
-/**
- * [beam description]
- * @param  {[type]} line         [description]
- * @param  {[type]} beamed_notes [description]
- * @return {[type]}              [description]
- */
-drawing_functions.beam = function (beam, group, noteAreaWidth) {
-
-    //var startX = -((beam.notes[beam.count - 1].xp - beam.notes[0].xp) * noteAreaWidth) + (beam.downBeam ? 0 : 10);
-    var startX = -(beam.notes[beam.count - 1].renderedXPos - beam.notes[0].renderedXPos) + (beam.downBeam ? 0 : 10);
-    var endY = beam.notes[beam.count - 1].beamOffsetFactor;
-    var startY = beam.notes[0].beamOffsetFactor;
-
-    if (beam.downBeam) {
-        group.children.push(s("path", {
-            //d: `M${startX} ${startY}L10 ${endY}L10 ${endY-4}L${startX} ${startY-4}L${startX} ${startY}Z`
-            d: 'M' + startX + ' ' + startY + 'L0 ' + endY + 'L0 ' + (endY - 4) + 'L' + startX + ' ' + (startY - 4) + 'L' + startX + ' ' + startY + 'Z'
-        }));
-    } else {
-        group.children.push(s("path", {
-            d: 'M' + startX + ' ' + startY + 'L10 ' + endY + 'L10 ' + (endY + 4) + 'L' + startX + ' ' + (startY + 4) + 'L' + startX + ' ' + startY + 'Z'
-        }));
-    }
-
-    for (var i = 0; i < beam.notes.length; i++) {
-
-        var bm = beam.notes[i];
-
-        if (bm.beamDepth < -1) {
-
-            var tailsToDraw = Math.abs(bm.beamDepth) - 1;
-
-            for (var j = 0; j < tailsToDraw; j++) {
-                var notePos = -(beam.notes[beam.count - 1].xp - bm.xp) * noteAreaWidth + (beam.downBeam ? 0 : 10);
-                var tailPosY = bm.beamOffsetFactor + 6 + j * 6;
-                group.children.push(s("path", {
-                    d: 'M' + notePos + ' ' + tailPosY + 'L' + notePos + ' ' + (tailPosY + 4) + 'L' + (notePos - 4) + ' ' + (tailPosY + 4) + 'L' + (notePos - 4) + ' ' + tailPosY + 'L' + notePos + ' ' + tailPosY + 'Z'
-                }));
-            }
-        }
-    }
-};
-
-/**
- * [keysig description]
- * @param  {[type]} draw   [description]
- * @param  {[type]} keysig [description]
- * @return {[type]}        [description]
- */
-drawing_functions.keysig = function (keysig, xoffset, lineId, transpose) {
-
-    var keySigGroup = s("g");
-    var undefined;
-
-    var accidentals = data_tables.getKeySig(keysig.note, keysig.mode) + transpose;
-
-    dispatcher.send("remove_abc_error", "KEYSIG");
-
-    if (_.isNaN(accidentals)) {
-        var error = {
-            line: lineId,
-            message: 'Malformed key signature: ' + (keysig.note + keysig.mode),
-            severity: 1,
-            type: "KEYSIG"
-        };
-
-        console.log(error);
-
-        dispatcher.send("abc_error", error);
-
-        return false;
-    }
-
-    if (accidentals === 0) return {
-        node: keySigGroup,
-        width: 0
-    };
-
-    var dataset = accidentals > 0 ? data_tables.sharps : data_tables.flats;
-    var symbol = accidentals > 0 ? glyphs["accidentals.sharp"].d : glyphs["accidentals.flat"].d;
-
-    for (var i = 0; i < Math.abs(accidentals); i++) {
-
-        keySigGroup.children.push(s("path", {
-            d: symbol,
-            fill: "black",
-            transform: 'translate(' + (xoffset + i * 8) + ', ' + (44 - (dataset[i] + 1) * 4) + ')'
-        }));
-    }
-
-    return {
-        node: keySigGroup,
-        width: Math.abs(accidentals) * 10 + 12
-    };
-};
-
-drawing_functions.varientEndings = function (currentEnding, noteAreaWidth, continuation) {
-    var startX = currentEnding.start.renderedXPos,
-        //(currentEnding.start.xp * noteAreaWidth) - 8,
-    endX = currentEnding.end === null ? noteAreaWidth : currentEnding.end.renderedXPos,
-        path = "";
-    //path = `M${startX} -25L${startX} -40L${endX} -40L${endX} -25`;
-
-    path = continuation ? 'M' + startX + ' -40' : 'M' + startX + ' -25L' + startX + ' -40';
-    path = path + ('L' + endX + ' -40');
-    path = currentEnding.end === null ? path : path + ('L' + endX + ' -25');
-
-    var endingGroup = s("g");
-
-    endingGroup.children.push(s("path", {
-        d: path,
-        stroke: 'black',
-        fill: 'none'
-    }));
-
-    endingGroup.children.push(s("text", {
-        x: 0,
-        y: 0,
-        fill: "black",
-        transform: 'translate(' + (startX + 4) + ', -30)scale(0.5, 0.5)'
-    }, [currentEnding.name]));
-
-    return endingGroup;
-};
-
-drawing_functions.slur = function (currentSymbol, ignore, noteAreaWidth) {
-
-    var startX = currentSymbol.notes[0].xp * noteAreaWidth + 4,
-        startY = currentSymbol.notes[0].y + 8,
-        endX = currentSymbol.notes[currentSymbol.notes.length - 1].xp * noteAreaWidth + 4,
-        endY = currentSymbol.notes[currentSymbol.notes.length - 1].y + 8;
-
-    var path = 'M' + startX + ' ' + startY + 'C' + (startX + 4) + ' ' + (startY + 14) + ', ' + (endX - 4) + ' ' + (endY + 14) + ', ' + endX + ' ' + endY + 'C' + (endX + 4) + ' ' + (endY + 12) + ', ' + (startX - 4) + ' ' + (startY + 12) + ', ' + startX + ' ' + startY;
-
-    return s("path", {
-        d: path,
-        stroke: 'black'
-    });
-};
-
-var restLengthMap = {
-    "0.125": "rests.64th",
-    "0.25": "rests.32th",
-    "0.5": "rests.16th",
-    "1": "rests.8th",
-    "2": "rests.quarter",
-    "4": "rests.half",
-    "8": "rests.whole"
-};
-
-drawing_functions.rest = function (currentNote, offset, noteAreaWidth) {
-
-    var restLength = currentNote.restLength === undefined ? 1 : currentNote.restLength;
-
-    var colGroup = s("g", {
-        transform: 'translate(' + offset + ',16)'
-    });
-
-    if (!currentNote.visible) return colGroup;
-
-    colGroup.children.push(s("path", {
-        d: glyphs[restLengthMap[restLength]].d
-    }));
-
-    return colGroup;
-};
-
-drawing_functions.tuplets = function (currentTuplet, noteAreaWidth) {
-
-    var middle = (currentTuplet.notes.length - 1) / 2;
-
-    var offset = currentTuplet.notes[middle].renderedXPos + (currentTuplet.notes[middle].forceStem === -1 ? 10 : 0); //xp * noteAreaWidth;
-
-    var tupletNumberY = currentTuplet.notes[middle].forceStem === -1 ? currentTuplet.notes[middle].beamOffsetFactor - 10 : currentTuplet.notes[middle].beamOffsetFactor + 10;
-
-    var colGroup = s("g", {
-        transform: 'translate(' + offset + ',' + tupletNumberY + ')'
-    });
-
-    colGroup.children.push(s("text", {
-        x: 0,
-        y: 0,
-        "text-anchor": "middle",
-        fill: "black",
-        transform: "scale(0.5, 0.5)",
-        "font-weight": "bold"
-    }, [currentTuplet.value.toString()]));
-
-    return colGroup;
-};
-
-module.exports = drawing_functions;
-
-},{"../data_tables":24,"../dispatcher":26,"./glyphs":33,"lodash":93,"randomcolor":97,"virtual-dom/virtual-hyperscript/svg":117}],35:[function(require,module,exports){
-"use strict";
-
-var data = {
-	note: 13,
-	barline: {
-		normal: 8,
-		repeat_start: 16,
-		repeat_end: 20
-	},
-	rest: 13
-};
-
-module.exports = data;
-
-},{}],36:[function(require,module,exports){
-"use strict";
-
-var POS_SWITCH = 6;
-
-var AbcBeam = function AbcBeam(notes) {
-
-    var hNote, lNote, hNoteIndex, lNoteIndex;
-
-    var avgPos = this.avgPos = notes.reduce(function (a, b, i) {
-
-        if (lNote === undefined || lNote.truepos > b.truepos) {
-            lNote = b;
-            lNoteIndex = i;
-        }
-
-        if (hNote === undefined || hNote.truepos < b.truepos) {
-            hNote = b;
-            hNoteIndex = i;
-        }
-
-        return a + b.truepos;
-    }, 0) / notes.length;
-
-    var downBeam = this.downBeam = avgPos > POS_SWITCH;
-
-    notes.forEach(function (note) {
-        note.forceStem = downBeam ? 1 : -1;
-    });
-
-    var baseNote = this.baseNote = this.downBeam ? lNote : hNote;
-    this.baseNoteIndex = this.downBeam ? lNoteIndex : hNoteIndex;
-
-    var x, y;
-    var sum_x = 0;
-    var sum_y = 0;
-    var sum_xy = 0;
-    var sum_xx = 0;
-    var count = 0;
-
-    for (var v = 0; v < notes.length; v++) {
-        x = notes[v].xp; //notes[v].truepos;
-        y = notes[v].truepos;
-        sum_x += x;
-        sum_y += y;
-        sum_xx += x * x;
-        sum_xy += x * y;
-        count++;
-    }
-
-    var m = (count * sum_xy - sum_x * sum_y) / (count * sum_xx - sum_x * sum_x) * 2;
-
-    notes.forEach(function (note) {
-        var xpDist = note.xp - baseNote.xp;
-        var heightDiff = Math.abs(note.y - baseNote.y);
-        note.beamOffsetFactor = xpDist * -m + baseNote.y + (downBeam ? 28 : -28);
-        note.beamed = true;
-    });
-
-    this.gradient = m;
-    this.depth = 0;
-    this.notes = notes;
-    this.count = notes.length;
-};
-
-AbcBeam.prototype.subType = "";
-AbcBeam.prototype.weight = 0;
-
-module.exports = AbcBeam;
-
-},{}],37:[function(require,module,exports){
-"use strict";
-
-////////////
-// Symbol //
-////////////
-
-var chordRegex = /^([A-G](?:b|#)?)(m|min|maj|dim|aug|\+|sus)?(2|4|7|9|13)?(\/[A-G](?:b|#)?)?$/i;
-
-var zaz = require('zazate.js');
-
-var transposeNote = function transposeNote(note, a) {
-    var transposedInt = zaz.notes.note_to_int(note.toUpperCase()) + a;
-    var hashed = (transposedInt % 12 + 12) % 12;
-    return zaz.notes.int_to_note(hashed);
-};
-
-var AbcChord = function AbcChord(text) {
-    this.text = text;
-
-    var regexTestResult = chordRegex.exec(text);
-
-    if (regexTestResult === null) {
-        this.parsed = false;
-    } else {
-        this.parsed = true;
-
-        this.note = regexTestResult[1];
-        this.type = regexTestResult[2];
-        this.number = regexTestResult[3];
-        this.base = regexTestResult[4];
-    }
-
-    this.getText = function (transpose) {
-        if (!this.parsed || transpose === 0) return this.text;
-
-        var output = transposeNote(this.note, transpose);
-        if (this.type) output += this.type;
-        if (this.number) output += this.number;
-        if (this.base) output += "/" + transposeNote(this.base.substr(1), transpose);
-        return output;
-    };
-};
-
-module.exports = {
-    AbcChord: AbcChord
-};
-
-},{"zazate.js":133}],38:[function(require,module,exports){
-"use strict";
-
-////////////
-// Symbol //
-////////////
-
-var AbcSymbol = function AbcSymbol(type) {
-    this.type = type;
-};
-
-AbcSymbol.prototype.subType = "";
-AbcSymbol.prototype.visible = true;
-AbcSymbol.prototype.xp = 0;
-AbcSymbol.prototype.align = 0;
-
-AbcSymbol.prototype.fixedWidth = 0;
-AbcSymbol.prototype.springConstant = 0;
-
-AbcSymbol.prototype.getX = function (leadInWidth, lineWidth) {
-    return this.xp * (lineWidth - leadInWidth) + leadInWidth;
-};
-
-var AbcNote = function AbcNote() {
-    AbcSymbol.call(this, "note");
-    this.decorations = [];
-};
-
-AbcNote.prototype = Object.create(AbcSymbol.prototype);
-AbcNote.prototype.beamDepth = 0;
-AbcNote.prototype.octave = 4;
-AbcNote.prototype.pitch = 0;
-AbcNote.prototype.pos = 0;
-AbcNote.prototype.truepos = 0;
-AbcNote.prototype.letter = "";
-AbcNote.prototype.accidentals = "";
-AbcNote.prototype.noteLength = 1;
-AbcNote.prototype.beams = [];
-AbcNote.prototype.forceStem = 0;
-AbcNote.prototype.beamOffsetFactor = 0;
-AbcNote.prototype.y = null;
-AbcNote.prototype.beamed = false;
-AbcNote.prototype.chord = "";
-
-var AbcRest = function AbcRest() {
-    AbcSymbol.call(this, "rest", 1);
-};
-
-AbcRest.prototype = Object.create(AbcSymbol.prototype);
-AbcRest.prototype.restLength = 1;
-
-module.exports = {
-    AbcNote: AbcNote,
-    AbcSymbol: AbcSymbol,
-    AbcRest: AbcRest
-};
-
-},{}],39:[function(require,module,exports){
-"use strict";
-
-/////////////
-// ABCLine //
-/////////////
-
-var AbcLine = function AbcLine(raw, id) {
-    this.raw = raw;
-    this.id = id;
-    this.endings = [];
-    this.tuplets = [];
-    this.firstEndingEnder = null;
-};
-
-AbcLine.prototype.type = "hidden";
-AbcLine.prototype.di = -1;
-AbcLine.prototype.parsed = [];
-AbcLine.prototype.weight = 0;
-AbcLine.prototype.error = false;
-AbcLine.prototype.changed = false;
-AbcLine.prototype.endWithEndingBar = false;
-
-///////////////////
-//LineCollection //
-///////////////////
-
-var LineCollection = function LineCollection(id, raw, action) {
-
-    var split = raw.split(/\r\n|\r|\n/);
-
-    if (split[split.length - 1] === '') {
-        split = split.slice(0, split.length - 1);
-    }
-
-    this.lines = split.map(function (line, i) {
-        return new AbcLine(line, i + id);
-    });
-
-    this.count = this.lines.length;
-
-    this.action = action;
-
-    this.startId = id;
-};
-
-module.exports = {
-    LineCollection: LineCollection,
-    AbcLine: AbcLine
-};
-
-},{}],40:[function(require,module,exports){
-// injects the vDOM structure into the actual DOM tree
-// BROWSER ONLY
-
-'use strict';
-
-var createElement = require('virtual-dom/create-element');
-var diff = require('virtual-dom/diff');
-var patch = require('virtual-dom/patch');
-var renderElement = null;
-var lastVDOMTree = null;
-var lastRenderElement = null;
-
-var vDom2DOM = function vDom2DOM(vDOMTree) {
-
-	var canvasElement = document.getElementById("canvas");
-
-	if (false) {
-		var diffed = diff(lastVDOMTree, vDOMTree);
-		var ro = patch(lastRenderElement, diffed);
-
-		console.log(diffed, ro);
-	} else {
-		canvasElement.innerHTML = "";
-		renderElement = createElement(vDOMTree);
-		lastRenderElement = renderElement;
-		canvasElement.appendChild(renderElement);
-	}
-
-	lastVDOMTree = vDOMTree;
-
-	var svgs = document.getElementById("tuneSVGCanvas");
-
-	var scrollDist = canvasElement.scrollTop;
-	svgs.viewBox.baseVal.height = svgs.getBBox().height + 100;
-	canvasElement.scrollTop = scrollDist;
 };
-
-module.exports = vDom2DOM;
-
-},{"virtual-dom/create-element":101,"virtual-dom/diff":102,"virtual-dom/patch":104}],41:[function(require,module,exports){
-'use strict';
-
-//polyfill
-
-require('isomorphic-fetch');
-
-module.exports = {
-    lodash: require('lodash'),
-    lex: require('lex'),
-    Ractive: require('ractive/ractive'),
-
-    page: require('page'),
-    jsDiff: require('diff'),
-    codeMirror: require('codemirror'),
-    codeMirrorLint: require('codemirror/addon/lint/lint'),
-    combokeys: require('combokeys'),
-    screenfull: require('screenfull'),
-    zazate: require('zazate.js'),
-
-    queryString: require('query-string'),
-    sizzle: require('sizzle'),
-    domready: require('domready'),
-    sortable: require('sortablejs')
-};
-
-},{"codemirror":49,"codemirror/addon/lint/lint":48,"combokeys":50,"diff":82,"domready":84,"isomorphic-fetch":91,"lex":92,"lodash":93,"page":94,"query-string":95,"ractive/ractive":96,"screenfull":98,"sizzle":99,"sortablejs":100,"zazate.js":133}],42:[function(require,module,exports){
+},{"../engine/audio/audio":4,"../engine/audio/myplayer":6,"../engine/audio_render":7,"../engine/engine":11,"../engine/vdom2dom":24,"../engine/vendor":25,"../scripts/transitions/ractive.transitions.fade":33,"../scripts/transitions/ractive.transitions.fly":34,"./viewer.html":44}],46:[function(require,module,exports){
 /*!
  * Sizzle CSS Selector Engine v2.3.0
  * https://sizzlejs.com/
@@ -9524,7 +10065,7 @@ if ( typeof define === "function" && define.amd ) {
 
 })( window );
 
-},{}],43:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -9593,7 +10134,7 @@ if ( typeof define === "function" && define.amd ) {
   };
 })();
 
-},{}],44:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -9719,9 +10260,9 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],45:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 /*!
  * Cross-Browser Split 1.1.1
  * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
@@ -9829,7 +10370,7 @@ module.exports = (function split(undef) {
   return self;
 })();
 
-},{}],47:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 (function (root, factory) {
   "use strict";
 
@@ -10141,7 +10682,7 @@ module.exports = (function split(undef) {
 
 
 
-},{}],48:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -10382,7 +10923,7 @@ module.exports = (function split(undef) {
   });
 });
 
-},{"../../lib/codemirror":49}],49:[function(require,module,exports){
+},{"../../lib/codemirror":53}],53:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -19282,7 +19823,7 @@ module.exports = (function split(undef) {
   return CodeMirror;
 });
 
-},{}],50:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19380,7 +19921,7 @@ module.exports.reset = require('./reset')
  */
 module.exports.REVERSE_MAP = null
 
-},{"./prototype/addEvents":51,"./prototype/bind":52,"./prototype/bindMultiple":53,"./prototype/bindSequence":54,"./prototype/bindSingle":55,"./prototype/detach":56,"./prototype/fireCallback":57,"./prototype/getKeyInfo":58,"./prototype/getMatches":59,"./prototype/getReverseMap":60,"./prototype/handleKey":61,"./prototype/pickBestAction":64,"./prototype/reset.js":65,"./prototype/resetSequenceTimer":66,"./prototype/resetSequences":67,"./prototype/stopCallback":68,"./prototype/trigger":69,"./prototype/unbind":70,"./reset":71}],51:[function(require,module,exports){
+},{"./prototype/addEvents":55,"./prototype/bind":56,"./prototype/bindMultiple":57,"./prototype/bindSequence":58,"./prototype/bindSingle":59,"./prototype/detach":60,"./prototype/fireCallback":61,"./prototype/getKeyInfo":62,"./prototype/getMatches":63,"./prototype/getReverseMap":64,"./prototype/handleKey":65,"./prototype/pickBestAction":68,"./prototype/reset.js":69,"./prototype/resetSequenceTimer":70,"./prototype/resetSequences":71,"./prototype/stopCallback":72,"./prototype/trigger":73,"./prototype/unbind":74,"./reset":75}],55:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 module.exports = function () {
@@ -19395,7 +19936,7 @@ module.exports = function () {
   on(element, 'keyup', self.eventHandler)
 }
 
-},{"./handleKeyEvent":62,"dom-event":83}],52:[function(require,module,exports){
+},{"./handleKeyEvent":66,"dom-event":87}],56:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -19420,7 +19961,7 @@ module.exports = function (keys, callback, action) {
   return self
 }
 
-},{}],53:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19440,7 +19981,7 @@ module.exports = function (combinations, callback, action) {
   }
 }
 
-},{}],54:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19520,7 +20061,7 @@ module.exports = function (combo, keys, callback, action) {
   }
 }
 
-},{"../../helpers/characterFromEvent":72}],55:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":76}],59:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19578,7 +20119,7 @@ module.exports = function (combination, callback, action, sequenceName, level) {
   })
 }
 
-},{}],56:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 var off = require('dom-event').off
 module.exports = function () {
   var self = this
@@ -19589,7 +20130,7 @@ module.exports = function () {
   off(element, 'keyup', self.eventHandler)
 }
 
-},{"dom-event":83}],57:[function(require,module,exports){
+},{"dom-event":87}],61:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19621,7 +20162,7 @@ module.exports = function (callback, e, combo, sequence) {
   }
 }
 
-},{"../../helpers/preventDefault":76,"../../helpers/stopPropagation":81}],58:[function(require,module,exports){
+},{"../../helpers/preventDefault":80,"../../helpers/stopPropagation":85}],62:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19684,7 +20225,7 @@ module.exports = function (combination, action) {
   }
 }
 
-},{"../../helpers/isModifier":74,"../../helpers/keysFromString":75,"../../helpers/shift-map":77,"../../helpers/special-aliases":78}],59:[function(require,module,exports){
+},{"../../helpers/isModifier":78,"../../helpers/keysFromString":79,"../../helpers/shift-map":81,"../../helpers/special-aliases":82}],63:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19773,7 +20314,7 @@ module.exports = function (character, modifiers, e, sequenceName, combination, l
   return matches
 }
 
-},{"../../helpers/isModifier":74,"./modifiersMatch":63}],60:[function(require,module,exports){
+},{"../../helpers/isModifier":78,"./modifiersMatch":67}],64:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19806,7 +20347,7 @@ module.exports = function () {
   return constructor.REVERSE_MAP
 }
 
-},{"../../helpers/special-keys-map":80}],61:[function(require,module,exports){
+},{"../../helpers/special-keys-map":84}],65:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19901,7 +20442,7 @@ module.exports = function (character, modifiers, e) {
   self.ignoreNextKeypress = processedSequenceCallback && e.type === 'keydown'
 }
 
-},{"../../helpers/isModifier":74}],62:[function(require,module,exports){
+},{"../../helpers/isModifier":78}],66:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19939,7 +20480,7 @@ module.exports = function (e) {
   self.handleKey(character, eventModifiers(e), e)
 }
 
-},{"../../helpers/characterFromEvent":72,"../../helpers/eventModifiers":73}],63:[function(require,module,exports){
+},{"../../helpers/characterFromEvent":76,"../../helpers/eventModifiers":77}],67:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19954,7 +20495,7 @@ module.exports = function (modifiers1, modifiers2) {
   return modifiers1.sort().join(',') === modifiers2.sort().join(',')
 }
 
-},{}],64:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -19983,7 +20524,7 @@ module.exports = function (key, modifiers, action) {
   return action
 }
 
-},{}],65:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20001,7 +20542,7 @@ module.exports = function () {
   return this
 }
 
-},{}],66:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20024,7 +20565,7 @@ module.exports = function () {
   )
 }
 
-},{}],67:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20055,7 +20596,7 @@ module.exports = function (doNotReset) {
   }
 }
 
-},{}],68:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20078,7 +20619,7 @@ module.exports = function (e, element) {
   return tagName === 'input' || tagName === 'select' || tagName === 'textarea' || element.isContentEditable
 }
 
-},{}],69:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20096,7 +20637,7 @@ module.exports = function (keys, action) {
   return this
 }
 
-},{}],70:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20122,7 +20663,7 @@ module.exports = function (keys, action) {
   return self.bind(keys, function () {}, action)
 }
 
-},{}],71:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20134,7 +20675,7 @@ module.exports = function () {
   })
 }
 
-},{}],72:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20187,7 +20728,7 @@ module.exports = function (e) {
   return String.fromCharCode(e.which).toLowerCase()
 }
 
-},{"./special-characters-map":79,"./special-keys-map":80}],73:[function(require,module,exports){
+},{"./special-characters-map":83,"./special-keys-map":84}],77:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20219,7 +20760,7 @@ module.exports = function (e) {
   return modifiers
 }
 
-},{}],74:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20233,7 +20774,7 @@ module.exports = function (key) {
   return key === 'shift' || key === 'ctrl' || key === 'alt' || key === 'meta'
 }
 
-},{}],75:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20251,7 +20792,7 @@ module.exports = function (combination) {
   return combination.split('+')
 }
 
-},{}],76:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20270,7 +20811,7 @@ module.exports = function (e) {
   e.returnValue = false
 }
 
-},{}],77:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20305,7 +20846,7 @@ module.exports = {
   '|': '\\'
 }
 
-},{}],78:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20322,7 +20863,7 @@ module.exports = {
   'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
 }
 
-},{}],79:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20352,7 +20893,7 @@ module.exports = {
   222: "'"
 }
 
-},{}],80:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 /**
@@ -20406,7 +20947,7 @@ for (i = 0; i <= 9; ++i) {
   module.exports[i + 96] = i
 }
 
-},{}],81:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 /* eslint-env node, browser */
 'use strict'
 
@@ -20425,7 +20966,7 @@ module.exports = function (e) {
   e.cancelBubble = true
 }
 
-},{}],82:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 /* See LICENSE file for terms of use */
 
 /*
@@ -20796,7 +21337,7 @@ if (typeof module !== 'undefined') {
     module.exports = JsDiff;
 }
 
-},{}],83:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = on;
 module.exports.on = on;
 module.exports.off = off;
@@ -20813,7 +21354,7 @@ function off (element, event, callback, capture) {
   return callback;
 }
 
-},{}],84:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -20845,7 +21386,7 @@ function off (element, event, callback, capture) {
 
 });
 
-},{}],85:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 'use strict';
 
 var OneVersionConstraint = require('individual/one-version');
@@ -20867,7 +21408,7 @@ function EvStore(elem) {
     return hash;
 }
 
-},{"individual/one-version":88}],86:[function(require,module,exports){
+},{"individual/one-version":92}],90:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -20887,7 +21428,7 @@ if (typeof document !== 'undefined') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"min-document":45}],87:[function(require,module,exports){
+},{"min-document":49}],91:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -20911,7 +21452,7 @@ function Individual(key, value) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],88:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 'use strict';
 
 var Individual = require('./index.js');
@@ -20935,14 +21476,14 @@ function OneVersion(moduleName, version, defaultValue) {
     return Individual(key, defaultValue);
 }
 
-},{"./index.js":87}],89:[function(require,module,exports){
+},{"./index.js":91}],93:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
 	return typeof x === "object" && x !== null;
 };
 
-},{}],90:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 (function() {
   'use strict';
 
@@ -21315,10 +21856,10 @@ module.exports = function isObject(x) {
   self.fetch.polyfill = true
 })();
 
-},{}],91:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 module.exports = require('whatwg-fetch');
 
-},{"whatwg-fetch":90}],92:[function(require,module,exports){
+},{"whatwg-fetch":94}],96:[function(require,module,exports){
 if (typeof module === "object" && typeof module.exports === "object") module.exports = Lexer;
 
 Lexer.defunct = function (chr) {
@@ -21466,7 +22007,7 @@ function Lexer(defunct) {
     }
 }
 
-},{}],93:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -28257,7 +28798,7 @@ function Lexer(defunct) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],94:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 
 ;(function(){
 
@@ -28703,7 +29244,7 @@ function Lexer(defunct) {
 
 })();
 
-},{}],95:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 /*!
 	query-string
 	Parse and stringify URL query strings
@@ -28771,7 +29312,7 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],96:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 /*
 	ractive.js v0.6.1
 	2014-10-25 - commit 3a576eb3 
@@ -43120,7 +43661,7 @@ function Lexer(defunct) {
 
 }( typeof window !== 'undefined' ? window : this ) );
 
-},{}],97:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 ;(function(root, factory) {
 
   // Support AMD
@@ -43482,7 +44023,7 @@ function Lexer(defunct) {
 
   return randomColor;
 }));
-},{}],98:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 /*!
 * screenfull
 * v1.2.0 - 2014-04-29
@@ -43639,9 +44180,9 @@ function Lexer(defunct) {
 	}
 })();
 
-},{}],99:[function(require,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],100:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
+arguments[4][46][0].apply(exports,arguments)
+},{"dup":46}],104:[function(require,module,exports){
 /**!
  * Sortable
  * @author	RubaXa   <trash@rubaxa.org>
@@ -44892,27 +45433,27 @@ arguments[4][42][0].apply(exports,arguments)
 	return Sortable;
 });
 
-},{}],101:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":106}],102:[function(require,module,exports){
+},{"./vdom/create-element.js":110}],106:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":129}],103:[function(require,module,exports){
+},{"./vtree/diff.js":133}],107:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":114}],104:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":118}],108:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":109}],105:[function(require,module,exports){
+},{"./vdom/patch.js":113}],109:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -45011,7 +45552,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":120,"is-object":89}],106:[function(require,module,exports){
+},{"../vnode/is-vhook.js":124,"is-object":93}],110:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -45059,7 +45600,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":118,"../vnode/is-vnode.js":121,"../vnode/is-vtext.js":122,"../vnode/is-widget.js":123,"./apply-properties":105,"global/document":86}],107:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":122,"../vnode/is-vnode.js":125,"../vnode/is-vtext.js":126,"../vnode/is-widget.js":127,"./apply-properties":109,"global/document":90}],111:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -45146,7 +45687,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],108:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -45299,7 +45840,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":123,"../vnode/vpatch.js":126,"./apply-properties":105,"./update-widget":110}],109:[function(require,module,exports){
+},{"../vnode/is-widget.js":127,"../vnode/vpatch.js":130,"./apply-properties":109,"./update-widget":114}],113:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -45381,7 +45922,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./create-element":106,"./dom-index":107,"./patch-op":108,"global/document":86,"x-is-array":130}],110:[function(require,module,exports){
+},{"./create-element":110,"./dom-index":111,"./patch-op":112,"global/document":90,"x-is-array":134}],114:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -45398,7 +45939,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":123}],111:[function(require,module,exports){
+},{"../vnode/is-widget.js":127}],115:[function(require,module,exports){
 'use strict';
 
 module.exports = AttributeHook;
@@ -45435,7 +45976,7 @@ AttributeHook.prototype.unhook = function (node, prop, next) {
 
 AttributeHook.prototype.type = 'AttributeHook';
 
-},{}],112:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -45464,7 +46005,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":85}],113:[function(require,module,exports){
+},{"ev-store":89}],117:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -45483,7 +46024,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],114:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -45622,7 +46163,7 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":119,"../vnode/is-vhook":120,"../vnode/is-vnode":121,"../vnode/is-vtext":122,"../vnode/is-widget":123,"../vnode/vnode.js":125,"../vnode/vtext.js":127,"./hooks/ev-hook.js":112,"./hooks/soft-set-hook.js":113,"./parse-tag.js":115,"x-is-array":130}],115:[function(require,module,exports){
+},{"../vnode/is-thunk":123,"../vnode/is-vhook":124,"../vnode/is-vnode":125,"../vnode/is-vtext":126,"../vnode/is-widget":127,"../vnode/vnode.js":129,"../vnode/vtext.js":131,"./hooks/ev-hook.js":116,"./hooks/soft-set-hook.js":117,"./parse-tag.js":119,"x-is-array":134}],119:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
@@ -45678,7 +46219,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":46}],116:[function(require,module,exports){
+},{"browser-split":50}],120:[function(require,module,exports){
 'use strict';
 
 var DEFAULT_NAMESPACE = null;
@@ -45993,7 +46534,7 @@ function SVGAttributeNamespace(value) {
   }
 }
 
-},{}],117:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -46057,7 +46598,7 @@ function isChildren(x) {
     return typeof x === 'string' || isArray(x);
 }
 
-},{"./hooks/attribute-hook":111,"./index.js":114,"./svg-attribute-namespace":116,"x-is-array":130}],118:[function(require,module,exports){
+},{"./hooks/attribute-hook":115,"./index.js":118,"./svg-attribute-namespace":120,"x-is-array":134}],122:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -46099,14 +46640,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":119,"./is-vnode":121,"./is-vtext":122,"./is-widget":123}],119:[function(require,module,exports){
+},{"./is-thunk":123,"./is-vnode":125,"./is-vtext":126,"./is-widget":127}],123:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],120:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -46115,7 +46656,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],121:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -46124,7 +46665,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":124}],122:[function(require,module,exports){
+},{"./version":128}],126:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -46133,17 +46674,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":124}],123:[function(require,module,exports){
+},{"./version":128}],127:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],124:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 module.exports = "2"
 
-},{}],125:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -46217,7 +46758,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":119,"./is-vhook":120,"./is-vnode":121,"./is-widget":123,"./version":124}],126:[function(require,module,exports){
+},{"./is-thunk":123,"./is-vhook":124,"./is-vnode":125,"./is-widget":127,"./version":128}],130:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -46241,7 +46782,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":124}],127:[function(require,module,exports){
+},{"./version":128}],131:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -46253,7 +46794,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":124}],128:[function(require,module,exports){
+},{"./version":128}],132:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -46313,7 +46854,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":120,"is-object":89}],129:[function(require,module,exports){
+},{"../vnode/is-vhook":124,"is-object":93}],133:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -46742,7 +47283,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":118,"../vnode/is-thunk":119,"../vnode/is-vnode":121,"../vnode/is-vtext":122,"../vnode/is-widget":123,"../vnode/vpatch":126,"./diff-props":128,"x-is-array":130}],130:[function(require,module,exports){
+},{"../vnode/handle-thunk":122,"../vnode/is-thunk":123,"../vnode/is-vnode":125,"../vnode/is-vtext":126,"../vnode/is-widget":127,"../vnode/vpatch":130,"./diff-props":132,"x-is-array":134}],134:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -46752,7 +47293,7 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],131:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	diatonic = require('./diatonic.js'),
@@ -48106,7 +48647,7 @@ exports.determine_extended_chord5 = determine_extended_chord5;
 exports.determine_extended_chord6 = determine_extended_chord6;
 exports.determine_extended_chord7 = determine_extended_chord7;
 exports.determine_polychords = determine_polychords;
-},{"../node_modules/underscore":138,"./diatonic.js":132,"./intervals.js":134,"./notes.js":136}],132:[function(require,module,exports){
+},{"../node_modules/underscore":142,"./diatonic.js":136,"./intervals.js":138,"./notes.js":140}],136:[function(require,module,exports){
 var notes = require('./notes.js'),
 	_ = require('../node_modules/underscore');
 
@@ -48222,14 +48763,14 @@ exports._key_cache = _key_cache;
 exports.get_notes = get_notes;
 exports.int_to_note = int_to_note;
 exports.interval = interval;
-},{"../node_modules/underscore":138,"./notes.js":136}],133:[function(require,module,exports){
+},{"../node_modules/underscore":142,"./notes.js":140}],137:[function(require,module,exports){
 exports.diatonic = require('./diatonic.js');
 exports.notes = require('./notes.js');
 exports.intervals = require('./intervals.js');
 exports.chords = require('./chords.js');
 exports.scales = require('./scales.js');
 exports.meter = require('./meter.js');
-},{"./chords.js":131,"./diatonic.js":132,"./intervals.js":134,"./meter.js":135,"./notes.js":136,"./scales.js":137}],134:[function(require,module,exports){
+},{"./chords.js":135,"./diatonic.js":136,"./intervals.js":138,"./meter.js":139,"./notes.js":140,"./scales.js":141}],138:[function(require,module,exports){
 var notes = require('./notes.js'),
 	diatonic = require('./diatonic.js');
 	_ = require('../node_modules/underscore');
@@ -48681,7 +49222,7 @@ exports.is_consonant = is_consonant;
 exports.is_dissonant = is_dissonant;
 exports.is_perfect_consonant = is_perfect_consonant;
 exports.is_imperfect_consonant = is_imperfect_consonant;
-},{"../node_modules/underscore":138,"./diatonic.js":132,"./notes.js":136}],135:[function(require,module,exports){
+},{"../node_modules/underscore":142,"./diatonic.js":136,"./notes.js":140}],139:[function(require,module,exports){
 common_time = (4, 4);
 cut_time = (2, 2);
 
@@ -48723,7 +49264,7 @@ exports.is_valid = is_valid;
 exports.is_compound = is_compound;
 exports.is_asymmetrical = is_asymmetrical;
 exports.is_simple = is_simple;
-},{}],136:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	_ = require('../node_modules/underscore');
 
@@ -48865,7 +49406,7 @@ exports.augment = augment
 exports.diminish = diminish;
 exports.to_major = to_major;
 exports.to_minor = to_minor;
-},{"../node_modules/underscore":138,"./intervals.js":134}],137:[function(require,module,exports){
+},{"../node_modules/underscore":142,"./intervals.js":138}],141:[function(require,module,exports){
 var intervals = require('./intervals.js'),
 	notes = require('./notes.js'),
 	get_notes = require('./diatonic.js').get_notes,
@@ -49081,7 +49622,7 @@ exports.chromatic = chromatic;
 exports.whole_note = whole_note;
 exports.diminished = diminished;
 exports.determine = determine;
-},{"../node_modules/underscore":138,"./diatonic.js":132,"./intervals.js":134,"./notes.js":136}],138:[function(require,module,exports){
+},{"../node_modules/underscore":142,"./diatonic.js":136,"./intervals.js":138,"./notes.js":140}],142:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -50359,493 +50900,7 @@ exports.determine = determine;
 
 }).call(this);
 
-},{}],139:[function(require,module,exports){
-'use strict';
-
-/* Example definition of a simple mode that understands a subset of
- * JavaScript:
- */
-var CodeMirror = require('codemirror'),
-    CodeMirrorSimple = require('./codemirror_simple');
-
-CodeMirror.defineSimpleMode("abc", {
-  // The start state contains the rules that are intially used
-  start: [
-  // The regex matches the token, the token property contains the type
-  { regex: /\|/, token: "barline" }, { regex: /(X|T|Z|S|R|M|L|K):/, token: "header-indicator", next: "header" }, { regex: /[0-9]+/, token: "note-length" }, { regex: /`/, token: "backtick" }],
-
-  // You can match multiple tokens at once. Note that the captured
-  // groups must span the whole string in this case
-  //{regex: /(function)(\s+)([a-z$][\w$]*)/,
-  //token: ["keyword", null, "variable-2"]},
-  // Rules are matched in the order in which they appear, so there is
-  // no ambiguity between this one and the one above
-  //{regex: /(?:function|var|return|if|for|while|else|do|this)\b/,
-  // token: "keyword"},
-  //{regex: /true|false|null|undefined/, token: "atom"},
-  //{regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i,
-  // token: "number"},
-  //{regex: /\/\/.*/, token: "comment"},
-  //{regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3"},
-  // A next property will cause the mode to move to a different state
-  // {regex: /\/\*/, token: "comment", next: "comment"},
-  //{regex: /[-+\/*=<>!]+/, token: "operator"},
-  // indent and dedent properties guide autoindentation
-  //{regex: /[\{\[\(]/, indent: true},
-  //{regex: /[\}\]\)]/, dedent: true},
-  //{regex: /[a-z$][\w$]*/, token: "variable"},
-  // You can embed other modes with the mode property. This rule
-  // causes all code between << and >> to be highlighted with the XML
-  // mode.
-  //{regex: /<</, token: "meta", mode: {spec: "xml", end: />>/}}
-  // The multi-line comment state.
-  //comment: [
-  //  {regex: /.*?\*\//, token: "comment", next: "start"},
-  //  {regex: /.*/, token: "comment"}
-  //],
-  header: [{ regex: /.*/, token: "header-text", next: "start" }],
-  // The meta property contains global information about the mode. It
-  // can contain properties like lineComment, which are supported by
-  // all modes, and also directives like dontIndentStates, which are
-  // specific to simple modes.
-  meta: {
-    //dontIndentStates: ["comment"],
-    lineComment: "//"
-  }
-});
-
-},{"./codemirror_simple":140,"codemirror":49}],140:[function(require,module,exports){
-"use strict";
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: http://codemirror.net/LICENSE
-
-(function (mod) {
-  if ((typeof exports === "undefined" ? "undefined" : _typeof(exports)) == "object" && (typeof module === "undefined" ? "undefined" : _typeof(module)) == "object") // CommonJS
-    mod(require('./../engine/vendor.js').codeMirror);else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], mod);else // Plain browser env
-    mod(CodeMirror);
-})(function (CodeMirror) {
-  "use strict";
-
-  CodeMirror.defineSimpleMode = function (name, states) {
-    CodeMirror.defineMode(name, function (config) {
-      return CodeMirror.simpleMode(config, states);
-    });
-  };
-
-  CodeMirror.simpleMode = function (config, states) {
-    ensureState(states, "start");
-    var states_ = {},
-        meta = states.meta || {},
-        hasIndentation = false;
-    for (var state in states) {
-      if (state != meta && states.hasOwnProperty(state)) {
-        var list = states_[state] = [],
-            orig = states[state];
-        for (var i = 0; i < orig.length; i++) {
-          var data = orig[i];
-          list.push(new Rule(data, states));
-          if (data.indent || data.dedent) hasIndentation = true;
-        }
-      }
-    }var mode = {
-      startState: function startState() {
-        return { state: "start", pending: null,
-          local: null, localState: null,
-          indent: hasIndentation ? [] : null };
-      },
-      copyState: function copyState(state) {
-        var s = { state: state.state, pending: state.pending,
-          local: state.local, localState: null,
-          indent: state.indent && state.indent.slice(0) };
-        if (state.localState) s.localState = CodeMirror.copyState(state.local.mode, state.localState);
-        if (state.stack) s.stack = state.stack.slice(0);
-        for (var pers = state.persistentStates; pers; pers = pers.next) {
-          s.persistentStates = { mode: pers.mode,
-            spec: pers.spec,
-            state: pers.state == state.localState ? s.localState : CodeMirror.copyState(pers.mode, pers.state),
-            next: s.persistentStates };
-        }return s;
-      },
-      token: tokenFunction(states_, config),
-      innerMode: function innerMode(state) {
-        return state.local && { mode: state.local.mode, state: state.localState };
-      },
-      indent: indentFunction(states_, meta)
-    };
-    if (meta) for (var prop in meta) {
-      if (meta.hasOwnProperty(prop)) mode[prop] = meta[prop];
-    }return mode;
-  };
-
-  function ensureState(states, name) {
-    if (!states.hasOwnProperty(name)) throw new Error("Undefined state " + name + "in simple mode");
-  }
-
-  function toRegex(val, caret) {
-    if (!val) return (/(?:)/
-    );
-    var flags = "";
-    if (val instanceof RegExp) {
-      if (val.ignoreCase) flags = "i";
-      val = val.source;
-    } else {
-      val = String(val);
-    }
-    return new RegExp((caret === false ? "" : "^") + "(?:" + val + ")", flags);
-  }
-
-  function asToken(val) {
-    if (!val) return null;
-    if (typeof val == "string") return val.replace(/\./g, " ");
-    var result = [];
-    for (var i = 0; i < val.length; i++) {
-      result.push(val[i] && val[i].replace(/\./g, " "));
-    }return result;
-  }
-
-  function Rule(data, states) {
-    if (data.next || data.push) ensureState(states, data.next || data.push);
-    this.regex = toRegex(data.regex);
-    this.token = asToken(data.token);
-    this.data = data;
-  }
-
-  function tokenFunction(states, config) {
-    return function (stream, state) {
-      if (state.pending) {
-        var pend = state.pending.shift();
-        if (state.pending.length == 0) state.pending = null;
-        stream.pos += pend.text.length;
-        return pend.token;
-      }
-
-      if (state.local) {
-        if (state.local.end && stream.match(state.local.end)) {
-          var tok = state.local.endToken || null;
-          state.local = state.localState = null;
-          return tok;
-        } else {
-          var tok = state.local.mode.token(stream, state.localState),
-              m;
-          if (state.local.endScan && (m = state.local.endScan.exec(stream.current()))) stream.pos = stream.start + m.index;
-          return tok;
-        }
-      }
-
-      var curState = states[state.state];
-      for (var i = 0; i < curState.length; i++) {
-        var rule = curState[i];
-        var matches = (!rule.data.sol || stream.sol()) && stream.match(rule.regex);
-        if (matches) {
-          if (rule.data.next) {
-            state.state = rule.data.next;
-          } else if (rule.data.push) {
-            (state.stack || (state.stack = [])).push(state.state);
-            state.state = rule.data.push;
-          } else if (rule.data.pop && state.stack && state.stack.length) {
-            state.state = state.stack.pop();
-          }
-
-          if (rule.data.mode) enterLocalMode(config, state, rule.data.mode, rule.token);
-          if (rule.data.indent) state.indent.push(stream.indentation() + config.indentUnit);
-          if (rule.data.dedent) state.indent.pop();
-          if (matches.length > 2) {
-            state.pending = [];
-            for (var j = 2; j < matches.length; j++) {
-              if (matches[j]) state.pending.push({ text: matches[j], token: rule.token[j - 1] });
-            }stream.backUp(matches[0].length - (matches[1] ? matches[1].length : 0));
-            return rule.token[0];
-          } else if (rule.token && rule.token.join) {
-            return rule.token[0];
-          } else {
-            return rule.token;
-          }
-        }
-      }
-      stream.next();
-      return null;
-    };
-  }
-
-  function cmp(a, b) {
-    if (a === b) return true;
-    if (!a || (typeof a === "undefined" ? "undefined" : _typeof(a)) != "object" || !b || (typeof b === "undefined" ? "undefined" : _typeof(b)) != "object") return false;
-    var props = 0;
-    for (var prop in a) {
-      if (a.hasOwnProperty(prop)) {
-        if (!b.hasOwnProperty(prop) || !cmp(a[prop], b[prop])) return false;
-        props++;
-      }
-    }for (var prop in b) {
-      if (b.hasOwnProperty(prop)) props--;
-    }return props == 0;
-  }
-
-  function enterLocalMode(config, state, spec, token) {
-    var pers;
-    if (spec.persistent) for (var p = state.persistentStates; p && !pers; p = p.next) {
-      if (spec.spec ? cmp(spec.spec, p.spec) : spec.mode == p.mode) pers = p;
-    }var mode = pers ? pers.mode : spec.mode || CodeMirror.getMode(config, spec.spec);
-    var lState = pers ? pers.state : CodeMirror.startState(mode);
-    if (spec.persistent && !pers) state.persistentStates = { mode: mode, spec: spec.spec, state: lState, next: state.persistentStates };
-
-    state.localState = lState;
-    state.local = { mode: mode,
-      end: spec.end && toRegex(spec.end),
-      endScan: spec.end && spec.forceEnd !== false && toRegex(spec.end, false),
-      endToken: token && token.join ? token[token.length - 1] : token };
-  }
-
-  function indexOf(val, arr) {
-    for (var i = 0; i < arr.length; i++) {
-      if (arr[i] === val) return true;
-    }
-  }
-
-  function indentFunction(states, meta) {
-    return function (state, textAfter, line) {
-      if (state.local && state.local.mode.indent) return state.local.mode.indent(state.localState, textAfter, line);
-      if (state.indent == null || state.local || meta.dontIndentStates && indexOf(state.state, meta.dontIndentStates) > -1) return CodeMirror.Pass;
-
-      var pos = state.indent.length - 1,
-          rules = states[state.state];
-      scan: for (;;) {
-        for (var i = 0; i < rules.length; i++) {
-          var rule = rules[i];
-          if (rule.data.dedent && rule.data.dedentIfLineStart !== false) {
-            var m = rule.regex.exec(textAfter);
-            if (m && m[0]) {
-              pos--;
-              if (rule.next || rule.push) rules = states[rule.next || rule.push];
-              textAfter = textAfter.slice(m[0].length);
-              continue scan;
-            }
-          }
-        }
-        break;
-      }
-      return pos < 0 ? 0 : state.indent[pos];
-    };
-  }
-});
-
-},{"./../engine/vendor.js":41}],141:[function(require,module,exports){
-'use strict';
-
-/*
-
-	ractive-transitions-fade
-	========================
-
-	Version 0.1.2.
-
-	This plugin does exactly what it says on the tin - it fades elements
-	in and out, using CSS transitions. You can control the following
-	properties: `duration`, `delay` and `easing` (which must be a valid
-	CSS transition timing function, and defaults to `linear`).
-
-	The `duration` property is in milliseconds, and defaults to 300 (you
-	can also use `fast` or `slow` instead of a millisecond value, which
-	equate to 200 and 600 respectively). As a shorthand, you can use
-	`intro='fade:500'` instead of `intro='fade:{"duration":500}'` - this
-	applies to many other transition plugins as well.
-
-	If an element has an opacity other than 1 (whether directly, because
-	of an inline style, or indirectly because of a CSS rule), it will be
-	respected. You can override the target opacity of an intro fade by
-	specifying a `to` property between 0 and 1.
-
-	==========================
-
-	Troubleshooting: If you're using a module system in your app (AMD or
-	something more nodey) then you may need to change the paths below,
-	where it says `require( 'Ractive' )` or `define([ 'Ractive' ]...)`.
-
-	==========================
-
-	Usage: Include this file on your page below Ractive, e.g:
-
-	    <script src='lib/ractive.js'></script>
-	    <script src='lib/ractive-transitions-fade.js'></script>
-
-	Or, if you're using a module loader, require this module:
-
-	    // requiring the plugin will 'activate' it - no need to use
-	    // the return value
-	    require( 'ractive-transitions-fade' );
-
-	Add a fade transition like so:
-
-	    <div intro='fade'>this will fade in</div>
-
-*/
-
-(function (global, factory) {
-
-	'use strict';
-
-	// Common JS (i.e. browserify) environment
-
-	if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
-		factory(require('./../../engine/vendor.js').Ractive);
-	}
-
-	// AMD?
-	else if (typeof define === 'function' && define.amd) {
-			define(['ractive'], factory);
-		}
-
-		// browser global
-		else if (global.Ractive) {
-				factory(global.Ractive);
-			} else {
-				throw new Error('Could not find Ractive! It must be loaded before the ractive-transitions-fade plugin');
-			}
-})(typeof window !== 'undefined' ? window : undefined, function (Ractive) {
-
-	'use strict';
-
-	var fade, defaults;
-
-	defaults = {
-		delay: 0,
-		duration: 300,
-		easing: 'linear'
-	};
-
-	fade = function fade(t, params) {
-		var targetOpacity;
-
-		params = t.processParams(params, defaults);
-
-		if (t.isIntro) {
-			targetOpacity = t.getStyle('opacity');
-			t.setStyle('opacity', 0);
-		} else {
-			targetOpacity = 0;
-		}
-
-		t.animateStyle('opacity', targetOpacity, params).then(t.complete);
-	};
-
-	Ractive.transitions.fade = fade;
-});
-
-},{"./../../engine/vendor.js":41}],142:[function(require,module,exports){
-'use strict';
-
-/*
-
-	ractive-transitions-fly
-	=======================
-
-	Version 0.1.3.
-
-	This transition uses CSS transforms to 'fly' elements to their
-	natural location on the page, fading in from transparent as they go.
-	By default, they will fly in from left.
-
-	==========================
-
-	Troubleshooting: If you're using a module system in your app (AMD or
-	something more nodey) then you may need to change the paths below,
-	where it says `require( 'ractive' )` or `define([ 'ractive' ]...)`.
-
-	==========================
-
-	Usage: Include this file on your page below Ractive, e.g:
-
-	    <script src='lib/ractive.js'></script>
-	    <script src='lib/ractive-transitions-fly.js'></script>
-
-	Or, if you're using a module loader, require this module:
-
-	    // requiring the plugin will 'activate' it - no need to use
-	    // the return value
-	    require( 'ractive-transitions-fly' );
-
-	You can adjust the following parameters: `x`, `y`, `duration`,
-	`delay` and `easing`.
-
-*/
-
-(function (global, factory) {
-
-	'use strict';
-
-	// Common JS (i.e. browserify) environment
-
-	if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
-		factory(require('./../../engine/vendor.js').Ractive);
-	}
-
-	// AMD?
-	else if (typeof define === 'function' && define.amd) {
-			define(['ractive'], factory);
-		}
-
-		// browser global
-		else if (global.Ractive) {
-				factory(global.Ractive);
-			} else {
-				throw new Error('Could not find Ractive! It must be loaded before the ractive-transitions-fly plugin');
-			}
-})(typeof window !== 'undefined' ? window : undefined, function (Ractive) {
-
-	'use strict';
-
-	var fly, addPx, defaults;
-
-	defaults = {
-		duration: 400,
-		easing: 'easeOut',
-		opacity: 0,
-		x: -500,
-		y: 0
-	};
-
-	addPx = function addPx(num) {
-		if (num === 0 || typeof num === 'string') {
-			return num;
-		}
-
-		return num + 'px';
-	};
-
-	fly = function fly(t, params) {
-		var x, y, offscreen, target;
-
-		params = t.processParams(params, defaults);
-
-		x = addPx(params.x);
-		y = addPx(params.y);
-
-		offscreen = {
-			transform: 'translate(' + x + ',' + y + ')',
-			opacity: 0
-		};
-
-		if (t.isIntro) {
-			// animate to the current style
-			target = t.getStyle(['opacity', 'transform']);
-
-			// set offscreen style
-			t.setStyle(offscreen);
-		} else {
-			target = offscreen;
-		}
-
-		t.animateStyle(target, params).then(t.complete);
-	};
-
-	Ractive.transitions.fly = fly;
-});
-
-},{"./../../engine/vendor.js":41}]},{},[1])
+},{}]},{},[1])
 
 
 //# sourceMappingURL=bundle.js.map

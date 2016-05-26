@@ -1,4 +1,4 @@
-var page = require('vendor').page;
+var page = require('engine/vendor').page;
 
 var loggedIn = false,
     userData = {};

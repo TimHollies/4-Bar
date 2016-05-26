@@ -1,10 +1,10 @@
 'use strict';
 
 var
-    fade = require('scripts/transitions/ractive.transitions.fade'),
-    fly = require('scripts/transitions/ractive.transitions.fly'),
-    toastr = require('vendor').toastr,
-    ractive = require('vendor').ractive,
+    fade = require('../scripts/transitions/ractive.transitions.fade'),
+    fly = require('../scripts/transitions/ractive.transitions.fly'),
+    toastr = require('../engine/vendor').toastr,
+    ractive = require('../engine/vendor').ractive,
     _ = require('lodash');
 
 
