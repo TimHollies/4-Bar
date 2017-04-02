@@ -1,12 +1,11 @@
 'use strict';
 
-var
-    _ = require('../engine/vendor').lodash,
+const
+    _ = require('lodash').lodash,
     engine = require('../engine/engine'),
 
     ABCParser = engine.parser,
     diff = engine.diff,
-    //dispatcher = engine.dispatcher,
     ABCLayout = engine.layout,
     ABCRenderer = engine.render,
     ABCRenderToDOM = require('../engine/vdom2dom'),
@@ -18,23 +17,20 @@ var
     CodeMirrorABCMode = require('../scripts/abc_mode'),
     CodeMirror = require('../engine/vendor').codeMirror,
     CodeMirrorLint = require('../engine/vendor').codeMirrorLint,
-    siz = require('../engine/vendor').sizzle,
-    queryString = require('../engine/vendor').queryString,
+    siz = require('sizzle'),
+    queryString = require('querystring'),
 
-    FileSaver = require('../engine/vendor').filesaver,
-    toastr = require('../engine/vendor').toastr,
-    Combokeys = require('../engine/vendor').combokeys,
+    FileSaver = require('filesaver'),
+    toastr = require('toastr'),
+    Combokeys = require('combokeys'),
     AbcLine = require('../engine/types/LineCollection').AbcLine,
 
     TunePlayer = require('../engine/audio/myplayer');
 
-require('../scripts/transitions/ractive.transitions.fade');
-require('../scripts/transitions/ractive.transitions.fly');
 
+const emptyTuneName = "Untitled Tune"; 
 
-var emptyTuneName = "Untitled Tune"; 
-
-var textFile = null,
+const textFile = null,
     makeTextFile = function(text) {
         var data = new Blob([text], {
             type: 'text/plain'
@@ -51,7 +47,7 @@ var textFile = null,
         return textFile;
     };
 
-var template = require("./editor.html");
+const EditorView = require("./EditorView");
 
 module.exports = function() {
 
